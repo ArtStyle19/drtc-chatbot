@@ -1,0 +1,130 @@
+# Manifiesto del corpus normativo — fuente de verdad de los documentos fuente y su estado.
+#
+# Reglas (ver corpus/README.md y docs/domain/legal-corpus-rules.md):
+#   - Los PDF de sources/ son inmutables: nunca se editan ni se reemplazan; una versión nueva
+#     de una norma entra como un documento fuente NUEVO y una versión NUEVA del instrumento.
+#   - verification_status solo puede ser "verified_current" tras contrastar el texto con la
+#     fuente oficial (SPIJ / El Peruano / portal de la entidad emisora) y registrar quién y cuándo.
+#   - Un estado desconocido o no verificado NUNCA se presenta como vigente.
+#
+# Valores de verification_status: verified_current | unverified | pending_review | superseded | repealed | unknown
+# Valores de type: ley | decreto_supremo | decreto_legislativo | decreto_de_urgencia | texto_unico_ordenado
+#                  | reglamento | resolucion | ordenanza_regional | otro
+
+schema_version: 1
+updated_on: 2026-11-17
+
+sources:
+  - id: src-ley-27181-2020-06
+    file: sources/ley-27181-lgttt-texto-2020-06.pdf
+    original_filename: "Ley-N-27181-Ley-General-de-Transporte-y-Tránsito-Terrestre.pdf"
+    sha256: b428febd1a0fe72e3d505fb186fbc7ac418c24c20c61bd59e6b3e39581a034bb
+    media_type: application/pdf
+    page_count: 36
+    has_text_layer: true
+    printed_page_labels: none # el PDF no imprime números de página
+    provenance: >-
+      Proporcionado por la DRTC Puno. Compilación no oficial en formato similar al SPIJ
+      (notas "(*)" y "CONCORDANCIAS"); PDF generado con Microsoft Word 2016 el 29-06-2020.
+
+  - id: src-ds-017-2009-mtc-2017-01-04
+    file: sources/ds-017-2009-mtc-renat-actualizado-2017-01-04.pdf
+    original_filename: "DECRETO SUPREMO Nº 017-2009-MTC (actualizado 04.01.2017)-1.pdf"
+    sha256: 679d3235d5d8b1bf21b1abb9be9e9cc85350f03a0ae4e9ad0f99894a170d5e8e
+    media_type: application/pdf
+    page_count: 181
+    has_text_layer: true
+    printed_page_labels: none
+    provenance: >-
+      Proporcionado por la DRTC Puno. Según los metadatos del PDF fue elaborado en la DGTT del
+      MTC (Microsoft Word 2010, marzo-abril de 2017). Texto no oficial actualizado por la entidad.
+
+  - id: src-tuo-ley-27444-minjus-2021
+    file: sources/tuo-ley-27444-ds-004-2019-jus-minjus-2021.pdf
+    original_filename: "tuo27444.pdf"
+    sha256: 99fb47f85ae2e5250c96e1f9b1b55a44dc06582e70d59e1fccae858cdd652bf8
+    media_type: application/pdf
+    page_count: 292
+    has_text_layer: true
+    printed_page_labels: same_as_physical # verificado: el número impreso coincide con la página del PDF
+    provenance: >-
+      Proporcionado por la DRTC Puno. Segunda Edición Oficial del MINJUSDH (julio de 2021),
+      distribución gratuita; Adobe InDesign, 21-07-2021.
+
+instruments:
+  - id: ley-27181
+    type: ley
+    number: "27181"
+    title: Ley General de Transporte y Tránsito Terrestre
+    short_name: Ley 27181 (LGTTT)
+    issuing_authority: Congreso de la República
+    publication_date: 1999-10-08
+    versions:
+      - id: ley-27181@2020-05
+        source: src-ley-27181-2020-06
+        edition_label: Compilación no oficial con modificaciones hasta mayo de 2020
+        consolidated_as_of: null
+        consolidation_note: >-
+          Inferido: la última norma citada en las notas es la RD 012-2020-MTC-18 (publicada el
+          31-05-2020). El documento no declara una fecha de actualización.
+        verification_status: unverified
+        page_ranges:
+          normative: [[1, 36]]
+        alerts:
+          - >-
+            Intercala textos originales y modificados (notas "(*)"): la ingesta debe marcar los
+            textos sustituidos (p. ej. art. 2, modificado por el DU 019-2020).
+          - >-
+            Modificada después de 2020 (p. ej. DL 1707, ene-2026; Ley 32598; Ley 32616):
+            pendiente incorporar el texto vigente (SPIKE-01).
+
+  - id: ds-017-2009-mtc
+    type: decreto_supremo
+    number: "017-2009-MTC"
+    title: Reglamento Nacional de Administración de Transporte
+    short_name: RENAT (DS 017-2009-MTC)
+    issuing_authority: Ministerio de Transportes y Comunicaciones
+    publication_date: 2009-04-22
+    versions:
+      - id: ds-017-2009-mtc@2017-01-04
+        source: src-ds-017-2009-mtc-2017-01-04
+        edition_label: Edición actualizada del MTC (DGTT)
+        consolidated_as_of: 2017-01-04
+        consolidation_note: >-
+          Fecha declarada en el nombre del archivo y coherente con las notas (normas publicadas
+          hasta el 04-01-2017); incluye además una nota del DS 001-2017-MTC (publicado el 12-01-2017).
+        verification_status: unverified
+        page_ranges:
+          normative: [[1, 181]] # pp. 1-2 DS aprobatorio; p. 2 en adelante el Reglamento; anexos 1 y 2 desde p. 166
+        alerts:
+          - >-
+            Modificado en numerosas ocasiones después de 2017 (p. ej. DS 006-2025-MTC, que modifica
+            el art. 11 y los numerales 25.2 y 90.2): pendiente incorporar el texto vigente (SPIKE-01).
+
+  - id: tuo-ley-27444
+    type: texto_unico_ordenado
+    number: "27444"
+    title: Texto Único Ordenado de la Ley N.° 27444, Ley del Procedimiento Administrativo General
+    short_name: TUO de la Ley 27444 (LPAG)
+    issuing_authority: Poder Ejecutivo (aprobado por DS 004-2019-JUS; edición MINJUSDH)
+    publication_date: 2019-01-25
+    versions:
+      - id: tuo-ley-27444@ds-004-2019-jus-ed2021
+        source: src-tuo-ley-27444-minjus-2021
+        edition_label: Segunda Edición Oficial MINJUSDH (julio de 2021)
+        consolidated_as_of: null
+        consolidation_note: >-
+          La Guía del Lector indica que el texto de cada artículo es el vigente a la fecha de la
+          edición (julio de 2021).
+        verification_status: unverified
+        page_ranges:
+          front_matter: [[1, 22]]
+          explanatory: [[23, 68]] # "Manual sobre el TUO": material explicativo, NO normativo
+          normative: [[71, 284]] # pp. 71-77 DS 004-2019-JUS; pp. 78-284 texto del TUO
+          index: [[285, 289]]
+          back_matter: [[290, 292]]
+        alerts:
+          - >-
+            Posiblemente sustituido: el DS 006-2026-JUS (publicado el 30-04-2026) aprobó un nuevo TUO
+            y derogó el aprobado por el DS 004-2019-JUS, con posibles cambios de numeración.
+            Pendiente verificar en El Peruano e incorporar como nueva versión (SPIKE-01).

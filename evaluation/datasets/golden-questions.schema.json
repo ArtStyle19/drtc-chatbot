@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "golden-questions.schema.json",
+  "title": "Pregunta del golden set",
+  "description": "Una línea de evaluation/datasets/*.jsonl",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "question", "intent", "audience", "answerable", "expected", "review_status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^q-[0-9]{3,}$" },
+    "question": { "type": "string", "minLength": 10 },
+    "intent": {
+      "enum": [
+        "exact_provision",
+        "concept",
+        "requirements",
+        "exceptions",
+        "comparison",
+        "practical_case",
+        "out_of_scope",
+        "historical"
+      ]
+    },
+    "audience": { "enum": ["staff", "citizen"] },
+    "answerable": { "type": "boolean" },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer_summary", "citations"],
+      "properties": {
+        "answer_summary": { "type": "string" },
+        "citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["version_id", "provision", "pdf_pages", "supporting_text", "page_role"],
+            "properties": {
+              "version_id": { "type": "string" },
+              "provision": { "type": "string" },
+              "pdf_pages": {
+                "type": "array",
+                "items": { "type": "integer", "minimum": 1 },
+                "minItems": 1
+              },
+              "supporting_text": { "type": "string", "minLength": 10 },
+              "page_role": { "enum": ["normative", "explanatory"] }
+            }
+          }
+        }
+      }
+    },
+    "review_status": { "enum": ["draft", "reviewed", "approved"] },
+    "reviewed_by": { "type": ["string", "null"] },
+    "notes": { "type": "string" }
+  }
+}

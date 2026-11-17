@@ -1,0 +1,87 @@
+/*
+ * Design tokens — "Mesa de estudio" (docs/ux/design-direction.md, .interface-design/system.md).
+ * Base: DRTC Puno brand (navy ink, seal gold, Source Sans 3 / Libre Baskerville / IBM Plex Mono),
+ * plus semantic tokens for the legal reading experience. All text/background pairs used below
+ * were checked for WCAG AA contrast (>= 4.5:1).
+ */
+@import 'tailwindcss';
+
+@theme {
+  /* Ink: DRTC institutional navy */
+  --color-ink-900: #08163f;
+  --color-ink-800: #051544;
+  --color-ink-700: #071d5e;
+  --color-ink-600: #092475;
+  --color-ink-100: #e8eeff;
+
+  /* Paper: reading surfaces (canvas, folio = document surface) */
+  --color-paper: #f6f4ee;
+  --color-folio: #ffffff;
+  --color-control: #fbfaf7;
+
+  /* Rules: borders by emphasis */
+  --color-rule-soft: rgb(9 36 117 / 0.07);
+  --color-rule: rgb(9 36 117 / 0.12);
+  --color-rule-strong: rgb(9 36 117 / 0.24);
+
+  /* Text hierarchy */
+  --color-text: #0f1e4d;
+  --color-text-secondary: #3d4870;
+  --color-text-tertiary: #5f6986;
+  --color-text-muted: #6b7491;
+
+  /* Marker: highlight of a cited passage */
+  --color-marker: #ffe58a;
+
+  /* Validity seal (sello de vigencia) */
+  --color-seal-verified: #6b5210;
+  --color-seal-verified-soft: #fbf3dc;
+  --color-seal-verified-rim: #d3a62a;
+  --color-seal-unverified: #7a5410;
+  --color-seal-unverified-soft: #fff4dc;
+  --color-seal-repealed: #9b1c13;
+  --color-seal-repealed-soft: #fdeae8;
+  --color-seal-superseded: #4a5263;
+  --color-seal-superseded-soft: #eef0f4;
+
+  /* Typography */
+  --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Radius: sharp-ish, documentary */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink-600);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+name: Historia de usuario
+description: Una necesidad de un usuario que se entrega como corte vertical (va a una spec).
+title: "[Historia] "
+labels: ["historia"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: Historia
+      description: "Como <rol>, quiero <capacidad>, para <beneficio>."
+      placeholder: "Como abogado de la OAJ, quiero ... para ..."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación (Dado / Cuando / Entonces)
+      placeholder: |
+        1. Dado ..., cuando ..., entonces ...
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Spec relacionada
+      placeholder: "specs/002-corpus-ingestion"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options: ["P1 – imprescindible para el incremento", "P2 – importante", "P3 – deseable"]
+    validations:
+      required: true

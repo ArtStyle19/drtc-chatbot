@@ -1,0 +1,16 @@
+@switch (presentation().tone) {
+  @case ('verified') {
+    <svg lucideBadgeCheck [size]="14" aria-hidden="true"></svg>
+  }
+  @case ('unverified') {
+    <svg lucideShieldQuestionMark [size]="14" aria-hidden="true"></svg>
+  }
+  @default {
+    <svg lucideStamp [size]="14" aria-hidden="true"></svg>
+  }
+}
+<span class="seal-label">{{ presentation().label }}</span>
+@if (edition(); as editionLabel) {
+  <span class="seal-edition">· {{ editionLabel }}</span>
+}
+<span class="sr-only">. {{ presentation().description }}</span>

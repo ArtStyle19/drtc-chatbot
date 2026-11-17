@@ -1,0 +1,16 @@
+# Normalize line endings (the team works on Linux and Windows).
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Original legal PDFs are binary and immutable (verified by SHA-256 in corpus/manifest.yaml).
+# If the corpus grows large, track them with Git LFS: `git lfs track "corpus/sources/*.pdf"`.
+*.pdf binary
+*.png binary
+*.ico binary
+*.woff2 binary
+
+# Generated files: collapse them in diffs.
+backend/openapi.json linguist-generated=true
+frontend/src/app/core/api/schema.d.ts linguist-generated=true
+backend/uv.lock linguist-generated=true
+frontend/package-lock.json linguist-generated=true

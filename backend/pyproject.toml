@@ -1,0 +1,147 @@
+[project]
+name = "drtc-chatbot"
+version = "0.1.0"
+description = "Asistente normativo con citas verificables para la DRTC Puno (backend FastAPI)."
+authors = [{ name = "DRTC Puno - Equipo de desarrollo" }]
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "alembic>=1.20",
+    "fastapi>=0.163",
+    "pgvector>=0.5",
+    "psycopg[binary]>=3.3",
+    "pydantic>=2.14",
+    "pydantic-settings>=2.12",
+    "pyyaml>=6.0",
+    "sqlalchemy[asyncio]>=2.1",
+    "structlog>=26.1",
+    "uvicorn[standard]>=0.38",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.9,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28",
+    "import-linter>=2.16",
+    "mypy>=2.4",
+    "pytest>=9",
+    "pytest-asyncio>=1.3",
+    "pytest-cov>=7",
+    "ruff>=0.17",
+    "testcontainers[postgres]>=4.15",
+    "types-pyyaml>=6.0.12.20261113",
+]
+
+# --------------------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "A", "C4", "DTZ", "PT", "SIM", "RET", "ARG",
+    "PTH", "PL", "RUF", "S", "ASYNC", "TID", "TC", "BLE", "FBT", "ERA",
+]
+ignore = [
+    "PLR0913", # use-case constructors legitimately receive several ports
+    "TC001", "TC002", "TC003", # runtime annotations are needed by FastAPI/Pydantic
+    "TC006", # unquoted cast() types read better and are checked by mypy
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S106", "PLR2004", "ARG001", "FBT001"]
+"migrations/**" = ["INP001"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+known-first-party = ["drtc_chatbot"]
+
+# --------------------------------------------------------------------------- mypy
+[tool.mypy]
+python_version = "3.14"
+mypy_path = "src"
+packages = ["drtc_chatbot"]
+strict = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["testcontainers.*", "pgvector.*"]
+ignore_missing_imports = true
+
+# --------------------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
+markers = [
+    "spec(requirement): vincula el test con un requisito de una spec, p. ej. spec('001-FR-002')",
+    "docker: necesita Docker (testcontainers); se omite si Docker no está disponible",
+]
+
+[tool.coverage.run]
+source = ["drtc_chatbot"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "^\\s*\\.\\.\\.$"]
+
+# --------------------------------------------------------------------------- import-linter
+# Architecture rules (ADR-0002). Run with `uv run lint-imports`; also enforced by
+# tests/architecture/test_import_contracts.py and CI.
+[tool.importlinter]
+root_package = "drtc_chatbot"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Clean Architecture: inside every bounded context dependencies point inward"
+type = "layers"
+containers = ["drtc_chatbot.contexts.*"]
+layers = [
+    "presentation | infrastructure",
+    "application",
+    "domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "Domain layers are pure Python (no frameworks, ORM, HTTP or SDKs)"
+type = "forbidden"
+source_modules = ["drtc_chatbot.contexts.*.domain", "drtc_chatbot.shared_kernel.domain"]
+forbidden_modules = ["fastapi", "starlette", "pydantic", "pydantic_settings", "sqlalchemy", "psycopg", "httpx", "yaml", "structlog"]
+
+[[tool.importlinter.contracts]]
+name = "Application layers do not depend on delivery or persistence frameworks"
+type = "forbidden"
+source_modules = ["drtc_chatbot.contexts.*.application", "drtc_chatbot.shared_kernel.application"]
+forbidden_modules = ["fastapi", "starlette", "sqlalchemy", "psycopg", "httpx", "yaml"]
+
+[[tool.importlinter.contracts]]
+name = "Bounded contexts talk to each other only through their public api module"
+type = "independence"
+modules = ["drtc_chatbot.contexts.*"]
+ignore_imports = ["drtc_chatbot.contexts.** -> drtc_chatbot.contexts.*.api"]
+unmatched_ignore_imports_alerting = "none" # no cross-context calls exist yet
+
+[[tool.importlinter.contracts]]
+name = "Contexts and shared kernel never depend on the composition root or entry points"
+type = "forbidden"
+source_modules = ["drtc_chatbot.contexts", "drtc_chatbot.shared_kernel"]
+forbidden_modules = ["drtc_chatbot.bootstrap", "drtc_chatbot.entrypoints"]
+
+[[tool.importlinter.contracts]]
+name = "The shared kernel does not depend on any bounded context"
+type = "forbidden"
+source_modules = ["drtc_chatbot.shared_kernel"]
+forbidden_modules = ["drtc_chatbot.contexts"]

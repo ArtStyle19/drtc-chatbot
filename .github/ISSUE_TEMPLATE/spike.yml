@@ -1,0 +1,25 @@
+name: Spike (investigación)
+description: Investigación acotada en el tiempo para reducir una incertidumbre antes de especificar.
+title: "[Spike] "
+labels: ["spike"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Pregunta a responder
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Tiempo máximo
+      placeholder: "2 días"
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Resultado esperado
+      description: "Ej.: research.md de una spec, ADR, dataset, prototipo descartable."
+    validations:
+      required: true

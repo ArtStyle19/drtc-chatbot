@@ -1,0 +1,14 @@
+# Code owners: GitHub requests their review automatically on pull requests.
+# Fill in the real GitHub handles (or a team such as your-org/backend) and uncomment.
+# Owners per bounded context keep architectural knowledge spread across the team.
+#
+# *                                                   <tech-lead>
+# /backend/src/drtc_chatbot/contexts/legal_corpus/    <backend-dev>
+# /backend/src/drtc_chatbot/contexts/ingestion/       <backend-dev>
+# /backend/src/drtc_chatbot/contexts/retrieval/       <backend-dev>
+# /backend/src/drtc_chatbot/contexts/consultation/    <backend-dev>
+# /frontend/                                          <frontend-dev>
+# /corpus/                                            <legal-reviewer> <tech-lead>
+# /evaluation/                                        <legal-reviewer>
+# /specs/                                             <tech-lead>
+# /.specify/memory/constitution.md                    <tech-lead>

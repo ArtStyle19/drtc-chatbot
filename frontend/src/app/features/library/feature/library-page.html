@@ -1,0 +1,47 @@
+<section class="mx-auto max-w-6xl px-6 py-10" aria-labelledby="biblioteca-titulo">
+  <header class="max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-widest text-text-tertiary">Corpus normativo</p>
+    <h1 id="biblioteca-titulo" class="mt-2 font-serif text-3xl text-ink-900">
+      Biblioteca normativa
+    </h1>
+    <p class="mt-3 text-text-secondary">
+      Normas que el asistente usa para responder. Cada edición lleva su sello de vigencia: un texto
+      no verificado frente a la fuente oficial nunca se presenta como vigente.
+    </p>
+  </header>
+
+  <div class="mt-8" [attr.aria-busy]="store.isLoading()">
+    @if (store.isLoading()) {
+      <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Cargando normas">
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+          <li class="h-56 animate-pulse rounded-[10px] border border-rule bg-folio"></li>
+        }
+      </ul>
+    } @else if (store.status() === 'error') {
+      <div role="alert" class="rounded-[10px] border border-rule bg-folio p-6">
+        <p class="font-semibold text-seal-repealed">No pudimos cargar la biblioteca.</p>
+        <p class="mt-1 text-text-secondary">{{ store.errorMessage() }}</p>
+        <button
+          type="button"
+          class="mt-4 rounded-md bg-ink-600 px-4 py-2 font-semibold text-white hover:bg-ink-700"
+          (click)="store.load()"
+        >
+          Reintentar
+        </button>
+      </div>
+    } @else if (store.isEmpty()) {
+      <p class="rounded-[10px] border border-dashed border-rule-strong p-6 text-text-secondary">
+        Aún no hay normas registradas en el corpus.
+      </p>
+    } @else {
+      <p class="mb-4 text-sm text-text-tertiary" aria-live="polite">
+        {{ store.instruments().length }} normas · {{ store.unverifiedCount() }} sin verificar
+      </p>
+      <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        @for (instrument of store.instruments(); track instrument.id) {
+          <li><drtc-instrument-card [instrument]="instrument" /></li>
+        }
+      </ul>
+    }
+  </div>
+</section>

@@ -1,0 +1,27 @@
+# Especificaciones
+
+Cada funcionalidad tiene una carpeta `NNN-slug/` creada con Spec Kit (`/speckit-specify`). El proceso
+está en [docs/process/way-of-working.md](../docs/process/way-of-working.md) y las reglas que toda spec
+debe respetar en la [constitución](../.specify/memory/constitution.md).
+
+| Spec | Release | Estado | Artefactos |
+|---|---|---|---|
+| [001-instrument-catalog](001-instrument-catalog/spec.md) | R0 | ✅ Implementada (Sprint 0) | spec · plan · tasks |
+| [002-corpus-ingestion](002-corpus-ingestion/spec.md) | R1 | 📝 Borrador, pendiente de `/speckit-clarify` | spec |
+| 003-legal-reader | R1 | ⏳ Backlog | — |
+| 004-hybrid-search | R2 | ⏳ Backlog | — |
+| 005-cited-answers | R2 | ⏳ Backlog | — |
+| 006-conversations-feedback | R2 | ⏳ Backlog | — |
+| 007-identity | R3 | ⏳ Backlog | — |
+| 008-document-admin | R3 | ⏳ Backlog | — |
+| 009-observability-hardening | R3 | ⏳ Backlog | — |
+| 010-public-mode | R4 | ⏳ Backlog | — |
+
+Resumen de cada spec futura: [roadmap](../docs/product/roadmap.md#backlog-resumen-de-cada-spec-futura).
+
+## Convenciones
+
+- Contenido en español; nombres de carpeta en inglés (`NNN-slug`), que coinciden con la rama.
+- Requisitos `FR-NNN` y criterios `SC-NNN` numerados dentro de cada spec; los tests los citan como
+  `@pytest.mark.spec("002-FR-003")`.
+- Estados: 📝 borrador · 🔎 clarificada (Ready) · 🚧 en curso · ✅ implementada.

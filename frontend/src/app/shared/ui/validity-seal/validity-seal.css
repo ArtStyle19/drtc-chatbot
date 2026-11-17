@@ -1,0 +1,49 @@
+:host {
+  --seal-ink: var(--color-seal-unverified);
+  --seal-paper: var(--color-seal-unverified-soft);
+  --seal-rim: var(--color-seal-unverified);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: var(--seal-paper);
+  color: var(--seal-ink);
+  /* Double rim, like the impression of a rubber stamp. */
+  box-shadow:
+    inset 0 0 0 1px var(--seal-rim),
+    inset 0 0 0 3px var(--seal-paper),
+    inset 0 0 0 4px color-mix(in srgb, var(--seal-rim) 35%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+:host([data-tone='verified']) {
+  --seal-ink: var(--color-seal-verified);
+  --seal-paper: var(--color-seal-verified-soft);
+  --seal-rim: var(--color-seal-verified-rim);
+}
+
+:host([data-tone='repealed']) {
+  --seal-ink: var(--color-seal-repealed);
+  --seal-paper: var(--color-seal-repealed-soft);
+  --seal-rim: var(--color-seal-repealed);
+}
+
+:host([data-tone='superseded']) {
+  --seal-ink: var(--color-seal-superseded);
+  --seal-paper: var(--color-seal-superseded-soft);
+  --seal-rim: var(--color-seal-superseded);
+}
+
+.seal-label {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.seal-edition {
+  font-weight: 400;
+}

@@ -1,0 +1,59 @@
+# Local development stack: `make up` (everything) or `make dev-db` (database only).
+# Production follows the DRTC pattern (GHCR images + reverse proxy): see infra/README.md.
+name: drtc-chatbot
+
+x-backend-env: &backend-env
+  DRTC_ENVIRONMENT: ${DRTC_ENVIRONMENT:-local}
+  DRTC_DATABASE_URL: postgresql+psycopg://${DRTC_DB_USER:-drtc}:${DRTC_DB_PASSWORD:-drtc}@db:5432/${DRTC_DB_NAME:-drtc_chatbot}
+  DRTC_CORPUS_MANIFEST_PATH: /srv/corpus/manifest.yaml
+  DRTC_LOG_LEVEL: ${DRTC_LOG_LEVEL:-INFO}
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg18-trixie
+    environment:
+      POSTGRES_DB: ${DRTC_DB_NAME:-drtc_chatbot}
+      POSTGRES_USER: ${DRTC_DB_USER:-drtc}
+      POSTGRES_PASSWORD: ${DRTC_DB_PASSWORD:-drtc}
+    ports:
+      - "127.0.0.1:${DRTC_DB_HOST_PORT:-5433}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    environment: *backend-env
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["app"]
+
+  backend:
+    build: ./backend
+    environment: *backend-env
+    volumes:
+      - ./corpus:/srv/corpus:ro
+    ports:
+      - "127.0.0.1:${DRTC_API_HOST_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["app"]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:${DRTC_WEB_HOST_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    profiles: ["app"]
+
+volumes:
+  db-data:

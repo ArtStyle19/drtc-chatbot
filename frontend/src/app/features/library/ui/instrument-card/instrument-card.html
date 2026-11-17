@@ -1,0 +1,34 @@
+<article class="card" [attr.aria-labelledby]="titleId()">
+  <p class="reference">{{ reference() }}</p>
+  <h2 class="title" [id]="titleId()">{{ instrument().title }}</h2>
+  <p class="meta">
+    {{ instrument().issuing_authority }}
+    @if (instrument().publication_date; as published) {
+      · Publicada el {{ published | date: 'longDate' }}
+    }
+  </p>
+
+  <div class="edition">
+    <drtc-validity-seal [status]="edition().verification_status" />
+    <p class="edition-label">
+      {{ edition().edition_label }}
+      <span class="edition-meta">
+        @if (edition().consolidated_as_of; as consolidated) {
+          Actualizado al {{ consolidated | date: 'longDate' }} ·
+        }
+        {{ edition().page_count }} páginas
+      </span>
+    </p>
+  </div>
+
+  @if (edition().alerts.length) {
+    <details class="alerts">
+      <summary>Advertencias ({{ edition().alerts.length }})</summary>
+      <ul>
+        @for (alert of edition().alerts; track $index) {
+          <li>{{ alert }}</li>
+        }
+      </ul>
+    </details>
+  }
+</article>

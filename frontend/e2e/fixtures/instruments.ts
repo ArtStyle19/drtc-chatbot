@@ -1,0 +1,63 @@
+/** Mirrors GET /api/v1/instruments for the corpus/manifest.yaml of Sprint 0. */
+export const instrumentsResponse = {
+  items: [
+    {
+      id: 'ley-27181',
+      type: 'ley',
+      number: '27181',
+      title: 'Ley General de Transporte y Tránsito Terrestre',
+      short_name: 'Ley 27181 (LGTTT)',
+      issuing_authority: 'Congreso de la República',
+      publication_date: '1999-10-08',
+      version_count: 1,
+      current_edition: {
+        version_id: 'ley-27181@2020-05',
+        edition_label: 'Compilación no oficial con modificaciones hasta mayo de 2020',
+        consolidated_as_of: null,
+        verification_status: 'unverified',
+        may_be_presented_as_current: false,
+        page_count: 36,
+        alerts: ['Modificada después de 2020: pendiente incorporar el texto vigente.'],
+      },
+    },
+    {
+      id: 'ds-017-2009-mtc',
+      type: 'decreto_supremo',
+      number: '017-2009-MTC',
+      title: 'Reglamento Nacional de Administración de Transporte',
+      short_name: 'RENAT (DS 017-2009-MTC)',
+      issuing_authority: 'Ministerio de Transportes y Comunicaciones',
+      publication_date: '2009-04-22',
+      version_count: 1,
+      current_edition: {
+        version_id: 'ds-017-2009-mtc@2017-01-04',
+        edition_label: 'Edición actualizada del MTC (DGTT)',
+        consolidated_as_of: '2017-01-04',
+        verification_status: 'unverified',
+        may_be_presented_as_current: false,
+        page_count: 181,
+        alerts: ['Modificado después de 2017: pendiente incorporar el texto vigente.'],
+      },
+    },
+    {
+      id: 'tuo-ley-27444',
+      type: 'texto_unico_ordenado',
+      number: '27444',
+      title:
+        'Texto Único Ordenado de la Ley N.° 27444, Ley del Procedimiento Administrativo General',
+      short_name: 'TUO de la Ley 27444 (LPAG)',
+      issuing_authority: 'Poder Ejecutivo (aprobado por DS 004-2019-JUS; edición MINJUSDH)',
+      publication_date: '2019-01-25',
+      version_count: 1,
+      current_edition: {
+        version_id: 'tuo-ley-27444@ds-004-2019-jus-ed2021',
+        edition_label: 'Segunda Edición Oficial MINJUSDH (julio de 2021)',
+        consolidated_as_of: null,
+        verification_status: 'unverified',
+        may_be_presented_as_current: false,
+        page_count: 292,
+        alerts: ['Posiblemente sustituido por el DS 006-2026-JUS: pendiente verificar.'],
+      },
+    },
+  ],
+};

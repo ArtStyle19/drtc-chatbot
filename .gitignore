@@ -1,0 +1,38 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Editors and OS
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Claude Code: keep shared project config (skills, commands), ignore personal/local state
+.claude/settings.local.json
+.claude/projects/
+
+# Derived corpus artifacts (extractions, OCR, renders) are rebuilt from corpus/sources
+corpus/derived/
