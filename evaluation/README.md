@@ -7,7 +7,7 @@ La calidad del asistente se mide con preguntas jurídicas revisadas, no con impr
 evaluation/
 └── datasets/
     ├── golden-questions.schema.json   esquema de cada pregunta
-    └── golden-v0.jsonl                10 preguntas BORRADOR tomadas de los PDF iniciales
+    └── golden-v1.jsonl                10 preguntas BORRADOR tomadas de los PDF iniciales
 ```
 
 ## Formato

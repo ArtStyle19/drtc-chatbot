@@ -101,31 +101,32 @@ async def test_ambiguous_missing_unknown_and_free_text_cases(full_corpus: str) -
 
 
 @pytest.mark.spec("003-SC-003")
-async def test_every_golden_citation_with_a_reference_is_resolved_to_its_cited_page(
+async def test_every_golden_citation_is_resolved_by_reference_to_its_exact_path_and_page(
     full_corpus: str,
 ) -> None:
-    dataset = REPO_ROOT / "evaluation" / "datasets" / "golden-v0.jsonl"
+    dataset = REPO_ROOT / "evaluation" / "datasets" / "golden-v1.jsonl"
     questions = [
         json.loads(line)
         for line in dataset.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
     cases = [
-        (c["provision"], c["version_id"], set(c["pdf_pages"]))
+        (c["provision"], c["version_id"], c["path"], set(c["pdf_pages"]))
         for q in questions
         for c in q["expected"]["citations"]
-        if "art." in c["provision"]  # "exposición de motivos" is not a reference to a provision
+        if c["path"] is not None  # null = not a provision of the ingested corpus (e.g. a preamble)
     ]
     assert len(cases) >= 8
 
     unresolved = []
     async with open_stack(full_corpus) as (client, _):
-        for provision, version_id, pages in cases:
+        for provision, version_id, path, pages in cases:
             result = await lookup(client, provision)
             hit = result["hits"][0] if result["hits"] else None
             if (
                 result["status"] != "resolved"
                 or hit["version_id"] != version_id
+                or hit["path"] != path
                 or hit["page_start"] not in pages
             ):
                 unresolved.append(

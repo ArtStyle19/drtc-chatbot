@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "golden-questions.schema.json",
-  "title": "Pregunta del golden set",
-  "description": "Una línea de evaluation/datasets/*.jsonl",
+  "title": "Pregunta del golden set (v1)",
+  "description": "Una línea de evaluation/datasets/*.jsonl. La v1 añade `path` por cita y `tags`.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "question", "intent", "audience", "answerable", "expected", "review_status"],
   "properties": {
     "id": { "type": "string", "pattern": "^q-[0-9]{3,}$" },
-    "question": { "type": "string", "minLength": 10 },
+    "question": { "type": "string", "minLength": 10, "maxLength": 300 },
     "intent": {
       "enum": [
         "exact_provision",
@@ -23,6 +23,12 @@
     },
     "audience": { "enum": ["staff", "citizen"] },
     "answerable": { "type": "boolean" },
+    "tags": {
+      "description": "explicit_reference: la pregunta trae una referencia (art., num., lit.) · colloquial: lenguaje del personal, sin el vocabulario de la norma · cross_norm: la respuesta está en más de una norma",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["explicit_reference", "colloquial", "cross_norm"] }
+    },
     "expected": {
       "type": "object",
       "additionalProperties": false,
@@ -34,10 +40,15 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["version_id", "provision", "pdf_pages", "supporting_text", "page_role"],
+            "required": ["version_id", "provision", "path", "pdf_pages", "supporting_text", "page_role"],
             "properties": {
               "version_id": { "type": "string" },
               "provision": { "type": "string" },
+              "path": {
+                "description": "Ruta estructural en la edición citada (articulo:218/numeral:218.2). null SOLO si lo citado no es una disposición del corpus ingerido (p. ej. el preámbulo de un decreto aprobatorio); entonces `notes` explica el motivo y la cita no cuenta para las métricas.",
+                "type": ["string", "null"],
+                "pattern": "^[a-z-]+:[A-Za-z0-9.-]+(/[a-z-]+:[A-Za-z0-9.-]+)*$"
+              },
               "pdf_pages": {
                 "type": "array",
                 "items": { "type": "integer", "minimum": 1 },
