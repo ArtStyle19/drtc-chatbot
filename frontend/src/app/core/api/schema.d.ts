@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/instruments/{instrument_id}/outline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Índice de una norma
+         * @description Títulos, capítulos, artículos, disposiciones y anexos de la edición aprobada (la más reciente por defecto), en orden de documento, con la página donde empieza cada uno.
+         */
+        get: operations["get_outline_api_v1_instruments__instrument_id__outline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/instruments/{instrument_id}/provisions": {
         parameters: {
             query?: never;
@@ -44,6 +64,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/instruments/{instrument_id}/reading-unit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Leer una disposición con su subárbol
+         * @description Devuelve la unidad de lectura que contiene la ruta pedida (el artículo, la disposición, el anexo o el contenedor) con su subárbol vigente, citas generadas por el servidor, notas editoriales, advertencias de revisión y las cajas de texto para resaltarlas en el PDF. Los textos sustituidos solo aparecen en `history`, rotulados como no vigentes.
+         */
+        get: operations["get_reading_unit_api_v1_instruments__instrument_id__reading_unit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Encontrar una disposición por su referencia
+         * @description Resuelve referencias como «art. 5 Ley 27181», «218.2 TUO», «lit. e del art. 2 LGTTT» o «anexo 2 RENAT». Es una búsqueda exacta, sin similitud: si la referencia puede significar varias cosas devuelve todas (`ambiguous`) para que la persona elija, y si nombra una norma que no está en el corpus lo dice (`not_found`) en lugar de buscar en otras.
+         */
+        get: operations["lookup_api_v1_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/provisions/{provision_id}": {
         parameters: {
             query?: never;
@@ -53,6 +113,26 @@ export interface paths {
         };
         /** Leer una disposición con su historial de revisiones */
         get: operations["get_provision_api_v1_provisions__provision_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/versions/{version_id}/source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * PDF original de una edición aprobada
+         * @description Entrega el documento fuente tal como se registró (se verifica su SHA-256 antes de servirlo). Admite `Range` para que el visor descargue solo las páginas que muestra.
+         */
+        get: operations["get_source_document_api_v1_versions__version_id__source_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -109,6 +189,72 @@ export interface components {
          * @enum {string}
          */
         ApprovalStatus: "pending" | "approved";
+        /**
+         * BoxOut
+         * @description Rectángulo en puntos PDF (origen abajo-izquierda) de una línea del texto.
+         */
+        BoxOut: {
+            /** Page */
+            page: number;
+            /** X0 */
+            x0: number;
+            /** X1 */
+            x1: number;
+            /** Y0 */
+            y0: number;
+            /** Y1 */
+            y1: number;
+        };
+        /** CitationOut */
+        CitationOut: {
+            /**
+             * Formal
+             * @description Cita formal con edición, estado de verificación y fuente.
+             */
+            formal: string;
+            /**
+             * Short
+             * @description Cita breve, p. ej. 'Ley N.° 27181, art. 2, lit. e)'.
+             */
+            short: string;
+        };
+        /**
+         * EditionContextOut
+         * @description La norma y la edición aprobada que se está leyendo (encabezado del lector).
+         */
+        EditionContextOut: {
+            /** Alerts */
+            alerts: string[];
+            approval_mode: components["schemas"]["ApprovalMode"];
+            /** Consolidated As Of */
+            consolidated_as_of: string | null;
+            /** Edition Label */
+            edition_label: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /**
+             * May Be Presented As Current
+             * @description Solo es verdadero si el texto fue verificado como vigente.
+             */
+            may_be_presented_as_current: boolean;
+            /** Number */
+            number: string;
+            /** Page Count */
+            page_count: number;
+            /** Short Name */
+            short_name: string;
+            /**
+             * Source Url
+             * @description PDF original de esta edición (admite peticiones por rango).
+             */
+            source_url: string;
+            /** Title */
+            title: string;
+            type: components["schemas"]["InstrumentType"];
+            verification_status: components["schemas"]["VerificationStatus"];
+            /** Version Id */
+            version_id: string;
+        };
         /** EditionOut */
         EditionOut: {
             /**
@@ -197,6 +343,11 @@ export interface components {
         };
         /** LegalInstrumentOut */
         LegalInstrumentOut: {
+            /**
+             * Aliases
+             * @description Nombres con que el personal conoce la norma (siglas, títulos cortos).
+             */
+            aliases: string[];
             /** @description Edición de referencia (la más reciente). */
             current_edition: components["schemas"]["EditionOut"];
             /**
@@ -232,6 +383,122 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** LookupHitOut */
+        LookupHitOut: {
+            /**
+             * Citation
+             * @description Cita breve generada por el servidor.
+             */
+            citation: string;
+            /** Edition Label */
+            edition_label: string | null;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Instrument Short Name */
+            instrument_short_name: string;
+            /** Instrument Title */
+            instrument_title: string;
+            /** Kind */
+            kind: string | null;
+            /** Label */
+            label: string | null;
+            /** Page Start */
+            page_start: number | null;
+            /**
+             * Path
+             * @description Ruta estructural; nula si el resultado es la norma completa.
+             */
+            path: string | null;
+            /**
+             * Snippet
+             * @description Comienzo del texto vigente.
+             */
+            snippet: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Unit Path
+             * @description Unidad de lectura que se abre para esta disposición.
+             */
+            unit_path: string | null;
+            /**
+             * Verification Status
+             * @description Estado de verificación de la edición; solo 'verified_current' es vigente verificado.
+             */
+            verification_status: string | null;
+            /**
+             * Version Id
+             * @description Edición aprobada en la que se encontró.
+             */
+            version_id: string | null;
+        };
+        /** LookupOut */
+        LookupOut: {
+            /** Hits */
+            hits: components["schemas"]["LookupHitOut"][];
+            /**
+             * Ignored Text
+             * @description Palabras que no formaron parte de la referencia.
+             */
+            ignored_text: string | null;
+            /**
+             * Message
+             * @description Explicación para la persona (vacía si se resolvió sin dudas).
+             */
+            message: string;
+            /**
+             * Norms
+             * @description Normas que se reconocieron en el texto.
+             */
+            norms: string[];
+            /** Query */
+            query: string;
+            /**
+             * Reference
+             * @description Lo que se entendió, p. ej. 'art. 2, lit. e)'.
+             */
+            reference: string | null;
+            /** @description resolved: una sola coincidencia · ambiguous: varias, elige la persona · not_found: se entendió pero no existe · unrecognized: el texto no es una referencia. */
+            status: components["schemas"]["LookupStatus"];
+            /** Total */
+            total: number;
+        };
+        /**
+         * LookupStatus
+         * @enum {string}
+         */
+        LookupStatus: "resolved" | "ambiguous" | "not_found" | "unrecognized";
+        /** OutlineEntryOut */
+        OutlineEntryOut: {
+            kind: components["schemas"]["ProvisionKind"];
+            /** Label */
+            label: string;
+            /**
+             * Page Start
+             * @description Página física del PDF donde empieza.
+             */
+            page_start: number;
+            /** Parent Path */
+            parent_path: string | null;
+            /** Path */
+            path: string;
+            /** Title */
+            title: string | null;
+            /**
+             * Unit Path
+             * @description Unidad de lectura que se abre al elegir esta entrada.
+             */
+            unit_path: string;
+        };
+        /** OutlineOut */
+        OutlineOut: {
+            edition: components["schemas"]["EditionContextOut"];
+            /**
+             * Entries
+             * @description Índice plano en orden de documento.
+             */
+            entries: components["schemas"]["OutlineEntryOut"][];
         };
         /** ProvisionDetailOut */
         ProvisionDetailOut: {
@@ -339,6 +606,74 @@ export interface components {
              */
             status: "ok" | "degraded";
         };
+        /** ReadingNodeOut */
+        ReadingNodeOut: {
+            /** @description Texto vigente de la edición. */
+            current: components["schemas"]["ReadingRevisionOut"];
+            /**
+             * History
+             * @description Textos sustituidos (del más antiguo al más reciente): NO están vigentes.
+             */
+            history: components["schemas"]["ReadingRevisionOut"][];
+            kind: components["schemas"]["ProvisionKind"];
+            /** Label */
+            label: string;
+            /** Notes */
+            notes: components["schemas"]["EditorialNoteOut"][];
+            /** Parent Path */
+            parent_path: string | null;
+            /** Path */
+            path: string;
+            /** Revision Count */
+            revision_count: number;
+            /** Warnings */
+            warnings: components["schemas"]["ReviewWarningOut"][];
+        };
+        /** ReadingRevisionOut */
+        ReadingRevisionOut: {
+            /** Boxes */
+            boxes: components["schemas"]["BoxOut"][];
+            citation: components["schemas"]["CitationOut"];
+            event: components["schemas"]["LegalEventOut"] | null;
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /** Revision */
+            revision: number;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string | null;
+        };
+        /** ReadingUnitOut */
+        ReadingUnitOut: {
+            /**
+             * Children
+             * @description Si es un contenedor: lo que contiene.
+             */
+            children: components["schemas"]["OutlineEntryOut"][];
+            edition: components["schemas"]["EditionContextOut"];
+            /**
+             * Nodes
+             * @description La unidad y su subárbol vigente en orden de documento (anídelos con parent_path).
+             */
+            nodes: components["schemas"]["ReadingNodeOut"][];
+            /** Requested Path */
+            requested_path: string;
+            /**
+             * Unit Path
+             * @description Artículo, disposición, anexo o contenedor que contiene la ruta.
+             */
+            unit_path: string;
+        };
+        /** ReviewWarningOut */
+        ReviewWarningOut: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
         /** RevisionOut */
         RevisionOut: {
             event: components["schemas"]["LegalEventOut"] | null;
@@ -411,6 +746,47 @@ export interface operations {
             };
         };
     };
+    get_outline_api_v1_instruments__instrument_id__outline_get: {
+        parameters: {
+            query?: {
+                /** @description Edición concreta. */
+                version_id?: string | null;
+            };
+            header?: never;
+            path: {
+                instrument_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineOut"];
+                };
+            };
+            /** @description La norma no tiene una edición aprobada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_provisions_api_v1_instruments__instrument_id__provisions_get: {
         parameters: {
             query?: {
@@ -458,6 +834,81 @@ export interface operations {
             };
         };
     };
+    get_reading_unit_api_v1_instruments__instrument_id__reading_unit_get: {
+        parameters: {
+            query: {
+                /** @description Ruta estructural, p. ej. 'articulo:2/literal:e'. */
+                path: string;
+                /** @description Edición concreta. */
+                version_id?: string | null;
+            };
+            header?: never;
+            path: {
+                instrument_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingUnitOut"];
+                };
+            };
+            /** @description La norma o la disposición no existen en la edición aprobada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_api_v1_lookup_get: {
+        parameters: {
+            query: {
+                /** @description Referencia escrita por la persona. */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LookupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_provision_api_v1_provisions__provision_id__get: {
         parameters: {
             query?: never;
@@ -479,6 +930,51 @@ export interface operations {
                 };
             };
             /** @description No existe o su edición no está aprobada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_document_api_v1_versions__version_id__source_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description El navegador ya tiene esta versión (ETag). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description La edición no existe o no está aprobada. */
             404: {
                 headers: {
                     [name: string]: unknown;

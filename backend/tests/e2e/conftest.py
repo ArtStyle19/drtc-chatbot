@@ -1,5 +1,6 @@
 """Shared fixtures for the API tests that need the real corpus in PostgreSQL."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -45,3 +46,21 @@ async def approved_ley(stack: Stack) -> Stack:
     await container.ingestion.run_ingestion.execute(LEY)
     await container.ingestion.gateway.approve(LEY, "Ana Quispe")
     return stack
+
+
+ALL_VERSIONS = (LEY, "ds-017-2009-mtc@2017-01-04", "tuo-ley-27444@ds-004-2019-jus-ed2021")
+
+
+async def _ingest_everything(database_url: str) -> None:
+    async with open_stack(database_url) as (_, container):
+        for version in ALL_VERSIONS:
+            await container.ingestion.run_ingestion.execute(version)
+            await container.ingestion.gateway.approve(version, "Ana Quispe")
+
+
+@pytest.fixture
+def full_corpus(clean_database: str) -> str:
+    """The three real norms ingested and approved (≈5 s). ``clean_database`` empties the schema
+    first, so every test that needs the corpus pays for it; keep such tests few and meaty."""
+    asyncio.run(_ingest_everything(clean_database))
+    return clean_database

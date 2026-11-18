@@ -411,6 +411,7 @@ class IndexRow:
     title: str | None
     snippet: str
     page_start: int
+    parent_path: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -423,6 +424,7 @@ class ProvisionIndexEntry:
     snippet: str
     page_start: int
     citation: str  # short citation
+    parent_path: str | None = None  # the container (title, chapter…) of an article
 
 
 @dataclass(frozen=True, slots=True)

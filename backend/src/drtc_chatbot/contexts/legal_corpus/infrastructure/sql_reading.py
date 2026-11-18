@@ -257,6 +257,7 @@ class SqlReadingStore:
 
     async def get_index_rows(self, version_id: str) -> Sequence[IndexRow]:
         first = self._first_ordinals(version_id)
+        parent = aliased(ProvisionRow)
         async with self._sessions() as session:
             rows = (
                 await session.execute(
@@ -265,11 +266,13 @@ class SqlReadingStore:
                         ProvisionRevisionRow.title,
                         func.left(ProvisionRevisionRow.text, SNIPPET_LENGTH),
                         ProvisionRevisionRow.page_start,
+                        parent.structural_path,
                     )
                     .join(
                         ProvisionRevisionRow, ProvisionRevisionRow.provision_id == ProvisionRow.id
                     )
                     .join(first, first.c.provision_id == ProvisionRow.id)
+                    .outerjoin(parent, parent.id == ProvisionRow.parent_id)
                     .where(
                         ProvisionRevisionRow.instrument_version_id == version_id,
                         ProvisionRevisionRow.status == RevisionStatus.CURRENT.value,
@@ -285,6 +288,7 @@ class SqlReadingStore:
                 title=title,
                 snippet=snippet or "",
                 page_start=page_start,
+                parent_path=parent_path,
             )
-            for provision, title, snippet, page_start in rows
+            for provision, title, snippet, page_start, parent_path in rows
         ]

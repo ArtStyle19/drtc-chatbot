@@ -68,6 +68,8 @@ ignore = [
 "tests/unit/ingestion/*.py" = ["E501", "RUF001"]
 # Citations and review-flag messages are user-facing Spanish sentences; the location formatter is a flat dispatch on the path key.
 "src/drtc_chatbot/contexts/legal_corpus/domain/*.py" = ["E501", "PLR0911", "PLR0912"]
+# The reference parser holds user-facing Spanish text, regexes and a flat dispatch on step kinds.
+"src/drtc_chatbot/contexts/retrieval/**/*.py" = ["E501", "PLR0911", "PLR0912", "PLR0913", "PLR0917", "RUF001"]
 # FastAPI routers declare each query parameter as an argument; the CLI/ingestion samples use random sampling.
 "src/drtc_chatbot/contexts/*/presentation/http/router.py" = ["PLR0917", "E501"]
 "src/drtc_chatbot/contexts/*/presentation/http/schemas.py" = ["E501"]

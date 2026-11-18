@@ -440,6 +440,242 @@
         "title": "LivenessOut",
         "type": "object"
       },
+      "LookupHitOut": {
+        "properties": {
+          "citation": {
+            "description": "Cita breve generada por el servidor.",
+            "title": "Citation",
+            "type": "string"
+          },
+          "edition_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edition Label"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "instrument_short_name": {
+            "title": "Instrument Short Name",
+            "type": "string"
+          },
+          "instrument_title": {
+            "title": "Instrument Title",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "page_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Start"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ruta estructural; nula si el resultado es la norma completa.",
+            "title": "Path"
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Comienzo del texto vigente.",
+            "title": "Snippet"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "unit_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Unidad de lectura que se abre para esta disposición.",
+            "title": "Unit Path"
+          },
+          "verification_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Estado de verificación de la edición; solo 'verified_current' es vigente verificado.",
+            "title": "Verification Status"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Edición aprobada en la que se encontró.",
+            "title": "Version Id"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "instrument_short_name",
+          "instrument_title",
+          "citation",
+          "version_id",
+          "edition_label",
+          "verification_status",
+          "path",
+          "unit_path",
+          "kind",
+          "label",
+          "title",
+          "snippet",
+          "page_start"
+        ],
+        "title": "LookupHitOut",
+        "type": "object"
+      },
+      "LookupOut": {
+        "properties": {
+          "hits": {
+            "items": {
+              "$ref": "#/components/schemas/LookupHitOut"
+            },
+            "title": "Hits",
+            "type": "array"
+          },
+          "ignored_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Palabras que no formaron parte de la referencia.",
+            "title": "Ignored Text"
+          },
+          "message": {
+            "description": "Explicación para la persona (vacía si se resolvió sin dudas).",
+            "title": "Message",
+            "type": "string"
+          },
+          "norms": {
+            "description": "Normas que se reconocieron en el texto.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Norms",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lo que se entendió, p. ej. 'art. 2, lit. e)'.",
+            "title": "Reference"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LookupStatus",
+            "description": "resolved: una sola coincidencia · ambiguous: varias, elige la persona · not_found: se entendió pero no existe · unrecognized: el texto no es una referencia."
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "query",
+          "message",
+          "reference",
+          "norms",
+          "total",
+          "hits",
+          "ignored_text"
+        ],
+        "title": "LookupOut",
+        "type": "object"
+      },
+      "LookupStatus": {
+        "enum": [
+          "resolved",
+          "ambiguous",
+          "not_found",
+          "unrecognized"
+        ],
+        "title": "LookupStatus",
+        "type": "string"
+      },
       "OutlineEntryOut": {
         "properties": {
           "kind": {
@@ -1389,6 +1625,53 @@
         "summary": "Leer una disposición con su subárbol",
         "tags": [
           "Corpus normativo"
+        ]
+      }
+    },
+    "/api/v1/lookup": {
+      "get": {
+        "description": "Resuelve referencias como «art. 5 Ley 27181», «218.2 TUO», «lit. e del art. 2 LGTTT» o «anexo 2 RENAT». Es una búsqueda exacta, sin similitud: si la referencia puede significar varias cosas devuelve todas (`ambiguous`) para que la persona elija, y si nombra una norma que no está en el corpus lo dice (`not_found`) en lugar de buscar en otras.",
+        "operationId": "lookup_api_v1_lookup_get",
+        "parameters": [
+          {
+            "description": "Referencia escrita por la persona.",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Referencia escrita por la persona.",
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Encontrar una disposición por su referencia",
+        "tags": [
+          "Búsqueda por referencia"
         ]
       }
     },

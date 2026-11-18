@@ -40,6 +40,7 @@ class ListProvisionIndex:
                     snippet=row.snippet,
                     page_start=row.page_start,
                     citation=short_citation(subject, row.path),
+                    parent_path=row.parent_path,
                 )
             )
         return ProvisionIndex(edition, tuple(entries))
