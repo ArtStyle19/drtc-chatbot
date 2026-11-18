@@ -16,7 +16,9 @@ El asistente apoya la investigación jurídica; no emite pronunciamientos oficia
    identificadores de evidencia y valida cada cita contra la base de datos.
 3. Toda cita resuelve a una fuente, versión, disposición y página concretas.
 4. El PDF original es inmutable (SHA-256 registrado en `corpus/manifest.yaml`).
-5. Toda versión nueva de una norma pasa por revisión antes de publicarse para consultas.
+5. Toda versión nueva de una norma pasa por revisión antes de publicarse para consultas. Única excepción:
+   la política `auto_dev` de aprobación, solo en `local`/`test`, registrada como tal y nunca equivalente a
+   verificar la vigencia (ADR-0011).
 6. La recuperación exacta por identificador (p. ej. "art. 5 de la Ley 27181") tiene prioridad sobre
    la similitud semántica cuando la pregunta identifica una disposición.
 7. Sin evidencia suficiente, el sistema se abstiene o pide una aclaración.
@@ -99,4 +101,4 @@ justificación, el impacto en specs existentes y la nueva versión (SemVer: MAJO
 redefinir un principio, MINOR al agregar uno, PATCH para aclaraciones). Toda revisión de PR verifica
 el cumplimiento; la complejidad adicional debe justificarse en el plan de la spec.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-17
+**Version**: 1.1.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18

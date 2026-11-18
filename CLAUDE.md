@@ -28,6 +28,8 @@ TUO Ley 27444) para el personal de la DRTC Puno; ciudadanía más adelante. Arqu
 make check          # lint + mypy + import-linter + pytest + eslint + vitest + build
 make e2e            # Playwright + axe (API simulada)
 make arch           # solo contratos de arquitectura
+make test-db        # PostgreSQL temporal para las pruebas (luego export DRTC_TEST_DATABASE_URL=… que imprime)
+make ingest         # manifiesto -> BD + ingesta de los tres PDF (cd backend && uv run drtc-ingest --help)
 make openapi        # exporta backend/openapi.json y regenera frontend/src/app/core/api/schema.d.ts
 cd backend && uv run pytest -q -m "not docker"   # tests rápidos sin Docker
 ```

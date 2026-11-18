@@ -41,6 +41,10 @@ test-db-stop: ## Stop the throwaway test database
 migrate: ## Apply database migrations to the dev database
 	$(BACKEND) uv run alembic upgrade head
 
+.PHONY: ingest
+ingest: ## Load the manifest and ingest every corpus PDF into the dev database (spec 002)
+	$(BACKEND) uv run drtc-ingest run --all
+
 .PHONY: dev-backend
 dev-backend: ## Run the API with auto-reload on http://localhost:8000
 	$(BACKEND) uv run uvicorn drtc_chatbot.main:app --reload --port 8000

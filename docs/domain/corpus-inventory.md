@@ -67,3 +67,34 @@ Fuentes consultadas (secundarias, para orientar la verificación):
 
 No reemplace los PDF actuales: agregue los nuevos como documentos fuente y versiones adicionales, y
 registre cuál está verificada como vigente.
+
+## Resultado de la ingesta (Sprint 1, 2026-11-18)
+
+Medido con `drtc-ingest run --all` sobre los tres PDF (≈ 5 s en total). Los artículos coinciden con los
+oficiales: **36** (Ley 27181, más `4-A`, `9-A`, `16-A`, `26-A`), **138** (RENAT, más `12-A`) y **265** (TUO,
+más los 9 del Título Preliminar), sin saltos de numeración.
+
+| | Ley 27181 | RENAT | TUO Ley 27444 |
+|---|---|---|---|
+| Disposiciones vigentes | 259 | 1 431 | 1 247 |
+| Textos sustituidos (revisiones anteriores) | 98 | 235 | 0 |
+| Notas editoriales guardadas | 74 | 445 | ≈ 540 |
+| Casos marcados para revisión | 5 | 65 | 1 |
+
+**Casos marcados** (nada se descarta ni se adivina; salen en el reporte de la ingesta):
+
+- `paragraph_replacement_unapplied` (Ley 5, RENAT 52): una nota dice "*Párrafo* modificado por… cuyo
+  texto es el siguiente" y cita **solo el párrafo** nuevo. El parser no puede saber con certeza qué
+  párrafo reemplaza; guarda el párrafo nuevo como nota editorial y deja el texto vigente de la
+  disposición con el párrafo original. **El revisor debe decidir cada caso.**
+- `continuation_after_quote` (RENAT 5, TUO 0-1): texto que continúa después de un bloque citado y se
+  adjuntó a la disposición anterior; confirmar que pertenece ahí.
+- `duplicate_unquoted_unit` (RENAT 8, TUO 1): mayormente tablas o referencias numeradas dentro de una
+  disposición; se conserva la primera aparición.
+
+Ejemplos de lo que sí quedó exacto: Ley 27181 art. 2 (r1 sustituido, r2 vigente por el DU 019-2020, con
+el literal e) incorporado por la Ley 29937), art. 15 (modificado por la Ley 28172; literal g)
+incorporado por el DL 1451), art. 26 (4 revisiones), art. 7 numeral 7.3 (Ley 30936).
+
+Para revisar: `uv run drtc-ingest sample <versión> -n 20 --seed 1` imprime disposiciones al azar con su
+página para comprobarlas contra el PDF.

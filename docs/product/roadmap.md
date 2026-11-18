@@ -6,7 +6,7 @@ lo que está más allá del próximo release es intencionalmente breve.
 | Release | Specs | Valor entregado | Estado |
 |---|---|---|---|
 | **R0 · Walking skeleton** | [001-instrument-catalog](../../specs/001-instrument-catalog/spec.md) | Repo, CI, corte delgado de punta a punta: catálogo de normas con sello de vigencia | ✅ Sprint 0 |
-| **R1 · Biblioteca** | [002-corpus-ingestion](../../specs/002-corpus-ingestion/spec.md) · 003-legal-reader | Disposiciones estructuradas con página exacta; árbol de la norma, búsqueda exacta ("art. 5 Ley 27181") y visor *Folio*; despliegue de demo | 📝 002 en borrador |
+| **R1 · Biblioteca** | [002-corpus-ingestion](../../specs/002-corpus-ingestion/spec.md) · 003-legal-reader | Disposiciones estructuradas con página exacta; árbol de la norma, búsqueda exacta ("art. 5 Ley 27181") y visor *Folio*; despliegue de demo | ✅ 002 implementada (Sprint 1); 003 siguiente |
 | **R2 · Consultas citadas** | 004-hybrid-search (+ golden set, evaluación primero) · 005-cited-answers · 006-conversations-feedback | Respuestas citadas y validadas, abstención; piloto interno | ⏳ |
 | **R3 · Producción interna** | 007-identity (login DRTC) · 008-document-admin (carga y revisión, ingesta en segundo plano) · 009-observability-hardening | Uso diario por el personal | ⏳ |
 | **R4 · Ciudadanía** | 010-public-mode | Acceso público con lenguaje claro y límites de uso | ⏳ |

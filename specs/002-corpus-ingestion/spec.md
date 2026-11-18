@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-17
 
-**Status**: Clarified (Sprint 1, 2026-11-18) — decisiones en la sección *Clarifications*
+**Status**: Implemented (Sprint 1, 2026-11-18); pendiente la revisión manual SC-001 — ver tasks.md
 
 **Input**: "Convertir los PDF del corpus en disposiciones estructuradas (artículo, numeral, literal),
 con su página exacta y su estado de vigencia, revisables por una persona antes de usarse."

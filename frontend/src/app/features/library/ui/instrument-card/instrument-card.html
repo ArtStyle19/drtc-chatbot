@@ -21,6 +21,10 @@
     </p>
   </div>
 
+  <p class="ingestion" [attr.data-state]="ingestionState()">
+    {{ ingestionMessage() }}
+  </p>
+
   @if (edition().alerts.length) {
     <details class="alerts">
       <summary>Advertencias ({{ edition().alerts.length }})</summary>
