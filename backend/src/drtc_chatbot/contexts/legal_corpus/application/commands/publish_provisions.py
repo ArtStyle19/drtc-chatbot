@@ -13,6 +13,7 @@ from drtc_chatbot.contexts.legal_corpus.domain.provisions import (
     PageBox,
     ProvisionKind,
     ProvisionRevision,
+    ReviewFlag,
     RevisionStatus,
     validate_revision_set,
 )
@@ -42,6 +43,7 @@ def _to_domain(request: RevisionRequest) -> ProvisionRevision:
                 if request.event
                 else None
             ),
+            review_flags=tuple(ReviewFlag(flag) for flag in request.flags),
         )
     except ValueError as error:
         raise InvariantViolationError(f"{request.path}: {error}") from error

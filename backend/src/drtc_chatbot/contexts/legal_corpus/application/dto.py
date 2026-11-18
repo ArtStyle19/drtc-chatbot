@@ -62,6 +62,7 @@ class LegalInstrumentSummary:
     publication_date: date | None
     current_edition: EditionSummary
     version_count: int
+    aliases: tuple[str, ...] = ()
 
     @classmethod
     def from_instrument(cls, instrument: LegalInstrument) -> LegalInstrumentSummary:
@@ -75,6 +76,7 @@ class LegalInstrumentSummary:
             publication_date=instrument.publication_date,
             current_edition=EditionSummary.from_version(instrument.latest_version),
             version_count=len(instrument.versions),
+            aliases=instrument.aliases,
         )
 
 
@@ -112,6 +114,7 @@ class ManifestInstrument:
     short_name: str
     issuing_authority: str
     publication_date: date | None
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,6 +170,7 @@ class RevisionRequest:
     ordinal: int
     boxes: tuple[tuple[int, float, float, float, float], ...] = ()
     event: EventRequest | None = None
+    flags: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

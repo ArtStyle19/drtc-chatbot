@@ -41,6 +41,7 @@ class YamlManifestReader:
                     short_name=entry.short_name,
                     issuing_authority=entry.issuing_authority,
                     publication_date=entry.publication_date,
+                    aliases=tuple(entry.aliases),
                 )
             )
             for ordinal, version in enumerate(entry.versions, start=1):

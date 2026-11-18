@@ -508,6 +508,8 @@ class ArticleDocumentParser:
             return
         tail.text = f"{tail.text} {text}".strip()
         tail.page_end = max(tail.page_end, item.page)
+        if item.box is not None:
+            tail.boxes = (*tail.boxes, item.box)
         if not self._in_continuation:
             self._in_continuation = True
             self._anomaly(

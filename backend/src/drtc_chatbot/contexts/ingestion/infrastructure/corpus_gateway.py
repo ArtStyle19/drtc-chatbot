@@ -5,7 +5,8 @@ from drtc_chatbot.contexts.ingestion.application.ports import (
     IngestionTarget,
     PublicationResult,
 )
-from drtc_chatbot.contexts.ingestion.domain.parsing.model import ParseResult
+from drtc_chatbot.contexts.ingestion.domain.flags import flags_by_path
+from drtc_chatbot.contexts.ingestion.domain.parsing.model import ParseResult, RevisionStatus
 from drtc_chatbot.contexts.legal_corpus.api import (
     ApproveInstrumentVersion,
     EventRequest,
@@ -54,6 +55,7 @@ class LegalCorpusGateway:
     async def publish(
         self, target: IngestionTarget, result: ParseResult, content_digest: str
     ) -> PublicationResult:
+        flags = flags_by_path(result)
         request = PublishRequest(
             version_id=target.version_id,
             source_sha256=target.sha256,
@@ -78,6 +80,7 @@ class LegalCorpusGateway:
                         if p.event
                         else None
                     ),
+                    flags=flags.get(p.path, ()) if p.status is RevisionStatus.CURRENT else (),
                 )
                 for p in result.provisions
             ),

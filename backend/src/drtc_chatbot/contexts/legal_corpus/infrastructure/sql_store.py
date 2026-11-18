@@ -130,6 +130,7 @@ class SqlLegalCorpusStore:
                     short_name=instrument.short_name,
                     issuing_authority=instrument.issuing_authority,
                     publication_date=instrument.publication_date,
+                    aliases=tuple(instrument.aliases),
                     versions=[
                         self._version(v, sources[v.source_document_id], counts) for v in owned
                     ],
@@ -191,6 +192,7 @@ class SqlLegalCorpusStore:
                     "short_name": instrument.short_name,
                     "issuing_authority": instrument.issuing_authority,
                     "publication_date": instrument.publication_date,
+                    "aliases": list(instrument.aliases),
                 }
                 await session.execute(
                     pg_insert(InstrumentRow)
@@ -276,6 +278,7 @@ class SqlLegalCorpusStore:
                     ordinal=r.ordinal,
                     boxes=[[b.page, b.x0, b.y0, b.x1, b.y1] for b in r.boxes],
                     event=_event_to_json(r.event),
+                    review_flags=[flag.value for flag in r.review_flags],
                 )
                 for r in draft.revisions
             )

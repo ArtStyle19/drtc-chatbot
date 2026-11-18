@@ -14,8 +14,9 @@ from drtc_chatbot.contexts.ingestion.application.ports import (
     IngestionTarget,
     PdfTextExtractor,
 )
+from drtc_chatbot.contexts.ingestion.domain.flags import flags_by_path
 from drtc_chatbot.contexts.ingestion.domain.job import IngestionJob, JobStatus
-from drtc_chatbot.contexts.ingestion.domain.parsing.model import ParseResult
+from drtc_chatbot.contexts.ingestion.domain.parsing.model import ParseResult, RevisionStatus
 from drtc_chatbot.contexts.ingestion.domain.parsing.profiles import (
     UnknownParserProfileError,
     build_parser,
@@ -39,7 +40,9 @@ def _pages(ranges: Sequence[tuple[int, int]]) -> list[int]:
 
 
 def content_digest(result: ParseResult) -> str:
-    """Fingerprint of the parsed CONTENT (not of box coordinates): same input, same digest."""
+    """Fingerprint of everything that is published: texts, pages, events, review flags and the
+    (rounded) text boxes the reader highlights. Same input and parser, same digest."""
+    flags = flags_by_path(result)
     canonical: list[dict[str, Any]] = [
         {
             "path": p.path,
@@ -54,6 +57,11 @@ def content_digest(result: ParseResult) -> str:
             "event": (p.event.kind.value, p.event.source, str(p.event.published_on))
             if p.event
             else None,
+            "flags": list(flags.get(p.path, ())) if p.status is RevisionStatus.CURRENT else [],
+            "boxes": [
+                [b.page, round(b.x0, 1), round(b.y0, 1), round(b.x1, 1), round(b.y1, 1)]
+                for b in p.boxes
+            ],
         }
         for p in result.provisions
     ]

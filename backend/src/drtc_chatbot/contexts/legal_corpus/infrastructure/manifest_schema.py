@@ -48,6 +48,7 @@ class InstrumentEntry(_Strict):
     short_name: str
     issuing_authority: str
     publication_date: date | None = None
+    aliases: list[str] = Field(default_factory=list)
     versions: list[VersionEntry] = Field(min_length=1)
 
 

@@ -212,6 +212,14 @@
       },
       "LegalInstrumentOut": {
         "properties": {
+          "aliases": {
+            "description": "Nombres con que el personal conoce la norma (siglas, títulos cortos).",
+            "items": {
+              "type": "string"
+            },
+            "title": "Aliases",
+            "type": "array"
+          },
           "current_edition": {
             "$ref": "#/components/schemas/EditionOut",
             "description": "Edición de referencia (la más reciente)."
@@ -269,7 +277,8 @@
           "issuing_authority",
           "publication_date",
           "current_edition",
-          "version_count"
+          "version_count",
+          "aliases"
         ],
         "title": "LegalInstrumentOut",
         "type": "object"

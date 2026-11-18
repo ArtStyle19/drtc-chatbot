@@ -107,5 +107,6 @@ def _to_domain(entry: InstrumentEntry, sources: dict[str, SourceEntry]) -> Legal
         short_name=entry.short_name,
         issuing_authority=entry.issuing_authority,
         publication_date=entry.publication_date,
+        aliases=entry.aliases,
         versions=versions,
     )

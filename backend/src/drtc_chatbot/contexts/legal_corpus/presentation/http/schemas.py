@@ -77,6 +77,9 @@ class LegalInstrumentOut(BaseModel):
     publication_date: date | None
     current_edition: EditionOut = Field(description="Edición de referencia (la más reciente).")
     version_count: int
+    aliases: list[str] = Field(
+        description="Nombres con que el personal conoce la norma (siglas, títulos cortos)."
+    )
 
     @classmethod
     def from_summary(cls, summary: LegalInstrumentSummary) -> LegalInstrumentOut:
@@ -90,6 +93,7 @@ class LegalInstrumentOut(BaseModel):
             publication_date=summary.publication_date,
             current_edition=EditionOut.from_summary(summary.current_edition),
             version_count=summary.version_count,
+            aliases=list(summary.aliases),
         )
 
 
