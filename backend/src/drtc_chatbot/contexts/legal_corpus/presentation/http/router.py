@@ -155,8 +155,13 @@ def _etag_matches(if_none_match: str | None, etag: str) -> bool:
     response_class=FileResponse,
     responses={
         200: {"content": {"application/pdf": {}}},
+        206: {
+            "description": "Parte del PDF pedida con `Range` (`Content-Range` indica cuál).",
+            "content": {"application/pdf": {}},
+        },
         304: {"description": "El navegador ya tiene esta versión (ETag)."},
         404: {"description": "La edición no existe o no está aprobada."},
+        416: {"description": "El rango pedido está fuera del archivo."},
     },
 )
 async def get_source_document(

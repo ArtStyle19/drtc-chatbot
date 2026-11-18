@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-18
 
-**Status**: Draft → Implemented en el Sprint 2 (ver `tasks.md`)
+**Status**: ✅ Implementada en el Sprint 2 (ver `tasks.md` y *Resultados*)
 
 **Input**: "Que el personal pueda abrir una norma, navegar su estructura, leer un artículo con su estado de
 vigencia, ver la página exacta del PDF con el pasaje resaltado, encontrar una disposición escribiendo
@@ -20,7 +20,10 @@ significado todavía (specs 004-005).
 ## Clarifications
 
 Sin sesión de aclaración con la DRTC todavía. Decisiones tomadas por defecto (cualquiera se puede
-revertir sin rehacer lo demás); están marcadas en *Assumptions*.
+revertir sin rehacer lo demás); están marcadas en *Assumptions*. Respuestas del líder del proyecto
+(2026-11-17/18) que acotan esta spec: personal primero y ciudadanía después, sin login por ahora
+(ADR-0007), documentación en español y código en inglés, y "debe quedar perfecto" (se prioriza la
+exactitud del resaltado y de las citas sobre la cantidad de funciones).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -37,9 +40,9 @@ sello "No verificado", la edición, y que fue sustituido por el DU 019-2020.
 
 **Acceptance Scenarios**:
 
-1. **Given** una norma con edición aprobada, **When** la abro desde la Biblioteca, **Then** veo su índice
-   completo y colapsable (con el número de página de cada artículo) y la edición con su sello de vigencia
-   en un encabezado que no se oculta al desplazarse.
+1. **Given** una norma con edición aprobada, **When** la abro desde la Biblioteca ("Leer norma"), **Then** veo su índice
+   completo y colapsable y la edición con su sello de vigencia en el encabezado; el sello se repite junto
+   al texto que se lee, de modo que nunca queda lejos de lo que se está leyendo.
 2. **Given** el índice, **When** elijo un artículo, **Then** veo su título, su texto y sus numerales y
    literales anidados, con el número de página del PDF de cada uno, y la dirección del navegador cambia a
    un enlace que, al abrirlo, lleva exactamente a ese artículo.
@@ -153,8 +156,8 @@ Como personal con distintos equipos, quiero usar el lector en pantalla grande y 
 
 - Artículos sin texto propio (solo numerales): se muestra el título y los numerales.
 - Anexos: son una sola disposición con texto de tabla; se muestran como texto preformateado.
-- Dos ediciones de la misma norma: el lector abre la más reciente aprobada y permite elegir otra
-  (`?v=`); el enlace conserva la edición.
+- Dos ediciones de la misma norma: el lector abre la más reciente aprobada y se puede fijar otra
+  (`?v=`); el enlace conserva la edición. (Aún no hay un selector en la interfaz: hoy hay una edición por norma.)
 - Referencias con espacios y signos irregulares (`ART.  5°  Ley N° 27181`), mayúsculas y acentos.
 - Un literal que existe en varios numerales (`art. 4-A lit. a`): se listan todos, no se elige uno.
 - Un PDF con la huella alterada: el servidor se niega a entregarlo (error explicado, sin detalles internos).
@@ -166,14 +169,16 @@ Como personal con distintos equipos, quiero usar el lector en pantalla grande y 
 
 - **FR-001**: La API DEBE entregar el **índice** de una edición aprobada: contenedores (sección, título,
   capítulo), artículos, disposiciones y anexos, con tipo, etiqueta, título, ruta, página y padre.
-- **FR-002**: La API DEBE entregar el **subárbol vigente** de una disposición (ella y sus numerales y literales,
-  en orden de documento) con texto, páginas, cajas, notas, advertencias y cita de cada nivel; para cualquier
-  ruta devuelve la unidad de lectura que la contiene (artículo, disposición, anexo o contenedor).
+- **FR-002**: La API DEBE entregar la **unidad de lectura** (`GET /instruments/{id}/reading-unit?path=`): la
+  disposición y su subárbol vigente (numerales y literales, en orden de documento) con texto, páginas,
+  cajas, notas, advertencias, historial y cita de cada nivel; para cualquier ruta devuelve la unidad que la
+  contiene (artículo, disposición, anexo o contenedor). Un contenedor devuelve además lo que contiene.
 - **FR-003**: Cada disposición DEBE incluir la **cita** (breve y formal) generada por el backend; la formal
   incluye norma, ubicación, edición, estado de verificación y página, y jamás afirma vigencia sin
   `verified_current`.
 - **FR-004**: Las revisiones sustituidas DEBEN estar disponibles solo como historial rotulado como no vigente
-  (`GET /provisions/{id}`), con su evento legal.
+  (en la unidad de lectura, `history` de cada nivel), con su evento legal y su propia cita ("texto sustituido
+  por …; no vigente").
 - **FR-005**: El analizador DEBE conservar, por disposición, las **advertencias de revisión** (p. ej.
   `paragraph_replacement_unapplied`); la API las expone y el lector las muestra.
 - **FR-006**: La API DEBE entregar el **PDF original** de una edición aprobada (`GET /versions/{id}/source`) con
@@ -229,3 +234,26 @@ Como personal con distintos equipos, quiero usar el lector en pantalla grande y 
 - La búsqueda es solo por referencia exacta; la búsqueda por texto/significado es la spec 004.
 - La edición mostrada por defecto es la aprobada más reciente de la norma.
 - Fuera de alcance: edición de textos, anotaciones personales, impresión/exportación a PDF, comparar ediciones.
+- **Limitaciones conocidas** (decididas, no olvidadas):
+  - El historial de una disposición que ya no existe en el texto vigente (derogada del todo) no aparece en
+    la lectura: la unidad de lectura muestra solo disposiciones con texto vigente.
+  - En un **anexo** el texto se muestra como bloque plano con advertencia y el Folio resalta solo su
+    encabezado, porque la ingesta no estructura tablas (spec 002; sin OCR ni extractor de tablas sin spec).
+  - Los títulos en mayúsculas se muestran en minúscula de oración, pero **sin añadir tildes** que el PDF no
+    traiga ("Ambito de aplicacion"): la fidelidad a la fuente va antes que la ortografía.
+  - Las referencias del tipo "artículo 5 del Título II" se resuelven pasando por el título que contiene al
+    artículo; las que cruzan normas no se enlazan.
+
+## Resultados (Sprint 2)
+
+| Criterio | Resultado | Cómo se midió |
+|---|---|---|
+| SC-001 (< 15 s) | **Pendiente de prueba con personas** | Requiere a quien use la herramienta; el flujo existe (índice o búsqueda → texto + página resaltada) |
+| SC-002 (resaltado sobre el texto) | ✅ | Playwright contra la API real: bajo cada caja del literal e) del art. 2 hay tinta y no más que bajo la misma caja desplazada ±0,7 líneas (4 de 5 líneas con desplazamiento óptimo 0-1 px) |
+| SC-003 (golden set) | ✅ 100 % de las citas con referencia | `test_every_golden_citation_with_a_reference_is_resolved_to_its_cited_page` |
+| SC-004 (carga diferida y < 15 %) | ✅ paquete inicial 94,8 kB (sin pdf.js, que son 112 kB aparte); abrir el art. 229 del TUO recibe ≈ 2,4 % del PDF | Playwright con CDP (`Network.dataReceived`) |
+| SC-005 (axe y teclado) | ✅ 0 violaciones serias o críticas | Playwright + axe (WCAG 2.2 AA) en lectura, historial, título, portada, búsqueda abierta y móvil (ambos paneles) |
+| SC-006 (nunca "vigente") | ✅ | Pruebas de unidad y e2e: el sello dice "No verificado" junto al texto, en la cita y en la búsqueda |
+
+Pruebas: 375 backend (96 % de cobertura), 146 de unidad del frontend, 27 e2e con API simulada y 26 contra la
+API real. Hallazgos corregidos durante la verificación: ver [ADR-0013](../../docs/architecture/adr/0013-reader-pdfjs-folio-and-reference-lookup.md#hallazgos-de-la-implementación-para-no-repetirlos).

@@ -1742,11 +1742,20 @@
             },
             "description": "Successful Response"
           },
+          "206": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "Parte del PDF pedida con `Range` (`Content-Range` indica cuál)."
+          },
           "304": {
             "description": "El navegador ya tiene esta versión (ETag)."
           },
           "404": {
             "description": "La edición no existe o no está aprobada."
+          },
+          "416": {
+            "description": "El rango pedido está fuera del archivo."
           },
           "422": {
             "content": {

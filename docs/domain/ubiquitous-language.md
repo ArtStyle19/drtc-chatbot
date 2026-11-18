@@ -28,12 +28,28 @@ identificador en inglés. Si un término nuevo aparece en una spec, se agrega aq
 | Página física / página impresa | `pdf_page` / `printed_page_label` | Número de página del PDF vs. número impreso en el documento. |
 | Sello de vigencia | `ValiditySeal` (UI) | Elemento visual que dice, con palabras, el estado de verificación. |
 
+## Lectura (spec 003)
+
+| Término (ES) | Código (EN) | Definición |
+|---|---|---|
+| Índice de una norma | `Outline` | Lista plana y ordenada de contenedores, artículos, disposiciones y anexos de una edición, con su ruta, padre y página. |
+| Unidad de lectura | `ReadingUnit` | Lo que el lector muestra completo para una ruta: el artículo, la disposición, el anexo o el contenedor que la contiene. La decide el backend. |
+| Contenedor | `container` (`section`/`title`/`chapter`) | Sección, título o capítulo: no tiene texto propio; se lee como la lista de lo que contiene. |
+| Cita breve / cita formal | `short_citation` / `format_citation` | "Ley N.° 27181, art. 2, lit. e)" / la cita completa con edición, estado de verificación y página. **La redacta el servidor**; un texto sustituido se cita como "no vigente". |
+| Historial (texto sustituido) | `history` | Textos anteriores de una disposición, siempre rotulados **no vigente**, con la norma que los sustituyó. |
+| Advertencia de revisión | `ReviewFlag` | Marca por revisión que pide a una persona mirar el texto (p. ej. párrafo sustituido sin aplicar, anexo sin estructura de tabla). |
+| Caja de texto | `PageBox` / `TextBox` | Rectángulo de una línea del PDF en puntos (origen abajo-izquierda), guardado por la ingesta para resaltar. |
+| *Folio* | `Folio` (UI) | Panel con la página del PDF original y el pasaje resaltado como con un marcador. |
+| Edición mostrada | `?v=` / `version_id` | Edición aprobada que se lee; por defecto la más reciente. |
+
 ## Recuperación (`retrieval`)
 
 | Término (ES) | Código (EN) | Definición |
 |---|---|---|
 | Fragmento | `Chunk` | Unidad indexable (artículo = padre, numeral/literal = hijo). |
-| Búsqueda exacta | `ExactLookup` | Por identificador: "art. 218.2 del TUO". |
+| Búsqueda exacta (por referencia) | `LookupReference` | Por identificador: "art. 218.2 del TUO". Determinista; si hay varias coincidencias las lista y no elige. *(spec 003)* |
+| Referencia legal | `LegalReference` | Lo que la persona escribió, analizado en norma + unidad (artículo, numeral, literal, anexo, disposición, título…). |
+| Alias de una norma | `aliases` | Nombres y siglas con que el personal nombra una norma (`LGTTT`, `RENAT`, `LPAG`, `TUO`); vienen del manifiesto. |
 | Búsqueda textual | `LexicalSearch` | `tsvector` en español con `unaccent`. |
 | Búsqueda semántica | `VectorSearch` | Embeddings en pgvector. |
 | Fusión de rankings | `reciprocal_rank_fusion` | RRF: combina las listas de candidatos. |

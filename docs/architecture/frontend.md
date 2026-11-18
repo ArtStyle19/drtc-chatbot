@@ -22,10 +22,19 @@ frontend/src/
     │   ├── library/      Biblioteca normativa
     │   │   ├── data-access/   LibraryApi + LibraryStore (NgRx SignalStore)
     │   │   ├── feature/       LibraryPage (contenedor, provee el store)
-    │   │   └── ui/            InstrumentCard (presentacional)
-    │   ├── chat/         Consultas (spec 005; hoy marcador de posición)
-    │   └── reader/       Folio: visor del PDF (spec 003)
-    └── testing/          fixtures para tests
+    │   │   └── ui/            InstrumentCard (presentacional; enlace "Leer norma")
+    │   ├── reader/       Lector normativo (spec 003): índice, texto y Folio
+    │   │   ├── data-access/   ReaderApi + ReaderStore · funciones puras (outline-tree, reading-tree,
+    │   │   │                  outline-labels, provision-labels) · pdf/ (puerto PdfLoader + adaptador pdf.js)
+    │   │   ├── feature/       ReaderPage (URL → store, foco, scroll, título del documento)
+    │   │   └── ui/            OutlineTree · ContainerView · EditionHeader · ProvisionNode (recursivo)
+    │   │                      · CiteButton · Folio
+    │   ├── lookup/       Búsqueda por referencia (spec 003)
+    │   │   ├── data-access/   LookupApi + LookupStore (debounce, cancela la petición anterior)
+    │   │   └── feature/       ReferenceSearch (combobox, vive en el encabezado de la aplicación)
+    │   └── chat/         Consultas (spec 005; hoy marcador de posición)
+    ├── shared/util/      instrument-labels (referencia de una norma, texto de la aprobación)
+    └── testing/          fixtures y dobles (reader-fixtures, FakePdfLoader)
 ```
 
 ## Reglas
@@ -46,15 +55,71 @@ frontend/src/
 8. **Idioma y formato:** `LOCALE_ID = es-PE`; textos en español en las plantillas.
 9. **Fuentes autoalojadas** (`@fontsource/*`): sin llamadas a Google Fonts.
 
+## El lector (spec 003)
+
+[ADR-0013](adr/0013-reader-pdfjs-folio-and-reference-lookup.md) explica las decisiones; aquí, cómo está armado.
+
+- **La URL es el estado:** `/biblioteca/:norma?p=<ruta estructural>&v=<edición>`, enlazada a los
+  `input()` de `ReaderPage` (`withComponentInputBinding`). Un efecto llama a `store.open(norma, v)` y
+  `store.focus(p)` **por separado**: una respuesta lenta del índice no retrasa ni pisa la elección.
+- **`ReaderStore`** (SignalStore por página): índice, unidad de lectura, ruta enfocada e historial visible.
+  Cada carga lleva un contador; una respuesta superada se descarta. Si `p` cae dentro de la unidad ya
+  cargada (un literal del mismo artículo) no hay petición nueva.
+- **Funciones puras y probadas** para lo que no es de Angular: anidar el índice por `parent_path`, anidar
+  los nodos de lectura, calcular el pasaje del Folio (un numeral incluye sus literales; el historial
+  apunta a su propia página y cajas), vecinos anterior/siguiente.
+- **`ProvisionNode`** es recursivo y presentacional: recibe el nodo y la ruta enfocada y emite
+  `viewPassage` / `showHistory`. Nunca compone una cita: el botón copia la que escribió el servidor
+  (`CiteButton`, CDK `Clipboard` + `LiveAnnouncer`; avisa si no pudo copiar).
+- **`Folio`** habla con el puerto `PdfLoader`, no con pdf.js: así las pruebas de unidad usan un doble
+  (`FakePdfLoader`) y el adaptador (`PdfJsLoader`) es lo único que carga la librería, con `import()`.
+  Dibuja el canvas (una página a la vez, cola de renders, cancelable con `AbortSignal`) y superpone
+  rectángulos HTML calculados con las cajas del servidor. El `viewport` es una región con foco y etiqueta
+  (axe exige poder desplazarla con teclado).
+- **La URL del PDF no pasa por `HttpClient`**, así que no la alcanza el interceptor: `resolveApiUrl` le
+  antepone `apiBaseUrl` cuando hace falta (`core/http/api-url.ts`).
+- **Pantallas pequeñas:** un solo conjunto de componentes. Por debajo de 1024 px se muestra un panel a la
+  vez (alternador Texto/PDF) y el índice es un panel desplegable que se cierra al elegir; desde 1024 px, tres
+  columnas con índice y Folio fijos (`position: sticky`).
+- **Foco y desplazamiento:** al cambiar de disposición el foco pasa al encabezado de la lectura (no en la
+  primera carga). El router vuelve arriba en cada navegación; la página vuelve a desplazar al literal
+  elegido justo después del evento `Scroll`, así no hay salto visible. En una sola columna, el encabezado de
+  la disposición se lleva al borde superior de la pantalla.
+- **Título del documento:** lo fija la página ("Artículo 2 · Ley 27181 (LGTTT) · DRTC Puno"); la ruta no
+  declara `title` para que el `TitleStrategy` no lo pise.
+
+### Búsqueda por referencia
+
+`ReferenceSearch` implementa el patrón *combobox* de ARIA 1.2: el foco se queda en el campo; las flechas
+mueven `aria-activedescendant` por un `listbox`; Enter abre el resultado activo (o busca de inmediato y
+abre si el resultado es único); Escape cierra y, una segunda vez, borra; `/` enfoca el campo desde
+cualquier parte. La región `role="status"` siempre está en el DOM para que el anuncio llegue a los
+lectores de pantalla. Una referencia ambigua **lista** las candidatas y no abre ninguna.
+
+### Reglas de plantilla aprendidas
+
+- Entre elementos `<span>` contiguos usar `&ngsp;` (Angular elimina los nodos de solo espacio junto a
+  `@if`): sin él el texto extraído y los lectores leen "Art. 229Del silencio".
+- No llamar `outline` a una clase propia: choca con la utilidad de Tailwind (`outline: 1px solid`).
+- Una etiqueta accesible debe contener el texto visible (axe `label-content-name-mismatch`): el botón de
+  zoom dice "100 %, restablecer el zoom".
+- El presupuesto de estilo por componente es de 6 kB (aviso) / 8 kB (error).
+
 ## Configuración por entorno
 
 `public/config.json` se lee al arrancar (`apiBaseUrl`). La misma build sirve para cualquier entorno:
 en desarrollo el proxy de `ng serve` (`proxy.conf.json`) y en contenedores nginx redirigen `/api` al
 backend, por lo que `apiBaseUrl` queda vacío (mismo origen).
 
+**nginx** (`nginx.conf.template`) sirve además lo que necesita el visor: gzip para JSON (el índice del TUO
+baja de 65 kB a ~12 kB), el worker de pdf.js (`.mjs`) como `text/javascript` y sin caché larga, y
+reenvía `Range`, `ETag` y `If-None-Match` al backend sin tocarlos (el PDF no se comprime ni se almacena en
+búfer). Verificado con la compilación de producción tras el nginx real (`206`, `304`, worker como Web Worker).
+
 ## Pruebas
 
 | Tipo | Herramienta | Ejemplo |
 |---|---|---|
-| Unitarias de componentes y stores | Vitest + TestBed | `validity-seal.spec.ts`, `library.store.spec.ts` |
-| End-to-end + accesibilidad | Playwright + axe | `e2e/library.spec.ts` (API simulada; `E2E_REAL_API=1` para la real) |
+| Unitarias de componentes y stores | Vitest + TestBed | `validity-seal.spec.ts`, `reader.store.spec.ts`, `folio.spec.ts` (con `FakePdfLoader`), `reference-search.spec.ts` |
+| End-to-end + accesibilidad | Playwright + axe | `e2e/library.spec.ts`, `e2e/reader.spec.ts` (API simulada con respuestas capturadas de la real, en `e2e/fixtures/reader.ts`; `E2E_REAL_API=1` para la real) |
+| Contra el backend real | Playwright (`E2E_REAL_API=1`) | SC-002: alineación del resaltado midiendo la tinta del canvas bajo cada caja; SC-004: bytes realmente recibidos del TUO por CDP (`Network.dataReceived`); numeral del TUO y anexo del RENAT |

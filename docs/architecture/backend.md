@@ -61,6 +61,22 @@ GET /api/v1/instruments
 En la spec 002 el adaptador se reemplaza por un repositorio PostgreSQL en `bootstrap/container.py`
 **sin tocar el caso de uso ni el router**: ese es el punto de la inversión de dependencias.
 
+## Lectura y referencias (spec 003)
+
+| Ruta | Caso de uso | Puerto → adaptador |
+|---|---|---|
+| `GET /instruments/{id}/outline` | `GetOutline` | `ReadingStore` → `SqlReadingStore` |
+| `GET /instruments/{id}/reading-unit?path=` | `GetReadingUnit` (arma las citas con `domain/citations.py`) | `ReadingStore` → `SqlReadingStore` |
+| `GET /versions/{id}/source` | `GetSourceDocument` | `DocumentStorage` → `LocalDocumentStorage` (verifica el SHA-256; en producción puede ser MinIO) |
+| `GET /lookup?q=` | `LookupReference` (contexto `retrieval`) | `ProvisionDirectory` → `LegalCorpusDirectory` (usa solo `legal_corpus.api`) |
+
+- El **dominio decide** la unidad de lectura (`reading_unit_path`) y redacta las citas; el router solo
+  traduce a JSON. El orden de las disposiciones es el de su **primera revisión** en el documento, para que
+  un texto sustituido no salte al lugar donde se cita su reemplazo.
+- `IntegrityViolationError` (el PDF no coincide con su huella) responde `500` con un mensaje genérico y deja
+  el detalle en el registro; nunca revela rutas.
+- El servicio de PDF no recibe rutas del cliente: solo el id de una edición aprobada.
+
 ## Patrones
 
 | Patrón | Dónde | Nota |

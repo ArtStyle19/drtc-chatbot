@@ -26,7 +26,10 @@ flowchart LR
 - **ingestion → legal_corpus (cliente/proveedor):** la ingesta solo publica a través de
   `contexts.legal_corpus.api`; nunca escribe en las tablas del corpus.
 - **legal_corpus → retrieval (lenguaje publicado):** el índice es un modelo derivado y
-  reconstruible; se actualiza cuando se publica una versión aprobada.
+  reconstruible; se actualiza cuando se publica una versión aprobada. Desde la spec 003 `retrieval`
+  existe: resuelve **referencias exactas** leyendo el índice de disposiciones únicamente a través de
+  `contexts.legal_corpus.api` (puerto `ProvisionDirectory`, capa anticorrupción); la búsqueda textual
+  y vectorial llega con la spec 004.
 - **consultation → retrieval (ACL):** `consultation` define su propio puerto `EvidenceRetriever` con
   sus propios tipos; un adaptador traduce desde `contexts.retrieval.api`.
 - **Sistemas externos:** OpenAI y el sistema DRTC quedan detrás de adaptadores; cambiar de proveedor

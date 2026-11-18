@@ -8,9 +8,11 @@ Regional de Transportes y Comunicaciones de Puno. Sirve para tres cosas:
 2. **Leer y ubicar** partes concretas de las normas (p. ej. "artículo 218 del TUO de la LPAG").
 3. **Explicar** conceptos, distinguiendo siempre texto normativo, interpretación y recomendación.
 
-> **Estado:** Sprint 1. Los tres PDF se convierten en disposiciones estructuradas con página exacta
-> (`make ingest`, API `/api/v1/instruments/{id}/provisions`). El lector, la búsqueda y las respuestas
-> citadas llegan en las specs 003-006
+> **Estado:** Sprint 2. Los tres PDF se convierten en disposiciones estructuradas con página exacta
+> (`make ingest`) y el personal ya puede **usarlas**: abrir una norma desde la Biblioteca, navegar su
+> índice, leer una disposición con su estado de vigencia, historial y notas, ver la **página del PDF con
+> el pasaje resaltado** (*Folio*), encontrar una disposición escribiendo su referencia (`art. 5 Ley 27181`)
+> y copiar su cita. La búsqueda por significado y las respuestas citadas llegan en las specs 004-006
 > ([roadmap](docs/product/roadmap.md)).
 >
 > **Aviso:** las tres ediciones cargadas son **de prueba y no están verificadas**; al menos una

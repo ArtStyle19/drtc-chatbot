@@ -967,6 +967,15 @@ export interface operations {
                     "application/pdf": unknown;
                 };
             };
+            /** @description Parte del PDF pedida con `Range` (`Content-Range` indica cuál). */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
             /** @description El navegador ya tiene esta versión (ETag). */
             304: {
                 headers: {
@@ -976,6 +985,13 @@ export interface operations {
             };
             /** @description La edición no existe o no está aprobada. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El rango pedido está fuera del archivo. */
+            416: {
                 headers: {
                     [name: string]: unknown;
                 };

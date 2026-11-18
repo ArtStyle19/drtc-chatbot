@@ -23,8 +23,9 @@ sin adornos.
    *En revisión*, *Sustituido*, *Derogado*. Aparece en tarjetas de normas, citas y el visor.
 2. **Citas como referencias jurídicas** (spec 005): chips legibles por sí solos
    ("Ley 27181 · art. 2 lit. e · p. 4") con **Copiar cita** en formato formal para informes.
-3. **Folio** (spec 003): panel lateral con la página exacta del PDF y el pasaje resaltado como con
-   un resaltador, sincronizado con la conversación.
+3. **Folio** (spec 003, ✅): panel lateral con la página exacta del PDF y el pasaje resaltado como con
+   un resaltador. Hoy se sincroniza con la disposición que se lee; con la spec 005 lo hará con la
+   conversación.
 
 ## Defaults que rechazamos
 
