@@ -1,0 +1,57 @@
+<nav aria-label="Índice de la norma">
+  <ul class="level" role="list">
+    <ng-container *ngTemplateOutlet="branch; context: { $implicit: nodes() }" />
+  </ul>
+</nav>
+
+<ng-template #branch let-items>
+  @for (item of items; track item.entry.path) {
+    @let label = labelOf(item.entry);
+    <li>
+      @if (item.children.length > 0) {
+        <div class="row" [class.is-current]="isCurrent(item.entry.path)">
+          <button
+            type="button"
+            class="toggle"
+            [attr.aria-expanded]="isOpen(item.entry.path)"
+            [attr.aria-controls]="groupId(item.entry.path)"
+            [attr.aria-label]="(isOpen(item.entry.path) ? 'Contraer ' : 'Expandir ') + label.prefix"
+            (click)="toggle(item.entry.path)"
+          >
+            <svg lucideChevronRight [size]="14" class="chevron" aria-hidden="true"></svg>
+          </button>
+          <a
+            class="entry"
+            [routerLink]="route()"
+            [queryParams]="params(item.entry)"
+            [attr.aria-current]="isCurrent(item.entry.path) ? 'location' : null"
+          >
+            <span class="prefix">{{ label.prefix }}</span>&ngsp;
+            @if (label.title) {
+              <span class="title">{{ label.title }}</span>
+            }
+          </a>
+        </div>
+        @if (isOpen(item.entry.path)) {
+          <ul class="level nested" role="list" [id]="groupId(item.entry.path)">
+            <ng-container *ngTemplateOutlet="branch; context: { $implicit: item.children }" />
+          </ul>
+        }
+      } @else {
+        <div class="row leaf" [class.is-current]="isCurrent(item.entry.path)">
+          <a
+            class="entry"
+            [routerLink]="route()"
+            [queryParams]="params(item.entry)"
+            [attr.aria-current]="isCurrent(item.entry.path) ? 'location' : null"
+          >
+            <span class="prefix">{{ label.prefix }}</span>&ngsp;
+            @if (label.title) {
+              <span class="title">{{ label.title }}</span>
+            }
+          </a>
+        </div>
+      }
+    </li>
+  }
+</ng-template>

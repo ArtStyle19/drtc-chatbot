@@ -1,0 +1,20 @@
+@if (items().length > 0) {
+  <p class="intro">
+    Contiene {{ items().length }} {{ items().length === 1 ? 'elemento' : 'elementos' }}:
+  </p>
+  <ul class="list" role="list">
+    @for (item of items(); track item.entry.path) {
+      <li>
+        <a class="item" [routerLink]="route()" [queryParams]="params(item.entry)">
+          <span class="prefix">{{ item.label.prefix }}</span>&ngsp;
+          @if (item.label.title) {
+            <span class="title">{{ item.label.title }}</span>&ngsp;
+          }
+          <span class="page">p. {{ item.entry.page_start }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+} @else {
+  <p class="intro">Este apartado no tiene disposiciones propias indexadas.</p>
+}

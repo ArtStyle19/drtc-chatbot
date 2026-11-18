@@ -55,7 +55,7 @@
       <button
         type="button"
         class="zoom-level"
-        aria-label="Restablecer el zoom"
+        [attr.aria-label]="zoomLabel() + ', restablecer el zoom'"
         (click)="resetZoom()"
       >
         {{ zoomLabel() }}
@@ -71,7 +71,7 @@
       </button>
 
       <a class="open-link" [href]="sourceUrl()" target="_blank" rel="noopener">
-        Abrir PDF
+        <span class="open-text">Abrir PDF</span>
         <svg lucideExternalLink [size]="14" aria-hidden="true"></svg>
         <span class="sr-only">(se abre en una pestaña nueva)</span>
       </a>
@@ -108,7 +108,14 @@
     <p class="passage hint">Elija una disposición para ver aquí su página en el PDF.</p>
   }
 
-  <div #viewport class="viewport" [attr.aria-busy]="status() === 'loading'">
+  <div
+    #viewport
+    class="viewport"
+    tabindex="0"
+    role="region"
+    aria-label="Página del PDF (desplazable)"
+    [attr.aria-busy]="status() === 'loading'"
+  >
     @if (status() === 'error') {
       <div role="alert" class="notice">
         <p class="notice-title">No se pudo cargar el PDF.</p>

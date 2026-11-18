@@ -192,6 +192,11 @@
   font-weight: 600;
 }
 
+.viewport:focus-visible {
+  outline: 2px solid var(--color-ink-600);
+  outline-offset: -2px;
+}
+
 .viewport {
   position: relative;
   flex: 1;
@@ -299,4 +304,28 @@
 
 .retry:hover {
   background: var(--color-ink-700);
+}
+
+/* Small screens: one compact toolbar row; the title and link text stay available to screen readers. */
+@media (max-width: 40rem) {
+  .folio-title,
+  .open-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .toolbar {
+    justify-content: center;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .open-link {
+    margin-left: 0;
+    padding: 0.3rem;
+  }
 }

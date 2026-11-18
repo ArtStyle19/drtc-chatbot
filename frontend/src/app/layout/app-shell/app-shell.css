@@ -73,3 +73,11 @@
   font-size: 0.875rem;
   text-align: center;
 }
+
+@media (max-width: 40rem) {
+  .corpus-notice {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    text-align: left;
+  }
+}

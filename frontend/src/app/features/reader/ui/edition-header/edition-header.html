@@ -1,0 +1,32 @@
+<div class="header">
+  <div class="identity">
+    <p class="reference">{{ reference() }}</p>
+    <h1 class="title">{{ edition().title }}</h1>
+  </div>
+
+  <div class="status">
+    <drtc-validity-seal [status]="edition().verification_status" />
+    <p class="edition-label">
+      {{ edition().edition_label }}
+    </p>
+    <p class="meta">
+      @if (edition().consolidated_as_of; as consolidated) {
+        Actualizado al {{ consolidated | date: 'longDate' }} ·
+      } @else {
+        Fecha de actualización no declarada ·
+      }
+      {{ edition().page_count }} páginas · {{ approval() }}
+    </p>
+  </div>
+</div>
+
+@if (edition().alerts.length > 0) {
+  <details class="alerts">
+    <summary>Advertencias de esta edición ({{ edition().alerts.length }})</summary>
+    <ul>
+      @for (alert of edition().alerts; track $index) {
+        <li>{{ alert }}</li>
+      }
+    </ul>
+  </details>
+}

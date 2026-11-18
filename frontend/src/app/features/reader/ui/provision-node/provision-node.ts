@@ -3,7 +3,12 @@ import { Component, computed, input, output } from '@angular/core';
 import { LucideTriangleExclamationPoint } from '@lucide/angular';
 
 import { LegalEvent, ReadingRevision } from '../../../../core/api/models';
-import { eventVerb, nodeLocator, noteKindLabel } from '../../data-access/provision-labels';
+import {
+  eventVerb,
+  nodeLocator,
+  noteKindLabel,
+  provisionAnchor,
+} from '../../data-access/provision-labels';
 import { ReadingTreeNode } from '../../data-access/reading-tree';
 import { CiteButton } from '../cite-button/cite-button';
 
@@ -43,9 +48,7 @@ export class ProvisionNode {
   protected readonly node = computed(() => this.tree().node);
   protected readonly current = computed(() => this.node().current);
   protected readonly locator = computed(() => nodeLocator(this.node()));
-  protected readonly anchor = computed(
-    () => `p-${this.node().path.replace(/[^A-Za-z0-9_-]/g, '_')}`,
-  );
+  protected readonly anchor = computed(() => provisionAnchor(this.node().path));
   protected readonly isFocused = computed(() => this.focusPath() === this.node().path);
   protected readonly isWithinFocus = computed(() => {
     const focus = this.focusPath();

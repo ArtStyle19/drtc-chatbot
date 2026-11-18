@@ -45,3 +45,8 @@ const NOTE_KIND: Record<string, string> = {
 export function noteKindLabel(note: Pick<EditorialNote, 'kind'>): string {
   return NOTE_KIND[note.kind] ?? 'Nota editorial';
 }
+
+/** DOM id of a provision in the reading view; the page scrolls to it when a passage is chosen. */
+export function provisionAnchor(path: string): string {
+  return `p-${path.replace(/[^A-Za-z0-9_-]/g, '_')}`;
+}

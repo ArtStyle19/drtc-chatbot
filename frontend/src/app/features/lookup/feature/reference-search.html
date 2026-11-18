@@ -1,0 +1,85 @@
+<form role="search" class="search" (submit)="$event.preventDefault()">
+  <label class="sr-only" [for]="uid">Buscar una disposición por su referencia</label>
+  <div class="field">
+    <svg lucideSearch [size]="16" class="icon" aria-hidden="true"></svg>
+    <input
+      #field
+      [id]="uid"
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="search"
+      placeholder="Buscar: art. 5 Ley 27181"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-controls]="uid + '-lista'"
+      [attr.aria-activedescendant]="activeId()"
+      [attr.maxlength]="maxLength"
+      [value]="store.query()"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      (focusin)="onFocusIn()"
+    />
+    @if (store.query()) {
+      <button type="button" class="clear" aria-label="Borrar la búsqueda" (click)="clear()">
+        <svg lucideX [size]="14" aria-hidden="true"></svg>
+      </button>
+    } @else {
+      <kbd class="hint" aria-hidden="true">/</kbd>
+    }
+  </div>
+
+  <p class="sr-only" role="status">{{ isOpen() ? statusText() : '' }}</p>
+
+  @if (isOpen()) {
+    <!-- The mouse must not take focus away from the field, or the panel would close before the click. -->
+    <div class="panel" (mousedown)="$event.preventDefault()">
+      <p class="message" [attr.data-state]="store.status()" aria-hidden="true">
+        {{ statusText() }}
+      </p>
+      @if (store.result()?.ignored_text; as ignored) {
+        <p class="ignored" aria-hidden="true">No tuve en cuenta: «{{ ignored }}»</p>
+      }
+
+      @if (showList()) {
+        <ul
+          class="results"
+          role="listbox"
+          aria-label="Resultados de la búsqueda"
+          [id]="uid + '-lista'"
+        >
+          @for (hit of store.hits(); track $index) {
+            <!-- Options are not focusable: the field keeps focus (aria-activedescendant). -->
+            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+            <li
+              role="option"
+              class="option"
+              [id]="uid + '-op-' + $index"
+              [attr.aria-selected]="$index === store.activeIndex()"
+              (click)="open(hit)"
+              (mousemove)="store.setActive($index)"
+            >
+              <span class="line">
+                <span class="citation">{{ hit.citation }}</span>&ngsp;
+                @if (pageLabel(hit)) {
+                  <span class="page">{{ pageLabel(hit) }}</span>
+                }</span
+              >&ngsp;
+              @if (hit.snippet) {
+                <span class="snippet">{{ hit.snippet }}</span>&ngsp;
+              }
+              <span class="edition">
+                {{ hit.instrument_short_name }}
+                @if (isUnverified(hit)) {
+                  · edición no verificada
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</form>

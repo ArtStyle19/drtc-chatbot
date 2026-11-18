@@ -10,6 +10,11 @@ export const routes: Routes = [
       import('./features/library/feature/library-page').then((m) => m.LibraryPage),
   },
   {
+    // No static `title`: the page sets it from the norm and the provision being read.
+    path: 'biblioteca/:norma',
+    loadComponent: () => import('./features/reader/feature/reader-page').then((m) => m.ReaderPage),
+  },
+  {
     path: 'consultas',
     title: 'Consultas · DRTC Puno',
     loadComponent: () => import('./features/chat/feature/chat-page').then((m) => m.ChatPage),

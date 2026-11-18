@@ -1,4 +1,5 @@
 import { OutlineEntry } from '../../../core/api/models';
+import { isContainerKind } from './outline-labels';
 
 export interface OutlineNode {
   readonly entry: OutlineEntry;
@@ -43,4 +44,28 @@ export function entryForPath(
   const exact = entries.find((e) => e.path === path);
   if (exact) return exact;
   return entries.find((e) => path.startsWith(e.unit_path + '/') || path === e.unit_path) ?? null;
+}
+
+export interface Neighbours {
+  readonly previous: OutlineEntry | null;
+  readonly next: OutlineEntry | null;
+}
+
+/**
+ * The readable entries (not containers) before and after `path` in document order, so the reader
+ * can step through a norm. Containers have no text of their own and are skipped.
+ */
+export function neighbours(entries: readonly OutlineEntry[], path: string | null): Neighbours {
+  const current = entryForPath(entries, path);
+  if (!current) return { previous: null, next: null };
+  const readable = entries.filter((e) => !isContainerKind(e.kind));
+  const index = readable.findIndex((e) => e.path === current.path);
+  if (index === -1) {
+    // A container: the neighbours are the readable entries around its position in the outline.
+    const position = entries.indexOf(current);
+    const before = entries.slice(0, position).filter((e) => !isContainerKind(e.kind));
+    const after = entries.slice(position + 1).filter((e) => !isContainerKind(e.kind));
+    return { previous: before.at(-1) ?? null, next: after[0] ?? null };
+  }
+  return { previous: readable[index - 1] ?? null, next: readable[index + 1] ?? null };
 }

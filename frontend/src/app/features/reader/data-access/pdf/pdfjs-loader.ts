@@ -99,7 +99,10 @@ export class PdfJsLoader implements PdfLoader {
     const task = pdfjs.getDocument({
       url,
       rangeChunkSize: RANGE_CHUNK_BYTES,
-      disableAutoFetch: true, // do not download the rest of the file in the background
+      // Only the byte ranges of the pages shown are downloaded. Both flags are needed: with streaming
+      // on, pdf.js keeps reading the whole file from its first request even if auto-fetch is off.
+      disableStream: true,
+      disableAutoFetch: true,
       standardFontDataUrl: asset('standard_fonts/'),
       wasmUrl: asset('wasm/'),
     });

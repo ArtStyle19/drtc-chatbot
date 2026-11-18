@@ -1,5 +1,5 @@
 import { aNode } from '../../../testing/reader-fixtures';
-import { eventVerb, nodeLocator, noteKindLabel } from './provision-labels';
+import { eventVerb, nodeLocator, noteKindLabel, provisionAnchor } from './provision-labels';
 
 describe('nodeLocator', () => {
   it.each([
@@ -29,5 +29,12 @@ describe('labels of events and notes', () => {
     expect(noteKindLabel({ kind: 'concordance' })).toBe('Concordancias');
     expect(noteKindLabel({ kind: 'amendment' })).toBe('Nota de modificación');
     expect(noteKindLabel({ kind: 'something-new' })).toBe('Nota editorial');
+  });
+});
+
+describe('provisionAnchor', () => {
+  it('makes a safe DOM id out of a structural path', () => {
+    expect(provisionAnchor('articulo:2/literal:e')).toBe('p-articulo_2_literal_e');
+    expect(provisionAnchor('articulo:218/numeral:218.2')).toBe('p-articulo_218_numeral_218_2');
   });
 });

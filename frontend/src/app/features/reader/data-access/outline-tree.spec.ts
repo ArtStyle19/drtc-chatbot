@@ -1,5 +1,5 @@
 import { anEntry } from '../../../testing/reader-fixtures';
-import { ancestorsOf, buildOutlineTree, entryForPath } from './outline-tree';
+import { ancestorsOf, buildOutlineTree, entryForPath, neighbours } from './outline-tree';
 
 const ENTRIES = [
   anEntry({
@@ -63,5 +63,49 @@ describe('ancestorsOf / entryForPath', () => {
     expect(entryForPath(ENTRIES, 'articulo:1')?.path).toBe('articulo:1');
     expect(entryForPath(ENTRIES, 'articulo:999')).toBeNull();
     expect(entryForPath(ENTRIES, null)).toBeNull();
+  });
+});
+
+describe('neighbours', () => {
+  const entries = [
+    anEntry({
+      path: 'titulo:I',
+      kind: 'title',
+      label: 'I',
+      parent_path: null,
+      unit_path: 'titulo:I',
+    }),
+    anEntry({ path: 'articulo:1', label: '1', unit_path: 'articulo:1' }),
+    anEntry({ path: 'articulo:2', label: '2', unit_path: 'articulo:2' }),
+    anEntry({
+      path: 'titulo:II',
+      kind: 'title',
+      label: 'II',
+      parent_path: null,
+      unit_path: 'titulo:II',
+    }),
+    anEntry({ path: 'articulo:3', label: '3', parent_path: 'titulo:II', unit_path: 'articulo:3' }),
+  ];
+
+  it('steps over containers to the previous and next readable entry', () => {
+    expect(neighbours(entries, 'articulo:2')).toEqual({ previous: entries[1], next: entries[4] });
+  });
+
+  it('has no previous at the start and no next at the end', () => {
+    expect(neighbours(entries, 'articulo:1').previous).toBeNull();
+    expect(neighbours(entries, 'articulo:3').next).toBeNull();
+  });
+
+  it('works from a path inside an article (a literal)', () => {
+    expect(neighbours(entries, 'articulo:2/literal:e').previous?.path).toBe('articulo:1');
+  });
+
+  it('works from a container, using its place in the outline', () => {
+    expect(neighbours(entries, 'titulo:II')).toEqual({ previous: entries[2], next: entries[4] });
+  });
+
+  it('is empty for an unknown or missing path', () => {
+    expect(neighbours(entries, 'articulo:99')).toEqual({ previous: null, next: null });
+    expect(neighbours(entries, null)).toEqual({ previous: null, next: null });
   });
 });

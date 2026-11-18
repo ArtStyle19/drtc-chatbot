@@ -34,7 +34,7 @@ test.describe('Biblioteca normativa (spec 001)', () => {
     for (const card of await cards.all()) {
       await expect(card.locator('drtc-validity-seal')).toContainText('No verificado');
     }
-    await expect(page.getByText('Ley N.° 27181')).toBeVisible();
+    await expect(page.locator('.reference').first()).toHaveText('Ley N.° 27181');
   });
 
   test('has no serious accessibility violations', async ({ page }) => {

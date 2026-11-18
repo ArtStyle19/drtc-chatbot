@@ -94,3 +94,19 @@
 .ingestion[data-state='pending'] {
   color: var(--color-seal-unverified);
 }
+
+.read {
+  align-self: flex-start;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-md);
+  background: var(--color-ink-600);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.read:hover {
+  background: var(--color-ink-700);
+}

@@ -1,5 +1,7 @@
 <div class="head">
-  <span class="locator">{{ locator() }}</span>
+  @if (depth() > 0) {
+    <span class="locator">{{ locator() }}</span>
+  }
   @if (!isContainer()) {
     <span class="pages">{{ pages() }}</span>
     <span class="actions">

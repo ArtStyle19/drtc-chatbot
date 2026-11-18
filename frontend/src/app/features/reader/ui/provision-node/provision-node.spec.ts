@@ -32,10 +32,10 @@ function render(
 const text = (el: Element | null | undefined) => el?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 
 describe('ProvisionNode', () => {
-  it('shows the locator, the page and the current text', () => {
+  it('shows the page and the current text; the page heading already names the root', () => {
     const { el } = render();
 
-    expect(text(el.querySelector(':scope > .head .locator'))).toBe('Artículo 2');
+    expect(el.querySelector(':scope > .head .locator')).toBeNull();
     expect(text(el.querySelector(':scope > .head .pages'))).toBe('p. 3');
     expect(text(el.querySelector(':scope > .text'))).toBe(
       'Para efectos de la presente Ley, entiéndase por:',
@@ -185,6 +185,6 @@ describe('ProvisionNode', () => {
     const { el } = render({ nodes });
 
     expect(el.querySelector('.see')).toBeNull();
-    expect(text(el.querySelector('.locator'))).toBe('Título I');
+    expect(el.querySelector('drtc-cite-button')).toBeNull();
   });
 });
