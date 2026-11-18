@@ -7,7 +7,7 @@ debe respetar en la [constitución](../.specify/memory/constitution.md).
 | Spec | Release | Estado | Artefactos |
 |---|---|---|---|
 | [001-instrument-catalog](001-instrument-catalog/spec.md) | R0 | ✅ Implementada (Sprint 0) | spec · plan · tasks |
-| [002-corpus-ingestion](002-corpus-ingestion/spec.md) | R1 | 📝 Borrador, pendiente de `/speckit-clarify` | spec |
+| [002-corpus-ingestion](002-corpus-ingestion/spec.md) | R1 | 🔎 Clarificada, en curso (Sprint 1) | spec |
 | 003-legal-reader | R1 | ⏳ Backlog | — |
 | 004-hybrid-search | R2 | ⏳ Backlog | — |
 | 005-cited-answers | R2 | ⏳ Backlog | — |
