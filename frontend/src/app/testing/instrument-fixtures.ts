@@ -11,6 +11,7 @@ export function anInstrument(overrides: Partial<LegalInstrument> = {}): LegalIns
     issuing_authority: 'Congreso de la República',
     publication_date: '1999-10-08',
     version_count: 1,
+    aliases: ['lgttt'],
     current_edition: {
       version_id: 'ley-27181@2020-05',
       edition_label: 'Compilación no oficial con modificaciones hasta mayo de 2020',

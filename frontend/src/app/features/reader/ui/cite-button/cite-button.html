@@ -1,0 +1,21 @@
+<button type="button" class="cite" [class.is-done]="copied() === 'formal'" (click)="copy('formal')">
+  @if (copied() === 'formal') {
+    <svg lucideCheck [size]="14" aria-hidden="true"></svg>
+  } @else {
+    <svg lucideCopy [size]="14" aria-hidden="true"></svg>
+  }
+  {{ formalLabel() }}
+  <span class="sr-only"> formal de {{ subject() }}</span>
+</button>
+<button
+  type="button"
+  class="cite quiet"
+  [class.is-done]="copied() === 'short'"
+  (click)="copy('short')"
+>
+  {{ shortLabel() }}
+  <span class="sr-only"> de {{ subject() }}</span>
+</button>
+@if (failed()) {
+  <span class="failed" role="status">No se pudo copiar</span>
+}
