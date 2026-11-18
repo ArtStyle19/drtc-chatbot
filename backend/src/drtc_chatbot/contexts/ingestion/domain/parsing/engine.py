@@ -304,6 +304,9 @@ class ArticleDocumentParser:
         return len(text) < 160 and not text.endswith(".") and text[0] not in _OPEN_QUOTES
 
     def _set_container_title(self, text: str) -> None:
+        if self._opts.footnotes:
+            # A superscript footnote call glued to the heading: "(... N° 1272)115" -> "(... N° 1272)"
+            text = _REF_DIGITS.sub("", text).strip()
         for rev in reversed(self._revs):
             if rev.path == self._pending_title:
                 rev.title = f"{rev.title} {text}".strip() if rev.title else text

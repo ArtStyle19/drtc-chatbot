@@ -323,6 +323,48 @@ def test_page_footnotes_are_notes_and_do_not_leak_into_the_text() -> None:
     assert "Decreto Legislativo Nº 1272" in note.text
 
 
+def test_footnote_call_numbers_are_not_part_of_a_heading_title() -> None:
+    source = [
+        SourceLine(9, "TÍTULO PRELIMINAR"),
+        SourceLine(9, "Artículo I.- Ámbito"),
+        SourceLine(9, "Texto del ámbito."),
+        SourceLine(9, "TÍTULO IV"),
+        SourceLine(
+            9,
+            "Del procedimiento sancionador (Denominación modificada por el artículo 3 del "
+            "Decreto Legislativo N° 1272)115",
+        ),
+        SourceLine(9, "CAPÍTULO II"),
+        SourceLine(9, "Procedimiento (Capítulo incorporado por el Decreto Legislativo N° 1272)117"),
+        SourceLine(9, "Artículo 229.- Ámbito"),
+        SourceLine(9, "Texto del ámbito."),
+    ]
+    result = build_parser("tuo-lpag").parse(source)
+
+    assert current(result, "titulo:IV").title == (
+        "Del procedimiento sancionador (Denominación modificada por el artículo 3 del "
+        "Decreto Legislativo N° 1272)"
+    )
+    assert current(result, "titulo:IV/capitulo:II").title == (
+        "Procedimiento (Capítulo incorporado por el Decreto Legislativo N° 1272)"
+    )
+
+
+def test_a_title_that_ends_in_a_number_without_a_parenthesis_is_left_alone() -> None:
+    source = [
+        SourceLine(1, "TÍTULO PRELIMINAR"),
+        SourceLine(1, "Artículo I.- Ámbito"),
+        SourceLine(1, "Texto del ámbito."),
+        SourceLine(1, "TÍTULO I"),
+        SourceLine(1, "Régimen del Decreto Legislativo N° 1272"),
+        SourceLine(1, "Artículo 1.- Objeto"),
+        SourceLine(1, "Texto."),
+    ]
+    result = build_parser("tuo-lpag").parse(source)
+
+    assert current(result, "titulo:I").title == "Régimen del Decreto Legislativo N° 1272"
+
+
 def test_list_items_are_numerals_and_roman_preliminary_articles_are_recognized() -> None:
     text = """
 TÍTULO PRELIMINAR
