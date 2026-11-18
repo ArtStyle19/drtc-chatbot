@@ -61,6 +61,9 @@ _DISPOSITION = re.compile(
 )
 _ANNEX = re.compile(r"^ANEXO\s+(?P<label>\d+|[IVX]+|[ÚU]NICO)\b\s*(?P<title>.*)$")
 _ITEM = re.compile(r"^(?P<n>\d{1,2})\.\s+(?P<rest>\S.*)$")
+# A wrapped line that starts with a cross-referenced numeral ("108.1.8 y/o 108.1.9, el transportista…")
+# is the tail of a sentence, not a heading: a heading is followed by text, never by "y/o 108.1.9".
+_XREF_TAIL = re.compile(r"^(?:y/o|y|o|e|u)\s+\d{1,3}(?:\.\d{1,3})+\b")
 _LITERAL = re.compile(r"^(?P<label>[a-zñ])\)\s+(?P<rest>.*)$")
 _CONCORDANCE = re.compile(r"^(?:OTRAS\s+)?CONCORDANCIAS?\s*:?\s*(?P<rest>.*)$")
 _EPILOGUE = re.compile(
@@ -417,10 +420,12 @@ class ArticleDocumentParser:
         if self._art_label is not None:
             prefix = r"\d{1,2}" if _ROMAN.match(self._art_label) else re.escape(self._art_label)
             numeral = re.match(
-                rf"^(?P<label>{prefix}(?:\.\d{{1,2}})+)(?:\.\s*|\s+|$)(?P<rest>.*)$",
+                # Possessive (`++`): the label never backs off to a shorter one, or the wrapped line
+                # "108.1.10, el transportista…" would read as numeral "108.1" + "10, el…".
+                rf"^(?P<label>{prefix}(?:\.\d{{1,2}})++)(?:\.\s*|\s+|$)(?P<rest>.*)$",
                 text,
             )
-            if numeral:
+            if numeral and not _XREF_TAIL.match(numeral.group("rest")):
                 return "numeral", numeral
         if self._art_label is not None and (item := _ITEM.match(text)):
             if self._accept_item(int(item.group("n"))):

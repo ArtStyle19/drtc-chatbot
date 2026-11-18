@@ -323,6 +323,82 @@ def test_page_footnotes_are_notes_and_do_not_leak_into_the_text() -> None:
     assert "Decreto Legislativo Nº 1272" in note.text
 
 
+def test_a_wrapped_line_that_starts_with_a_cross_referenced_numeral_is_not_a_new_numeral() -> None:
+    text = """
+Artículo 108.- Interrupción de Viaje
+108.1 La autoridad competente podrá impedir la continuación del viaje:
+108.1.8 Los conductores se encuentren en estado de ebriedad.
+108.1.9 Los conductores carecen de licencia de conducir.
+108.2 La interrupción del viaje podrá ser superada si:
+108.2.1 En el caso de las causas previstas en los numerales 108.1.1, 108.1.2 y
+108.1.8 y/o 108.1.9, el transportista sustituye a los conductores.
+108.2.2 En el caso de la causa prevista en el numeral 108.1.6, se reduce el número de pasajeros.
+"""
+    result = parse(text)
+
+    paths = [p.path for p in result.provisions if p.status is RevisionStatus.CURRENT]
+    assert "articulo:108/numeral:108.1.8" not in paths  # only 108.1/108.1.8 exists
+    assert current(result, "articulo:108/numeral:108.1/numeral:108.1.8").text == (
+        "Los conductores se encuentren en estado de ebriedad."
+    )
+    assert current(result, "articulo:108/numeral:108.2/numeral:108.2.1").text == (
+        "En el caso de las causas previstas en los numerales 108.1.1, 108.1.2 y "
+        "108.1.8 y/o 108.1.9, el transportista sustituye a los conductores."
+    )
+
+
+def test_a_wrapped_line_that_starts_with_a_numeral_and_a_comma_keeps_its_text() -> None:
+    # Real RENAT art. 108.2.1: the line wraps right before "108.1.10, el transportista…". It is a
+    # cross-reference, NOT the numeral "108.1" followed by "10, el…" (its text used to be dropped).
+    text = """
+Artículo 108.- Interrupción de Viaje
+108.1 La autoridad competente podrá impedir la continuación del viaje:
+108.1.1 El vehículo emplea neumáticos que no cumplen lo dispuesto.
+108.2 La interrupción del viaje podrá ser superada si:
+108.2.1 En el caso de las causas previstas en los numerales 108.1.1, 108.1.2 y/o
+108.1.10, el transportista sustituye los neumáticos por otros que cumplan.
+108.2.2 En el caso de la causa prevista en el numeral 108.1.6, se reduce el número de pasajeros.
+"""
+    result = parse(text)
+
+    assert current(result, "articulo:108/numeral:108.2/numeral:108.2.1").text == (
+        "En el caso de las causas previstas en los numerales 108.1.1, 108.1.2 y/o "
+        "108.1.10, el transportista sustituye los neumáticos por otros que cumplan."
+    )
+    assert current(result, "articulo:108/numeral:108.1").text == (
+        "La autoridad competente podrá impedir la continuación del viaje:"
+    )
+    assert not result.anomalies
+
+
+def test_a_cross_reference_list_at_the_start_of_a_wrapped_line_does_not_replace_a_numeral() -> None:
+    # Real RENAT art. 20.3.3: the line wraps right before "20.1.1, 20.1.2, …". It used to be read as a
+    # NEW numeral "20.1" + "1, 20.1.2…", which "replaced" the real 20.1 and all its children.
+    text = """
+Artículo 20.- Condiciones técnicas específicas
+20.1 Son condiciones específicas mínimas exigibles a los vehículos:
+20.1.1 Que correspondan a la Categoría M3, Clase III.
+20.1.2 Que cuenten con un peso neto vehicular mínimo de 8,5 toneladas.
+20.3 Excepciones para el servicio regional:
+20.3.3 Los vehículos M3 y M2 habilitados para el transporte regional están eximidos de cumplir lo dispuesto
+20.1.1, 20.1.2, 20.1.3, 20.1.8 y 20.1.11, aplicándose, lo que corresponda a su categoría.
+"""
+    result = parse(text)
+
+    assert [p for p in result.provisions if p.status is RevisionStatus.SUPERSEDED] == []
+    assert current(result, "articulo:20/numeral:20.1").text == (
+        "Son condiciones específicas mínimas exigibles a los vehículos:"
+    )
+    assert current(result, "articulo:20/numeral:20.1/numeral:20.1.1").text == (
+        "Que correspondan a la Categoría M3, Clase III."
+    )
+    assert current(result, "articulo:20/numeral:20.3/numeral:20.3.3").text == (
+        "Los vehículos M3 y M2 habilitados para el transporte regional están eximidos de cumplir "
+        "lo dispuesto 20.1.1, 20.1.2, 20.1.3, 20.1.8 y 20.1.11, aplicándose, lo que corresponda "
+        "a su categoría."
+    )
+
+
 def test_footnote_call_numbers_are_not_part_of_a_heading_title() -> None:
     source = [
         SourceLine(9, "TÍTULO PRELIMINAR"),
