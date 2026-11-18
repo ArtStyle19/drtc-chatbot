@@ -35,6 +35,7 @@ INDEX = NormIndex([LEY, RENAT, TUO])
         ("D.S. N° 017-2009-MTC", "d s n 017-2009-mtc"),
         ("lit. e) del art. 2", "lit e del art 2"),
         ("  art.    4-A  ", "art 4-a"),
+        ("art. 4-A, num. 4-A.1", "art 4-a num 4-a.1"),  # the dot after the suffix letter is kept
         ("¿Qué dice el art. 5?", "que dice el art 5"),
     ],
 )
@@ -81,6 +82,9 @@ def steps(raw: str) -> list[tuple[str, str] | tuple[str, str, tuple[str, ...]]]:
         ("inciso b) del artículo 23", [("articulo", "23"), ("literal", "b")]),
         ("art 218.2", [("articulo", "218"), ("numeral", "218.2")]),
         ("218.2", [("articulo", "218"), ("numeral", "218.2")]),
+        ("art. 4-A, num. 4-A.1", [("articulo", "4-a"), ("numeral", "4-a.1")]),
+        ("numeral 4-A.2 del art 4-A", [("articulo", "4-a"), ("numeral", "4-a.2")]),
+        ("4-A.1", [("articulo", "4-a"), ("numeral", "4-a.1")]),
         ("art 35 num 1", [("articulo", "35"), ("numeral", "1")]),
         ("numeral 5.2 del artículo 5", [("articulo", "5"), ("numeral", "5.2")]),
         ("art 35 num 35.1 inc 1", [("articulo", "35"), ("numeral", "35.1"), ("numeral", "1")]),
@@ -228,6 +232,8 @@ def s(*args: object) -> tuple[Step, ...]:
             True,
         ),
         ("articulo:35/numeral:35.1/numeral:1", s(("articulo", "35"), ("numeral", "1")), True),
+        ("articulo:4-A/numeral:4-A.1", s(("articulo", "4-a"), ("numeral", "4-a.1")), True),
+        ("articulo:4-A/numeral:4-A.1", s(("articulo", "4-a"), ("numeral", "4-a.2")), False),
         ("articulo:4-A/numeral:4-A.1/literal:a", s(("articulo", "4-a"), ("literal", "a")), True),
         ("articulo:4-A/numeral:4-A.2/literal:a", s(("articulo", "4-a"), ("literal", "a")), True),
         ("anexo:2", s(("anexo", "2")), True),
