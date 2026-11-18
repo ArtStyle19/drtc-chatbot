@@ -8,6 +8,7 @@ FLAGGED_CODES = frozenset(
         "paragraph_replacement_unapplied",
         "continuation_after_quote",
         "duplicate_unquoted_unit",
+        "annex_table_unstructured",
     }
 )
 

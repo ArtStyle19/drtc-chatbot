@@ -1,33 +1,13 @@
 """Ingest the real Ley 27181 into PostgreSQL and read it back through the HTTP API."""
 
-from collections.abc import AsyncIterator
-from typing import Any, cast
+from typing import Any
 
 import httpx
 import pytest
 
-from drtc_chatbot.bootstrap.container import Container
-from drtc_chatbot.entrypoints.http.app import create_app
-from tests.conftest import make_settings
+from tests.e2e.conftest import LEY, Stack
 
 pytestmark = pytest.mark.docker
-
-LEY = "ley-27181@2020-05"
-
-
-@pytest.fixture
-async def stack(clean_database: str) -> AsyncIterator[tuple[httpx.AsyncClient, Container]]:
-    settings = make_settings(
-        database_url=clean_database.replace("postgresql://", "postgresql+psycopg://"),
-        catalog_backend="database",
-        ingestion_approval_policy="manual",
-    )
-    app = create_app(settings)
-    container = cast(Container, app.state.container)
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
-        yield client, container
-    await container.aclose()
 
 
 async def provisions(client: httpx.AsyncClient, **params: Any) -> httpx.Response:
@@ -36,7 +16,7 @@ async def provisions(client: httpx.AsyncClient, **params: Any) -> httpx.Response
 
 @pytest.mark.spec("002-FR-010")
 async def test_nothing_is_readable_before_ingestion_and_the_catalog_shows_it(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     await container.ingestion.gateway.sync_manifest()
@@ -52,7 +32,7 @@ async def test_nothing_is_readable_before_ingestion_and_the_catalog_shows_it(
 
 @pytest.mark.spec("002-FR-010")
 async def test_an_ingested_version_stays_hidden_until_a_human_approves_it(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     outcome = await container.ingestion.run_ingestion.execute(LEY)
@@ -75,7 +55,7 @@ async def test_an_ingested_version_stays_hidden_until_a_human_approves_it(
 
 @pytest.mark.spec("002-FR-003")
 async def test_article_2_exposes_its_history_and_the_norm_that_replaced_it(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     await container.ingestion.run_ingestion.execute(LEY)
@@ -99,7 +79,7 @@ async def test_article_2_exposes_its_history_and_the_norm_that_replaced_it(
 
 
 async def test_literals_can_be_listed_by_parent_with_their_exact_pages(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     await container.ingestion.run_ingestion.execute(LEY)
@@ -112,7 +92,7 @@ async def test_literals_can_be_listed_by_parent_with_their_exact_pages(
 
 
 async def test_invalid_paging_and_unknown_ids_return_problem_details(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     await container.ingestion.run_ingestion.execute(LEY)
@@ -130,7 +110,7 @@ async def test_invalid_paging_and_unknown_ids_return_problem_details(
 
 @pytest.mark.spec("002-FR-004")
 async def test_ingesting_twice_changes_nothing_and_keeps_the_approval(
-    stack: tuple[httpx.AsyncClient, Container],
+    stack: Stack,
 ) -> None:
     client, container = stack
     first = await container.ingestion.run_ingestion.execute(LEY)

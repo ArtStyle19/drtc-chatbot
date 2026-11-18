@@ -39,6 +39,7 @@ class ReviewFlag(StrEnum):
     PARAGRAPH_REPLACEMENT_UNAPPLIED = "paragraph_replacement_unapplied"
     CONTINUATION_AFTER_QUOTE = "continuation_after_quote"
     DUPLICATE_UNQUOTED_UNIT = "duplicate_unquoted_unit"
+    ANNEX_TABLE_UNSTRUCTURED = "annex_table_unstructured"
 
 
 REVIEW_FLAG_MESSAGES: dict[ReviewFlag, str] = {
@@ -50,6 +51,11 @@ REVIEW_FLAG_MESSAGES: dict[ReviewFlag, str] = {
     ReviewFlag.CONTINUATION_AFTER_QUOTE: (
         "Parte de este texto continúa después de un bloque modificado por otra norma y se asignó a esta "
         "disposición por su ubicación; verifíquelo en el PDF."
+    ),
+    ReviewFlag.ANNEX_TABLE_UNSTRUCTURED: (
+        "Este anexo es una tabla: su texto se extrae sin filas ni columnas, puede aparecer "
+        "desordenado y las filas modificadas por normas posteriores figuran junto con su texto "
+        "anterior. Use el PDF como referencia."
     ),
     ReviewFlag.DUPLICATE_UNQUOTED_UNIT: (
         "El documento repite una unidad con el mismo número (tabla o referencia numerada); se conservó la "

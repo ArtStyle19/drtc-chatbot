@@ -8,7 +8,12 @@ from typing import Annotated, Protocol, cast
 
 from fastapi import Depends, Request
 
+from drtc_chatbot.contexts.legal_corpus.application.queries.get_outline import GetOutline
 from drtc_chatbot.contexts.legal_corpus.application.queries.get_provision import GetProvision
+from drtc_chatbot.contexts.legal_corpus.application.queries.get_reading_unit import GetReadingUnit
+from drtc_chatbot.contexts.legal_corpus.application.queries.get_source_document import (
+    GetSourceDocument,
+)
 from drtc_chatbot.contexts.legal_corpus.application.queries.list_legal_instruments import (
     ListLegalInstruments,
 )
@@ -24,6 +29,15 @@ class LegalCorpusUseCases(Protocol):
 
     @property
     def get_provision(self) -> GetProvision: ...
+
+    @property
+    def get_outline(self) -> GetOutline: ...
+
+    @property
+    def get_reading_unit(self) -> GetReadingUnit: ...
+
+    @property
+    def get_source_document(self) -> GetSourceDocument: ...
 
 
 def get_legal_corpus(request: Request) -> LegalCorpusUseCases:

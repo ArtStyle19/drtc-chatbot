@@ -5,17 +5,24 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict, Field
 
 from drtc_chatbot.contexts.legal_corpus.application.dto import (
+    EditionContext,
     EditionSummary,
     LegalInstrumentSummary,
+    Outline,
+    OutlineEntry,
     ProvisionDetail,
     ProvisionPage,
     ProvisionRevisionDetail,
     ProvisionSummary,
+    ReadingNode,
+    ReadingRevision,
+    ReadingUnit,
 )
 from drtc_chatbot.contexts.legal_corpus.domain.approval import ApprovalMode, ApprovalStatus
 from drtc_chatbot.contexts.legal_corpus.domain.provisions import (
     EventKind,
     LegalEvent,
+    PageBox,
     ProvisionKind,
     RevisionStatus,
 )
@@ -250,4 +257,197 @@ class ProvisionDetailOut(BaseModel):
             parent_path=detail.parent_path,
             revisions=[RevisionOut.from_detail(r) for r in detail.revisions],
             notes=[EditorialNoteOut(kind=n.kind, text=n.text, page=n.page) for n in detail.notes],
+        )
+
+
+# ----------------------------------------------------------------------------- reader
+class EditionContextOut(BaseModel):
+    """La norma y la edición aprobada que se está leyendo (encabezado del lector)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    instrument_id: str
+    type: InstrumentType
+    number: str
+    title: str
+    short_name: str
+    version_id: str
+    edition_label: str
+    consolidated_as_of: date | None
+    verification_status: VerificationStatus
+    may_be_presented_as_current: bool = Field(
+        description="Solo es verdadero si el texto fue verificado como vigente."
+    )
+    approval_mode: ApprovalMode
+    page_count: int
+    alerts: list[str]
+    source_url: str = Field(
+        description="PDF original de esta edición (admite peticiones por rango)."
+    )
+
+    @classmethod
+    def from_context(cls, edition: EditionContext) -> EditionContextOut:
+        return cls(
+            instrument_id=edition.instrument_id,
+            type=edition.instrument_type,
+            number=edition.number,
+            title=edition.title,
+            short_name=edition.short_name,
+            version_id=edition.version_id,
+            edition_label=edition.edition_label,
+            consolidated_as_of=edition.consolidated_as_of,
+            verification_status=edition.verification_status,
+            may_be_presented_as_current=edition.verification_status.may_be_presented_as_current,
+            approval_mode=edition.approval_mode,
+            page_count=edition.page_count,
+            alerts=list(edition.alerts),
+            source_url=f"/api/v1/versions/{edition.version_id}/source",
+        )
+
+
+class OutlineEntryOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    path: str
+    kind: ProvisionKind
+    label: str
+    title: str | None
+    parent_path: str | None
+    page_start: int = Field(description="Página física del PDF donde empieza.")
+    unit_path: str = Field(description="Unidad de lectura que se abre al elegir esta entrada.")
+
+    @classmethod
+    def from_entry(cls, entry: OutlineEntry) -> OutlineEntryOut:
+        return cls(
+            path=entry.path,
+            kind=entry.kind,
+            label=entry.label,
+            title=entry.title,
+            parent_path=entry.parent_path,
+            page_start=entry.page_start,
+            unit_path=entry.unit_path,
+        )
+
+
+class OutlineOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    edition: EditionContextOut
+    entries: list[OutlineEntryOut] = Field(description="Índice plano en orden de documento.")
+
+    @classmethod
+    def from_outline(cls, outline: Outline) -> OutlineOut:
+        return cls(
+            edition=EditionContextOut.from_context(outline.edition),
+            entries=[OutlineEntryOut.from_entry(e) for e in outline.entries],
+        )
+
+
+class BoxOut(BaseModel):
+    """Rectángulo en puntos PDF (origen abajo-izquierda) de una línea del texto."""
+
+    model_config = ConfigDict(frozen=True)
+
+    page: int
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+    @classmethod
+    def from_box(cls, box: PageBox) -> BoxOut:
+        return cls(page=box.page, x0=box.x0, y0=box.y0, x1=box.x1, y1=box.y1)
+
+
+class CitationOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    short: str = Field(description="Cita breve, p. ej. 'Ley N.° 27181, art. 2, lit. e)'.")
+    formal: str = Field(description="Cita formal con edición, estado de verificación y fuente.")
+
+
+class ReadingRevisionOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    revision: int
+    title: str | None
+    text: str
+    page_start: int
+    page_end: int
+    boxes: list[BoxOut]
+    event: LegalEventOut | None
+    citation: CitationOut
+
+    @classmethod
+    def from_revision(cls, item: ReadingRevision) -> ReadingRevisionOut:
+        return cls(
+            revision=item.revision,
+            title=item.title,
+            text=item.text,
+            page_start=item.page_start,
+            page_end=item.page_end,
+            boxes=[BoxOut.from_box(b) for b in item.boxes],
+            event=LegalEventOut.from_domain(item.event),
+            citation=CitationOut(short=item.citation.short, formal=item.citation.formal),
+        )
+
+
+class ReviewWarningOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    code: str
+    message: str
+
+
+class ReadingNodeOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    path: str
+    kind: ProvisionKind
+    label: str
+    parent_path: str | None
+    revision_count: int
+    current: ReadingRevisionOut = Field(description="Texto vigente de la edición.")
+    history: list[ReadingRevisionOut] = Field(
+        description="Textos sustituidos (del más antiguo al más reciente): NO están vigentes."
+    )
+    warnings: list[ReviewWarningOut]
+    notes: list[EditorialNoteOut]
+
+    @classmethod
+    def from_node(cls, node: ReadingNode) -> ReadingNodeOut:
+        return cls(
+            path=node.path,
+            kind=node.kind,
+            label=node.label,
+            parent_path=node.parent_path,
+            revision_count=node.revision_count,
+            current=ReadingRevisionOut.from_revision(node.current),
+            history=[ReadingRevisionOut.from_revision(r) for r in node.history],
+            warnings=[ReviewWarningOut(code=w.code, message=w.message) for w in node.warnings],
+            notes=[EditorialNoteOut(kind=n.kind, text=n.text, page=n.page) for n in node.notes],
+        )
+
+
+class ReadingUnitOut(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    edition: EditionContextOut
+    requested_path: str
+    unit_path: str = Field(
+        description="Artículo, disposición, anexo o contenedor que contiene la ruta."
+    )
+    nodes: list[ReadingNodeOut] = Field(
+        description="La unidad y su subárbol vigente en orden de documento (anídelos con parent_path)."
+    )
+    children: list[OutlineEntryOut] = Field(description="Si es un contenedor: lo que contiene.")
+
+    @classmethod
+    def from_unit(cls, unit: ReadingUnit) -> ReadingUnitOut:
+        return cls(
+            edition=EditionContextOut.from_context(unit.edition),
+            requested_path=unit.requested_path,
+            unit_path=unit.unit_path,
+            nodes=[ReadingNodeOut.from_node(n) for n in unit.nodes],
+            children=[OutlineEntryOut.from_entry(e) for e in unit.children],
         )

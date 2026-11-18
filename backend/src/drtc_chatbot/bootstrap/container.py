@@ -22,17 +22,25 @@ from drtc_chatbot.contexts.legal_corpus.api import (
     ApprovalPolicy,
     ApprovalPolicyName,
     ApproveInstrumentVersion,
+    GetOutline,
     GetProvision,
+    GetReadingUnit,
+    GetSourceDocument,
     ListLegalInstruments,
+    ListProvisionIndex,
     ListProvisions,
     PublishProvisions,
     SyncCorpusManifest,
 )
 from drtc_chatbot.contexts.legal_corpus.application.ports import LegalInstrumentCatalog
+from drtc_chatbot.contexts.legal_corpus.infrastructure.local_document_storage import (
+    LocalDocumentStorage,
+)
 from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_catalog import (
     ManifestInstrumentCatalog,
 )
 from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_reader import YamlManifestReader
+from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlReadingStore
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
@@ -46,6 +54,10 @@ class LegalCorpusModule:
     list_legal_instruments: ListLegalInstruments
     list_provisions: ListProvisions
     get_provision: GetProvision
+    get_outline: GetOutline
+    get_reading_unit: GetReadingUnit
+    get_source_document: GetSourceDocument
+    list_provision_index: ListProvisionIndex
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +86,10 @@ class Container:
 def build_container(settings: Settings) -> Container:
     engine = create_database_engine(settings.database_url, echo=settings.database_echo)
     clock = SystemClock()
-    store = SqlLegalCorpusStore(async_sessionmaker(engine, expire_on_commit=False))
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    store = SqlLegalCorpusStore(sessions)
+    reading = SqlReadingStore(sessions)
+    documents = LocalDocumentStorage(settings.corpus_manifest_path.parent / "sources")
     catalog: LegalInstrumentCatalog = (
         store
         if settings.catalog_backend == "database"
@@ -91,7 +106,7 @@ def build_container(settings: Settings) -> Container:
         approve,
     )
     extractor = PdfiumTextExtractor()
-    jobs = SqlIngestionJobRepository(async_sessionmaker(engine, expire_on_commit=False))
+    jobs = SqlIngestionJobRepository(sessions)
     return Container(
         settings=settings,
         engine=engine,
@@ -101,6 +116,10 @@ def build_container(settings: Settings) -> Container:
             list_legal_instruments=ListLegalInstruments(catalog),
             list_provisions=ListProvisions(store),
             get_provision=GetProvision(store),
+            get_outline=GetOutline(reading),
+            get_reading_unit=GetReadingUnit(reading),
+            get_source_document=GetSourceDocument(reading, documents),
+            list_provision_index=ListProvisionIndex(reading),
         ),
         ingestion=IngestionModule(
             run_ingestion=RunIngestion(gateway, extractor, jobs, clock),

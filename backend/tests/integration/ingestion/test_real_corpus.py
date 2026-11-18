@@ -146,3 +146,30 @@ def test_every_golden_question_is_findable_in_the_parsed_provisions(
                 missing.append((question["id"], citation["provision"]))
 
     assert missing == []
+
+
+@pytest.mark.spec("002-FR-001")
+def test_the_renat_annex_tables_keep_their_text_and_pages(parsed: dict[str, ParseResult]) -> None:
+    annexes = {p.path: p for p in parsed[RENAT].current() if p.kind is ParsedKind.ANNEX}
+
+    assert set(annexes) == {"anexo:1", "anexo:2"}
+    assert (annexes["anexo:1"].page_start, annexes["anexo:1"].page_end) == (166, 170)
+    assert (annexes["anexo:2"].page_start, annexes["anexo:2"].page_end) == (170, 181)
+    assert len(annexes["anexo:2"].text) > 30_000  # the infractions and sanctions table
+    assert "Prestar el servicio de transporte de personas" in annexes["anexo:2"].text
+    assert annexes["anexo:2"].title == "TABLA DE INFRACCIONES Y SANCIONES"
+    flagged = [a.path for a in parsed[RENAT].anomalies if a.code == "annex_table_unstructured"]
+    assert flagged == ["anexo:1", "anexo:2"]
+
+
+def test_a_section_title_is_not_mistaken_for_a_group_of_dispositions(
+    parsed: dict[str, ParseResult],
+) -> None:
+    paths = {p.path for p in parsed[RENAT].provisions}
+    groups = {
+        p.split("/")[-2] for p in paths if "/disposiciones:" in p or p.startswith("disposiciones:")
+    }
+
+    assert "seccion:primera" in paths
+    assert not any("disposiciones:generales" in p for p in paths)
+    assert groups  # the real groups are still there (complementarias-finales, …)

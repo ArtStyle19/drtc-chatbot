@@ -50,7 +50,11 @@ _STRUCT = re.compile(
     r"SEXT[OA]|S[ÉE]PTIM[OA]|OCTAV[OA]|NOVEN[OA]|D[ÉE]CIM[OA]|\d+)\s*$",
     re.IGNORECASE,
 )
-_DISPOSITION_SECTION = re.compile(r"^DISPOSICIONES\s+(?P<which>[A-ZÁÉÍÓÚÑ ]+)$")
+# Only the four kinds of dispositions; "DISPOSICIONES GENERALES" is the TITLE of a section.
+_DISPOSITION_SECTION = re.compile(
+    r"^DISPOSICIONES\s+(?P<which>(?:(?:COMPLEMENTARIAS|TRANSITORIAS|DEROGATORIAS|FINALES)"
+    r"(?:\s+Y\s+|\s*,\s*|\s+|$))+)$"
+)
 _DISPOSITION = re.compile(
     r"^(?P<q>[“\"])?\s*(?P<ord>(?:D[ée]cim[oa]\s+)?(?:Primer[oa]?|Segunda|Tercera|Cuarta|Quinta|Sexta|"
     r"S[ée]ptima|Octava|Novena|D[ée]cim[oa]|[ÚU]nica))\s*[.\-–]+\s*(?P<title>.*)$"
@@ -234,6 +238,9 @@ class ArticleDocumentParser:
             return  # lone (*) markers carry no text
         if self._mode == "epilogue":
             self._buffer.append(text)
+            return
+        if self._in_annex() and not _ANNEX.match(text):
+            self._append_to_annex(item, text)
             return
         if self._opts.footnotes and item.small:
             if self._mode == "footnote":
@@ -659,6 +666,35 @@ class ArticleDocumentParser:
         title = match.group("title").strip() or None
         self._unit_path = path
         self._new_draft(ParsedKind.ANNEX, label, title, path, None, item, quoted=False)
+        self._anomaly(
+            "annex_table_unstructured",
+            "Annex text is taken without its table structure (rows and columns)",
+            item,
+            title or f"Anexo {label}",
+            path=path,
+        )
+
+    def _in_annex(self) -> bool:
+        return self._cur is not None and self._cur.kind is ParsedKind.ANNEX
+
+    def _append_to_annex(self, item: SourceLine, text: str) -> None:
+        """Everything after an ANEXO heading belongs to it: tables are not articles, notes or quotes.
+
+        Boxes are not kept (highlighting a whole table is meaningless); the pages are.
+        """
+        assert self._cur is not None
+        if MARKER.fullmatch(text.replace(" ", "")):
+            return
+        if (
+            self._cur.title is None
+            and not self._cur.lines
+            and text == text.upper()
+            and len(text) < 160
+        ):
+            self._cur.title = text  # "TABLA DE INFRACCIONES Y SANCIONES"
+            self._cur.add(SourceLine(item.page, text, None, item.small), "")
+            return
+        self._cur.add(SourceLine(item.page, text, None, item.small), text)
 
     # ------------------------------------------------------------------ quotes
     def _after_quoted_line(self, item: SourceLine, *, opened: bool = False) -> None:

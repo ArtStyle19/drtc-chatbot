@@ -17,6 +17,149 @@
         "title": "ApprovalStatus",
         "type": "string"
       },
+      "BoxOut": {
+        "description": "Rectángulo en puntos PDF (origen abajo-izquierda) de una línea del texto.",
+        "properties": {
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "x0": {
+            "title": "X0",
+            "type": "number"
+          },
+          "x1": {
+            "title": "X1",
+            "type": "number"
+          },
+          "y0": {
+            "title": "Y0",
+            "type": "number"
+          },
+          "y1": {
+            "title": "Y1",
+            "type": "number"
+          }
+        },
+        "required": [
+          "page",
+          "x0",
+          "y0",
+          "x1",
+          "y1"
+        ],
+        "title": "BoxOut",
+        "type": "object"
+      },
+      "CitationOut": {
+        "properties": {
+          "formal": {
+            "description": "Cita formal con edición, estado de verificación y fuente.",
+            "title": "Formal",
+            "type": "string"
+          },
+          "short": {
+            "description": "Cita breve, p. ej. 'Ley N.° 27181, art. 2, lit. e)'.",
+            "title": "Short",
+            "type": "string"
+          }
+        },
+        "required": [
+          "short",
+          "formal"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
+      "EditionContextOut": {
+        "description": "La norma y la edición aprobada que se está leyendo (encabezado del lector).",
+        "properties": {
+          "alerts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "approval_mode": {
+            "$ref": "#/components/schemas/ApprovalMode"
+          },
+          "consolidated_as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consolidated As Of"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "may_be_presented_as_current": {
+            "description": "Solo es verdadero si el texto fue verificado como vigente.",
+            "title": "May Be Presented As Current",
+            "type": "boolean"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          },
+          "page_count": {
+            "title": "Page Count",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "source_url": {
+            "description": "PDF original de esta edición (admite peticiones por rango).",
+            "title": "Source Url",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InstrumentType"
+          },
+          "verification_status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "type",
+          "number",
+          "title",
+          "short_name",
+          "version_id",
+          "edition_label",
+          "consolidated_as_of",
+          "verification_status",
+          "may_be_presented_as_current",
+          "approval_mode",
+          "page_count",
+          "alerts",
+          "source_url"
+        ],
+        "title": "EditionContextOut",
+        "type": "object"
+      },
       "EditionOut": {
         "properties": {
           "alerts": {
@@ -297,6 +440,85 @@
         "title": "LivenessOut",
         "type": "object"
       },
+      "OutlineEntryOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ProvisionKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "page_start": {
+            "description": "Página física del PDF donde empieza.",
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "parent_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Path"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "unit_path": {
+            "description": "Unidad de lectura que se abre al elegir esta entrada.",
+            "title": "Unit Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "label",
+          "title",
+          "parent_path",
+          "page_start",
+          "unit_path"
+        ],
+        "title": "OutlineEntryOut",
+        "type": "object"
+      },
+      "OutlineOut": {
+        "properties": {
+          "edition": {
+            "$ref": "#/components/schemas/EditionContextOut"
+          },
+          "entries": {
+            "description": "Índice plano en orden de documento.",
+            "items": {
+              "$ref": "#/components/schemas/OutlineEntryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "edition",
+          "entries"
+        ],
+        "title": "OutlineOut",
+        "type": "object"
+      },
       "ProvisionDetailOut": {
         "properties": {
           "approval_mode": {
@@ -567,6 +789,197 @@
         "title": "ReadinessOut",
         "type": "object"
       },
+      "ReadingNodeOut": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/ReadingRevisionOut",
+            "description": "Texto vigente de la edición."
+          },
+          "history": {
+            "description": "Textos sustituidos (del más antiguo al más reciente): NO están vigentes.",
+            "items": {
+              "$ref": "#/components/schemas/ReadingRevisionOut"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProvisionKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/EditorialNoteOut"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "parent_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Path"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "revision_count": {
+            "title": "Revision Count",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewWarningOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "label",
+          "parent_path",
+          "revision_count",
+          "current",
+          "history",
+          "warnings",
+          "notes"
+        ],
+        "title": "ReadingNodeOut",
+        "type": "object"
+      },
+      "ReadingRevisionOut": {
+        "properties": {
+          "boxes": {
+            "items": {
+              "$ref": "#/components/schemas/BoxOut"
+            },
+            "title": "Boxes",
+            "type": "array"
+          },
+          "citation": {
+            "$ref": "#/components/schemas/CitationOut"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalEventOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "page_end": {
+            "title": "Page End",
+            "type": "integer"
+          },
+          "page_start": {
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "revision",
+          "title",
+          "text",
+          "page_start",
+          "page_end",
+          "boxes",
+          "event",
+          "citation"
+        ],
+        "title": "ReadingRevisionOut",
+        "type": "object"
+      },
+      "ReadingUnitOut": {
+        "properties": {
+          "children": {
+            "description": "Si es un contenedor: lo que contiene.",
+            "items": {
+              "$ref": "#/components/schemas/OutlineEntryOut"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "edition": {
+            "$ref": "#/components/schemas/EditionContextOut"
+          },
+          "nodes": {
+            "description": "La unidad y su subárbol vigente en orden de documento (anídelos con parent_path).",
+            "items": {
+              "$ref": "#/components/schemas/ReadingNodeOut"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "requested_path": {
+            "title": "Requested Path",
+            "type": "string"
+          },
+          "unit_path": {
+            "description": "Artículo, disposición, anexo o contenedor que contiene la ruta.",
+            "title": "Unit Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "edition",
+          "requested_path",
+          "unit_path",
+          "nodes",
+          "children"
+        ],
+        "title": "ReadingUnitOut",
+        "type": "object"
+      },
+      "ReviewWarningOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ReviewWarningOut",
+        "type": "object"
+      },
       "RevisionOut": {
         "properties": {
           "event": {
@@ -715,6 +1128,70 @@
         ]
       }
     },
+    "/api/v1/instruments/{instrument_id}/outline": {
+      "get": {
+        "description": "Títulos, capítulos, artículos, disposiciones y anexos de la edición aprobada (la más reciente por defecto), en orden de documento, con la página donde empieza cada uno.",
+        "operationId": "get_outline_api_v1_instruments__instrument_id__outline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "instrument_id",
+            "required": true,
+            "schema": {
+              "title": "Instrument Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Edición concreta.",
+            "in": "query",
+            "name": "version_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Edición concreta.",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "La norma no tiene una edición aprobada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Índice de una norma",
+        "tags": [
+          "Corpus normativo"
+        ]
+      }
+    },
     "/api/v1/instruments/{instrument_id}/provisions": {
       "get": {
         "description": "Disposiciones (artículos, numerales, literales…) del texto vigente de la edición aprobada más reciente, en orden de documento y con su página exacta. Las ediciones pendientes de aprobación no son visibles. La respuesta indica el estado de verificación de la edición.",
@@ -838,6 +1315,83 @@
         ]
       }
     },
+    "/api/v1/instruments/{instrument_id}/reading-unit": {
+      "get": {
+        "description": "Devuelve la unidad de lectura que contiene la ruta pedida (el artículo, la disposición, el anexo o el contenedor) con su subárbol vigente, citas generadas por el servidor, notas editoriales, advertencias de revisión y las cajas de texto para resaltarlas en el PDF. Los textos sustituidos solo aparecen en `history`, rotulados como no vigentes.",
+        "operationId": "get_reading_unit_api_v1_instruments__instrument_id__reading_unit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "instrument_id",
+            "required": true,
+            "schema": {
+              "title": "Instrument Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Ruta estructural, p. ej. 'articulo:2/literal:e'.",
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "description": "Ruta estructural, p. ej. 'articulo:2/literal:e'.",
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Path",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Edición concreta.",
+            "in": "query",
+            "name": "version_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Edición concreta.",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingUnitOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "La norma o la disposición no existen en la edición aprobada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leer una disposición con su subárbol",
+        "tags": [
+          "Corpus normativo"
+        ]
+      }
+    },
     "/api/v1/provisions/{provision_id}": {
       "get": {
         "operationId": "get_provision_api_v1_provisions__provision_id__get",
@@ -878,6 +1432,51 @@
           }
         },
         "summary": "Leer una disposición con su historial de revisiones",
+        "tags": [
+          "Corpus normativo"
+        ]
+      }
+    },
+    "/api/v1/versions/{version_id}/source": {
+      "get": {
+        "description": "Entrega el documento fuente tal como se registró (se verifica su SHA-256 antes de servirlo). Admite `Range` para que el visor descargue solo las páginas que muestra.",
+        "operationId": "get_source_document_api_v1_versions__version_id__source_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "Successful Response"
+          },
+          "304": {
+            "description": "El navegador ya tiene esta versión (ETag)."
+          },
+          "404": {
+            "description": "La edición no existe o no está aprobada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "PDF original de una edición aprobada",
         "tags": [
           "Corpus normativo"
         ]

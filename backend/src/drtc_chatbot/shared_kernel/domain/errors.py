@@ -23,6 +23,15 @@ class InvariantViolationError(DomainError):
     code = "invariant_violation"
 
 
+class IntegrityViolationError(DomainError):
+    """Stored data no longer matches its recorded fingerprint (e.g. an altered original PDF).
+
+    A server-side failure, not a client error: it is logged and reported without internal details.
+    """
+
+    code = "integrity_violation"
+
+
 class NotFoundError(DomainError):
     """A requested domain object does not exist."""
 

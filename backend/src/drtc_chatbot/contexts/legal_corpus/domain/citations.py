@@ -70,7 +70,12 @@ class CitationSubject:
     source_file_name: str
     page_start: int
     page_end: int
-    superseded_by: LegalEvent | None = None  # set when the cited text is a replaced revision
+    superseded: bool = False  # the cited text is a replaced revision (no longer in force)
+    superseded_by: LegalEvent | None = None  # the norm that replaced it, when known
+
+    @property
+    def is_superseded(self) -> bool:
+        return self.superseded or self.superseded_by is not None
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,7 +97,7 @@ def short_citation(subject: CitationSubject, path: str) -> str:
     name = _SHORT_NAMES[subject.instrument_type].format(n=subject.number)
     location = describe_location(path)
     text = f"{name}, {location}" if location else name
-    return f"{text} (texto sustituido)" if subject.superseded_by else text
+    return f"{text} (texto sustituido)" if subject.is_superseded else text
 
 
 def format_citation(subject: CitationSubject, path: str) -> Citation:
@@ -105,16 +110,13 @@ def format_citation(subject: CitationSubject, path: str) -> Citation:
     if subject.consolidated_as_of:
         edition += f", actualizada al {_date(subject.consolidated_as_of)}"
     parts = [head, f"{edition} ({_VERIFICATION[subject.verification_status]})"]
-    if subject.superseded_by:
-        parts.append(
-            f"Texto sustituido por {subject.superseded_by.source}"
-            + (
-                f" ({_date(subject.superseded_by.published_on)})"
-                if subject.superseded_by.published_on
-                else ""
-            )
-            + ": no vigente"
-        )
+    if subject.is_superseded:
+        replaced = "Texto sustituido"
+        if subject.superseded_by:
+            replaced += f" por {subject.superseded_by.source}"
+            if subject.superseded_by.published_on:
+                replaced += f" ({_date(subject.superseded_by.published_on)})"
+        parts.append(f"{replaced}: no vigente")
     parts.append(
         f"Fuente: {subject.source_file_name}, {_pages(subject.page_start, subject.page_end)} del PDF"
     )

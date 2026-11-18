@@ -58,7 +58,7 @@ from drtc_chatbot.contexts.legal_corpus.infrastructure.models import (
 from drtc_chatbot.shared_kernel.domain import InvariantViolationError, NotFoundError
 
 
-def _event_to_json(event: LegalEvent | None) -> dict[str, Any] | None:
+def event_to_json(event: LegalEvent | None) -> dict[str, Any] | None:
     if event is None:
         return None
     return {
@@ -68,7 +68,7 @@ def _event_to_json(event: LegalEvent | None) -> dict[str, Any] | None:
     }
 
 
-def _event_from_json(data: dict[str, Any] | None) -> LegalEvent | None:
+def event_from_json(data: dict[str, Any] | None) -> LegalEvent | None:
     if not data:
         return None
     published = data.get("published_on")
@@ -277,7 +277,7 @@ class SqlLegalCorpusStore:
                     page_end=r.page_end,
                     ordinal=r.ordinal,
                     boxes=[[b.page, b.x0, b.y0, b.x1, b.y1] for b in r.boxes],
-                    event=_event_to_json(r.event),
+                    event=event_to_json(r.event),
                     review_flags=[flag.value for flag in r.review_flags],
                 )
                 for r in draft.revisions
@@ -415,7 +415,7 @@ class SqlLegalCorpusStore:
                     ordinal=revision.ordinal,
                     revision=revision.revision,
                     revision_count=history.get(provision.id, 1),
-                    event=_event_from_json(revision.event),
+                    event=event_from_json(revision.event),
                 )
                 for revision, provision, parent_structural_path in rows
             )
@@ -493,7 +493,7 @@ class SqlLegalCorpusStore:
                         page_start=r.page_start,
                         page_end=r.page_end,
                         boxes=tuple(PageBox(*box) for box in r.boxes),
-                        event=_event_from_json(r.event),
+                        event=event_from_json(r.event),
                     )
                     for r in revisions
                 ),
