@@ -39,6 +39,16 @@ server {
         proxy_read_timeout 300s;
     }
 
+    # pdf.js worker (an ES module): nginx's mime.types has no ".mjs", and browsers refuse module
+    # scripts that are not served as JavaScript. Its name is not hashed, so it is revalidated
+    # (ETag) instead of cached for a year, or a new pdfjs-dist would meet a stale worker.
+    location ~* \.mjs$ {
+        default_type text/javascript;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+
     # Hashed build assets and fonts can be cached for a long time.
     location ~* \.(?:js|css|woff2?|ttf|svg|png|ico)$ {
         add_header Cache-Control "public, max-age=31536000, immutable";
