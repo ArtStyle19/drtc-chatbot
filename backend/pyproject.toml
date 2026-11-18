@@ -57,6 +57,12 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S106", "PLR2004", "ARG001", "FBT001"]
 "migrations/**" = ["INP001"]
+# The article parser is a single-pass state machine: branching is its nature, and legal texts use
+# typographic dashes/quotes that the regexes must match literally.
+"src/drtc_chatbot/contexts/ingestion/domain/parsing/*.py" = [
+    "PLR0911", "PLR0912", "PLR0915", "PLR0917", "PLR2004", "SIM102", "RUF001", "RUF012", "E501", "S101",
+]
+"tests/unit/ingestion/*.py" = ["E501", "RUF001"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -74,7 +80,7 @@ warn_unreachable = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["testcontainers.*", "pgvector.*"]
+module = ["testcontainers.*", "pgvector.*", "pypdfium2.*"]
 ignore_missing_imports = true
 
 # --------------------------------------------------------------------------- pytest
