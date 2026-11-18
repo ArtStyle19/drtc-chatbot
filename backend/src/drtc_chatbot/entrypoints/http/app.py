@@ -12,6 +12,9 @@ from drtc_chatbot.bootstrap.container import build_container
 from drtc_chatbot.bootstrap.logging import configure_logging
 from drtc_chatbot.bootstrap.settings import Settings
 from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
+    provisions_router,
+)
+from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
     router as legal_corpus_router,
 )
 from drtc_chatbot.entrypoints.http.errors import register_exception_handlers
@@ -63,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     api_v1 = APIRouter(prefix="/api/v1")
     api_v1.include_router(legal_corpus_router)
+    api_v1.include_router(provisions_router)
     app.include_router(health_router)
     app.include_router(api_v1)
     return app

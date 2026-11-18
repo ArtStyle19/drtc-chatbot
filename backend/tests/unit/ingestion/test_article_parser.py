@@ -301,6 +301,9 @@ El presente Reglamento tiene por objeto regular el servicio de transporte terres
 
 def test_page_footnotes_are_notes_and_do_not_leak_into_the_text() -> None:
     source = [
+        SourceLine(7, "TÍTULO PRELIMINAR"),
+        SourceLine(7, "Artículo I.- Ámbito"),
+        SourceLine(7, "Texto del ámbito."),
         SourceLine(7, "Artículo 39.- Plazo máximo del procedimiento"),
         SourceLine(7, "El plazo no puede exceder de treinta (30) días hábiles, salvo que"),
         SourceLine(7, "30 Artículo incorporado por el Decreto Legislativo Nº 1272.", small=True),

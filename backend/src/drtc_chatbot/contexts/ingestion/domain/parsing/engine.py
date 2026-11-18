@@ -128,6 +128,7 @@ class ParserOptions:
     start_marker: re.Pattern[str] | None = (
         None  # lines before it are preamble (e.g. an approving decree)
     )
+    marker_is_content: bool = False  # the marker line is itself the first heading (processed)
     roman_articles: bool = False  # 'Artículo I.' ... 'Artículo IX.' (preliminary title)
     footnotes: bool = False  # numbered page footnotes and inline '(Texto según ...)' notes
 
@@ -274,11 +275,13 @@ class ArticleDocumentParser:
         if not self._started:
             marker = self._opts.start_marker
             if marker is not None and not self._marker_seen:
-                if marker.search(text):
+                found = bool(marker.search(text))
+                if found:
                     self._marker_seen = True
-                self._preamble.append(text)
-                self._preamble_page = self._preamble_page or item.page
-                return
+                if not (found and self._opts.marker_is_content):
+                    self._preamble.append(text)
+                    self._preamble_page = self._preamble_page or item.page
+                    return
             if kind in {"struct", "article", "dispo_section", "annex"}:
                 self._started = True
                 self._flush_preamble()

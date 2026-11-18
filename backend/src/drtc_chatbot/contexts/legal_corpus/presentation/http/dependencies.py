@@ -8,14 +8,22 @@ from typing import Annotated, Protocol, cast
 
 from fastapi import Depends, Request
 
+from drtc_chatbot.contexts.legal_corpus.application.queries.get_provision import GetProvision
 from drtc_chatbot.contexts.legal_corpus.application.queries.list_legal_instruments import (
     ListLegalInstruments,
 )
+from drtc_chatbot.contexts.legal_corpus.application.queries.list_provisions import ListProvisions
 
 
 class LegalCorpusUseCases(Protocol):
     @property
     def list_legal_instruments(self) -> ListLegalInstruments: ...
+
+    @property
+    def list_provisions(self) -> ListProvisions: ...
+
+    @property
+    def get_provision(self) -> GetProvision: ...
 
 
 def get_legal_corpus(request: Request) -> LegalCorpusUseCases:

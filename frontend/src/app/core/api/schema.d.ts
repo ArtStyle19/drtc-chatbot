@@ -24,6 +24,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/instruments/{instrument_id}/provisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar las disposiciones vigentes de una norma
+         * @description Disposiciones (artículos, numerales, literales…) del texto vigente de la edición aprobada más reciente, en orden de documento y con su página exacta. Las ediciones pendientes de aprobación no son visibles. La respuesta indica el estado de verificación de la edición.
+         */
+        get: operations["list_provisions_api_v1_instruments__instrument_id__provisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/provisions/{provision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leer una disposición con su historial de revisiones */
+        get: operations["get_provision_api_v1_provisions__provision_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -62,6 +99,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApprovalMode
+         * @enum {string}
+         */
+        ApprovalMode: "human" | "auto_dev";
+        /**
+         * ApprovalStatus
+         * @enum {string}
+         */
+        ApprovalStatus: "pending" | "approved";
         /** EditionOut */
         EditionOut: {
             /**
@@ -69,6 +116,10 @@ export interface components {
              * @description Advertencias que la interfaz debe mostrar.
              */
             alerts: string[];
+            /** @description 'human' = revisión de una persona; 'auto_dev' = automática, solo desarrollo. */
+            approval_mode: components["schemas"]["ApprovalMode"] | null;
+            /** @description Si la edición fue aprobada para su uso (no equivale a vigencia verificada). */
+            approval_status: components["schemas"]["ApprovalStatus"];
             /**
              * Consolidated As Of
              * @description Fecha hasta la que el texto está actualizado, si se conoce.
@@ -89,6 +140,11 @@ export interface components {
              * @description Número de páginas del PDF fuente.
              */
             page_count: number;
+            /**
+             * Provision Count
+             * @description Disposiciones vigentes ingeridas de esta edición.
+             */
+            provision_count: number;
             /** @description Estado de verificación del texto frente a la fuente oficial. */
             verification_status: components["schemas"]["VerificationStatus"];
             /**
@@ -97,12 +153,43 @@ export interface components {
              */
             version_id: string;
         };
+        /** EditorialNoteOut */
+        EditorialNoteOut: {
+            /** Kind */
+            kind: string;
+            /** Page */
+            page: number;
+            /** Text */
+            text: string;
+        };
+        /**
+         * EventKind
+         * @enum {string}
+         */
+        EventKind: "substituted" | "incorporated" | "modified" | "repealed";
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /**
          * InstrumentType
          * @description Kind of legal instrument (tipo de norma).
          * @enum {string}
          */
         InstrumentType: "ley" | "decreto_supremo" | "decreto_legislativo" | "decreto_de_urgencia" | "texto_unico_ordenado" | "reglamento" | "resolucion" | "ordenanza_regional" | "otro";
+        /** LegalEventOut */
+        LegalEventOut: {
+            /** @description Cómo cambió el texto: sustituido, incorporado, modificado o derogado. */
+            kind: components["schemas"]["EventKind"];
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Source
+             * @description Norma que produjo el cambio, según las notas editoriales.
+             */
+            source: string;
+        };
         /** LegalInstrumentListOut */
         LegalInstrumentListOut: {
             /** Items */
@@ -146,6 +233,100 @@ export interface components {
              */
             status: "ok";
         };
+        /** ProvisionDetailOut */
+        ProvisionDetailOut: {
+            approval_mode: components["schemas"]["ApprovalMode"];
+            /** Edition Label */
+            edition_label: string;
+            /** Id */
+            id: string;
+            /** Instrument Id */
+            instrument_id: string;
+            kind: components["schemas"]["ProvisionKind"];
+            /** Label */
+            label: string;
+            /** May Be Presented As Current */
+            may_be_presented_as_current: boolean;
+            /** Notes */
+            notes: components["schemas"]["EditorialNoteOut"][];
+            /** Parent Path */
+            parent_path: string | null;
+            /** Path */
+            path: string;
+            /**
+             * Revisions
+             * @description De la más antigua a la más reciente; solo una es vigente.
+             */
+            revisions: components["schemas"]["RevisionOut"][];
+            verification_status: components["schemas"]["VerificationStatus"];
+            /** Version Id */
+            version_id: string;
+        };
+        /**
+         * ProvisionKind
+         * @enum {string}
+         */
+        ProvisionKind: "section" | "title" | "chapter" | "article" | "numeral" | "literal" | "disposition" | "annex";
+        /** ProvisionListOut */
+        ProvisionListOut: {
+            approval_mode: components["schemas"]["ApprovalMode"];
+            /** Edition Label */
+            edition_label: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Items */
+            items: components["schemas"]["ProvisionOut"][];
+            /** May Be Presented As Current */
+            may_be_presented_as_current: boolean;
+            /** Total */
+            total: number;
+            verification_status: components["schemas"]["VerificationStatus"];
+            /** Version Id */
+            version_id: string;
+        };
+        /** ProvisionOut */
+        ProvisionOut: {
+            event: components["schemas"]["LegalEventOut"] | null;
+            /** Id */
+            id: string;
+            kind: components["schemas"]["ProvisionKind"];
+            /**
+             * Label
+             * @description Etiqueta dentro de su nivel, p. ej. '2', '2.1', 'e'.
+             */
+            label: string;
+            /** Page End */
+            page_end: number;
+            /**
+             * Page Start
+             * @description Primera página física del PDF.
+             */
+            page_start: number;
+            /** Parent Path */
+            parent_path: string | null;
+            /**
+             * Path
+             * @description Ruta estructural estable, p. ej. 'articulo:2/literal:e'.
+             */
+            path: string;
+            /**
+             * Revision
+             * @description Revisión vigente (1 = texto original).
+             */
+            revision: number;
+            /**
+             * Revision Count
+             * @description Revisiones de esta disposición en la edición (incluye sustituidas).
+             */
+            revision_count: number;
+            /**
+             * Text
+             * @description Texto vigente de la disposición en esta edición.
+             */
+            text: string;
+            /** Title */
+            title: string | null;
+        };
         /** ReadinessOut */
         ReadinessOut: {
             /** Checks */
@@ -157,6 +338,40 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "degraded";
+        };
+        /** RevisionOut */
+        RevisionOut: {
+            event: components["schemas"]["LegalEventOut"] | null;
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /** Revision */
+            revision: number;
+            status: components["schemas"]["RevisionStatus"];
+            /** Text */
+            text: string;
+            /** Title */
+            title: string | null;
+        };
+        /**
+         * RevisionStatus
+         * @description A text is current, or was superseded by a later norm (never overwritten).
+         * @enum {string}
+         */
+        RevisionStatus: "current" | "superseded";
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
         };
         /**
          * VerificationStatus
@@ -192,6 +407,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LegalInstrumentListOut"];
+                };
+            };
+        };
+    };
+    list_provisions_api_v1_instruments__instrument_id__provisions_get: {
+        parameters: {
+            query?: {
+                /** @description Edición concreta; por defecto la más reciente aprobada. */
+                version_id?: string | null;
+                /** @description Filtra por tipo de disposición. */
+                kind?: components["schemas"]["ProvisionKind"] | null;
+                /** @description Ruta del padre, p. ej. 'articulo:2'. */
+                parent?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                instrument_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProvisionListOut"];
+                };
+            };
+            /** @description La norma no tiene una edición aprobada con disposiciones. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_provision_api_v1_provisions__provision_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProvisionDetailOut"];
+                };
+            };
+            /** @description No existe o su edición no está aprobada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

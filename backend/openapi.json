@@ -1,6 +1,22 @@
 {
   "components": {
     "schemas": {
+      "ApprovalMode": {
+        "enum": [
+          "human",
+          "auto_dev"
+        ],
+        "title": "ApprovalMode",
+        "type": "string"
+      },
+      "ApprovalStatus": {
+        "enum": [
+          "pending",
+          "approved"
+        ],
+        "title": "ApprovalStatus",
+        "type": "string"
+      },
       "EditionOut": {
         "properties": {
           "alerts": {
@@ -10,6 +26,21 @@
             },
             "title": "Alerts",
             "type": "array"
+          },
+          "approval_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalMode"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "'human' = revisión de una persona; 'auto_dev' = automática, solo desarrollo."
+          },
+          "approval_status": {
+            "$ref": "#/components/schemas/ApprovalStatus",
+            "description": "Si la edición fue aprobada para su uso (no equivale a vigencia verificada)."
           },
           "consolidated_as_of": {
             "anyOf": [
@@ -39,6 +70,11 @@
             "title": "Page Count",
             "type": "integer"
           },
+          "provision_count": {
+            "description": "Disposiciones vigentes ingeridas de esta edición.",
+            "title": "Provision Count",
+            "type": "integer"
+          },
           "verification_status": {
             "$ref": "#/components/schemas/VerificationStatus",
             "description": "Estado de verificación del texto frente a la fuente oficial."
@@ -56,9 +92,58 @@
           "verification_status",
           "may_be_presented_as_current",
           "page_count",
-          "alerts"
+          "alerts",
+          "approval_status",
+          "approval_mode",
+          "provision_count"
         ],
         "title": "EditionOut",
+        "type": "object"
+      },
+      "EditorialNoteOut": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text",
+          "page"
+        ],
+        "title": "EditorialNoteOut",
+        "type": "object"
+      },
+      "EventKind": {
+        "enum": [
+          "substituted",
+          "incorporated",
+          "modified",
+          "repealed"
+        ],
+        "title": "EventKind",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
         "type": "object"
       },
       "InstrumentType": {
@@ -76,6 +161,38 @@
         ],
         "title": "InstrumentType",
         "type": "string"
+      },
+      "LegalEventOut": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/EventKind",
+            "description": "Cómo cambió el texto: sustituido, incorporado, modificado o derogado."
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "source": {
+            "description": "Norma que produjo el cambio, según las notas editoriales.",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "source",
+          "published_on"
+        ],
+        "title": "LegalEventOut",
+        "type": "object"
       },
       "LegalInstrumentListOut": {
         "properties": {
@@ -171,6 +288,246 @@
         "title": "LivenessOut",
         "type": "object"
       },
+      "ProvisionDetailOut": {
+        "properties": {
+          "approval_mode": {
+            "$ref": "#/components/schemas/ApprovalMode"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProvisionKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "may_be_presented_as_current": {
+            "title": "May Be Presented As Current",
+            "type": "boolean"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/EditorialNoteOut"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "parent_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Path"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "revisions": {
+            "description": "De la más antigua a la más reciente; solo una es vigente.",
+            "items": {
+              "$ref": "#/components/schemas/RevisionOut"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "verification_status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "instrument_id",
+          "version_id",
+          "edition_label",
+          "verification_status",
+          "may_be_presented_as_current",
+          "approval_mode",
+          "path",
+          "kind",
+          "label",
+          "parent_path",
+          "revisions",
+          "notes"
+        ],
+        "title": "ProvisionDetailOut",
+        "type": "object"
+      },
+      "ProvisionKind": {
+        "enum": [
+          "section",
+          "title",
+          "chapter",
+          "article",
+          "numeral",
+          "literal",
+          "disposition",
+          "annex"
+        ],
+        "title": "ProvisionKind",
+        "type": "string"
+      },
+      "ProvisionListOut": {
+        "properties": {
+          "approval_mode": {
+            "$ref": "#/components/schemas/ApprovalMode"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProvisionOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "may_be_presented_as_current": {
+            "title": "May Be Presented As Current",
+            "type": "boolean"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "verification_status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "version_id",
+          "edition_label",
+          "verification_status",
+          "may_be_presented_as_current",
+          "approval_mode",
+          "total",
+          "items"
+        ],
+        "title": "ProvisionListOut",
+        "type": "object"
+      },
+      "ProvisionOut": {
+        "properties": {
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalEventOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProvisionKind"
+          },
+          "label": {
+            "description": "Etiqueta dentro de su nivel, p. ej. '2', '2.1', 'e'.",
+            "title": "Label",
+            "type": "string"
+          },
+          "page_end": {
+            "title": "Page End",
+            "type": "integer"
+          },
+          "page_start": {
+            "description": "Primera página física del PDF.",
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "parent_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Path"
+          },
+          "path": {
+            "description": "Ruta estructural estable, p. ej. 'articulo:2/literal:e'.",
+            "title": "Path",
+            "type": "string"
+          },
+          "revision": {
+            "description": "Revisión vigente (1 = texto original).",
+            "title": "Revision",
+            "type": "integer"
+          },
+          "revision_count": {
+            "description": "Revisiones de esta disposición en la edición (incluye sustituidas).",
+            "title": "Revision Count",
+            "type": "integer"
+          },
+          "text": {
+            "description": "Texto vigente de la disposición en esta edición.",
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "label",
+          "title",
+          "parent_path",
+          "text",
+          "page_start",
+          "page_end",
+          "revision",
+          "revision_count",
+          "event"
+        ],
+        "title": "ProvisionOut",
+        "type": "object"
+      },
       "ReadinessOut": {
         "properties": {
           "checks": {
@@ -199,6 +556,110 @@
           "checks"
         ],
         "title": "ReadinessOut",
+        "type": "object"
+      },
+      "RevisionOut": {
+        "properties": {
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalEventOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "page_end": {
+            "title": "Page End",
+            "type": "integer"
+          },
+          "page_start": {
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RevisionStatus"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "revision",
+          "status",
+          "title",
+          "text",
+          "page_start",
+          "page_end",
+          "event"
+        ],
+        "title": "RevisionOut",
+        "type": "object"
+      },
+      "RevisionStatus": {
+        "description": "A text is current, or was superseded by a later norm (never overwritten).",
+        "enum": [
+          "current",
+          "superseded"
+        ],
+        "title": "RevisionStatus",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
         "type": "object"
       },
       "VerificationStatus": {
@@ -240,6 +701,174 @@
           }
         },
         "summary": "Listar las normas del corpus",
+        "tags": [
+          "Corpus normativo"
+        ]
+      }
+    },
+    "/api/v1/instruments/{instrument_id}/provisions": {
+      "get": {
+        "description": "Disposiciones (artículos, numerales, literales…) del texto vigente de la edición aprobada más reciente, en orden de documento y con su página exacta. Las ediciones pendientes de aprobación no son visibles. La respuesta indica el estado de verificación de la edición.",
+        "operationId": "list_provisions_api_v1_instruments__instrument_id__provisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "instrument_id",
+            "required": true,
+            "schema": {
+              "title": "Instrument Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Edición concreta; por defecto la más reciente aprobada.",
+            "in": "query",
+            "name": "version_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Edición concreta; por defecto la más reciente aprobada.",
+              "title": "Version Id"
+            }
+          },
+          {
+            "description": "Filtra por tipo de disposición.",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProvisionKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtra por tipo de disposición.",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "Ruta del padre, p. ej. 'articulo:2'.",
+            "in": "query",
+            "name": "parent",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ruta del padre, p. ej. 'articulo:2'.",
+              "title": "Parent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "La norma no tiene una edición aprobada con disposiciones."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Listar las disposiciones vigentes de una norma",
+        "tags": [
+          "Corpus normativo"
+        ]
+      }
+    },
+    "/api/v1/provisions/{provision_id}": {
+      "get": {
+        "operationId": "get_provision_api_v1_provisions__provision_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provision_id",
+            "required": true,
+            "schema": {
+              "title": "Provision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No existe o su edición no está aprobada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leer una disposición con su historial de revisiones",
         "tags": [
           "Corpus normativo"
         ]

@@ -1,9 +1,10 @@
 """LegalInstrument aggregate (norma) and the objects inside its boundary."""
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
+from drtc_chatbot.contexts.legal_corpus.domain.approval import Approval
 from drtc_chatbot.contexts.legal_corpus.domain.value_objects import (
     InstrumentId,
     InstrumentType,
@@ -46,6 +47,8 @@ class InstrumentVersion:
     consolidation_note: str | None = None
     page_sections: tuple[PageSection, ...] = ()
     alerts: tuple[str, ...] = ()
+    approval: Approval = field(default_factory=Approval)
+    provision_count: int = 0  # current provisions ingested for this version
 
     def __post_init__(self) -> None:
         if not self.edition_label.strip():

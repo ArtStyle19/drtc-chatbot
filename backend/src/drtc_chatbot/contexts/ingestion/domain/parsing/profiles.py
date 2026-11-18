@@ -15,13 +15,18 @@ _TUO_NOISE = re.compile(
     r"|(?:\d{1,3}\s+)?SEGUNDA PARTE"
     r")\s*$"
 )
+_TUO_START = re.compile(r"^T[ÍI]TULO PRELIMINAR\s*$")
 _RENAT_START = re.compile(r"^REGLAMENTO NACIONAL DE ADMINISTRACI[ÓO]N DE TRANSPORTE\s*$")
 
 PROFILES: dict[str, ParserOptions] = {
     "ley-lgttt": ParserOptions(),
     "renat": ParserOptions(start_marker=_RENAT_START),
     "tuo-lpag": ParserOptions(
-        is_noise=lambda text: bool(_TUO_NOISE.match(text)), roman_articles=True, footnotes=True
+        is_noise=lambda text: bool(_TUO_NOISE.match(text)),
+        roman_articles=True,
+        footnotes=True,
+        start_marker=_TUO_START,  # pages 71-77 are the approving DS 004-2019-JUS, not the TUO text
+        marker_is_content=True,
     ),
 }
 

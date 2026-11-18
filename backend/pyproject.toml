@@ -19,6 +19,9 @@ dependencies = [
     "uvicorn[standard]>=0.38",
 ]
 
+[project.scripts]
+drtc-ingest = "drtc_chatbot.entrypoints.cli.ingest:main"
+
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
 build-backend = "uv_build"
@@ -55,7 +58,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S106", "PLR2004", "ARG001", "FBT001"]
+"tests/**" = ["S101", "S106", "PLR2004", "ARG001", "FBT001", "E501", "PLR0917"]
 "migrations/**" = ["INP001"]
 # The article parser is a single-pass state machine: branching is its nature, and legal texts use
 # typographic dashes/quotes that the regexes must match literally.
@@ -63,6 +66,11 @@ ignore = [
     "PLR0911", "PLR0912", "PLR0915", "PLR0917", "PLR2004", "SIM102", "RUF001", "RUF012", "E501", "S101",
 ]
 "tests/unit/ingestion/*.py" = ["E501", "RUF001"]
+# FastAPI routers declare each query parameter as an argument; the CLI/ingestion samples use random sampling.
+"src/drtc_chatbot/contexts/*/presentation/http/router.py" = ["PLR0917"]
+"src/drtc_chatbot/contexts/ingestion/application/commands/preview_ingestion.py" = ["S311"]
+# Typer builds the CLI from nested command functions and boolean flag options.
+"src/drtc_chatbot/contexts/ingestion/presentation/cli/app.py" = ["PLR0915", "FBT002"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -93,7 +101,7 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
 markers = [
     "spec(requirement): vincula el test con un requisito de una spec, p. ej. spec('001-FR-002')",
-    "docker: necesita Docker (testcontainers); se omite si Docker no está disponible",
+    "docker: necesita una base PostgreSQL (DRTC_TEST_DATABASE_URL o testcontainers); se omite si no hay",
 ]
 
 [tool.coverage.run]
