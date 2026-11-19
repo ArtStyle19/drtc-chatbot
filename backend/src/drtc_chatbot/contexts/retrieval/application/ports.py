@@ -165,3 +165,89 @@ class PassageIndex(Protocol):
     ) -> Sequence[PassageHit]:
         """Passages that share words with ``text`` (accent- and plural-insensitive), best first."""
         ...
+
+    async def missing_windows(self, model: str) -> Sequence[WindowToEmbed]:
+        """Pieces of passages without a vector of ``model`` (or whose text changed since)."""
+        ...
+
+    async def store_embeddings(self, model: str, items: Sequence[StoredEmbedding]) -> None: ...
+
+    async def embedded_passages(self, model: str) -> int:
+        """How many passages have a complete set of vectors of ``model``."""
+        ...
+
+    async def vector_search(
+        self, model: str, vector: Sequence[float], *, instrument_id: str | None, limit: int
+    ) -> Sequence[PassageHit]:
+        """Passages closest in meaning to ``vector`` (cosine), best first; score = similarity."""
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddingBatch:
+    """Vectors for a batch of texts, in the same order, and the tokens the provider counted."""
+
+    vectors: tuple[tuple[float, ...], ...]
+    tokens: int
+
+
+class EmbeddingProvider(Protocol):
+    """Turns text into vectors that are close when the meaning is close (spec 004, meaning search)."""
+
+    @property
+    def model(self) -> str:
+        """Identifies the vectors (model and, if shortened, its size): vectors of different models
+        are never compared with each other."""
+        ...
+
+    @property
+    def external(self) -> bool:
+        """True when the text leaves the server (it needs a cost estimate and a confirmation)."""
+        ...
+
+    @property
+    def tokens_used(self) -> int:
+        """Tokens the provider reported for everything this instance has embedded (real usage)."""
+        ...
+
+    async def embed(
+        self, texts: Sequence[str], *, timeout_seconds: float | None = None
+    ) -> EmbeddingBatch:
+        """Raises ``EmbeddingUnavailableError`` when it cannot (no key, provider error, timeout)."""
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class WindowToEmbed:
+    """A piece of a passage that has no vector yet (or whose text changed)."""
+
+    passage_id: str
+    window: int
+    text: str
+    content_hash: str
+
+
+@dataclass(frozen=True, slots=True)
+class StoredEmbedding:
+    passage_id: str
+    window: int
+    content_hash: str
+    vector: tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class EditionInfo:
+    """Which norm and edition a result comes from, and how much is known about its validity."""
+
+    instrument_id: str
+    instrument_short_name: str
+    instrument_title: str
+    version_id: str
+    edition_label: str
+    verification_status: str  # only "verified_current" may ever be presented as current
+
+
+class EditionCatalog(Protocol):
+    """Anticorruption layer: the APPROVED edition of every norm (by ``version_id``)."""
+
+    async def editions(self, actor: Actor) -> Mapping[str, EditionInfo]: ...

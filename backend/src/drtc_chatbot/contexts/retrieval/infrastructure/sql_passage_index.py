@@ -14,18 +14,23 @@ from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import bindparam, delete, insert, select, text, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from drtc_chatbot.contexts.retrieval.application.ports import (
     IndexStats,
     PassageHit,
     Segment,
+    StoredEmbedding,
+    WindowToEmbed,
 )
 from drtc_chatbot.contexts.retrieval.domain.chunking import (
     MARKERS,
     PassageText,
     clean,
     content_hash,
+    embedding_windows,
+    window_hash,
 )
 from drtc_chatbot.contexts.retrieval.domain.lexical import (
     accent_pairs,
@@ -96,6 +101,38 @@ _SEARCH = text(
 )
 
 
+_VECTOR_SEARCH = text(
+    """
+    WITH nearest AS (
+        SELECT e.passage_id, min(e.embedding <=> CAST(:vector AS vector)) AS distance
+        FROM retrieval_embeddings e
+        JOIN retrieval_passages p ON p.id = e.passage_id
+        WHERE e.model = :model
+          AND (CAST(:instrument AS text) IS NULL OR p.instrument_id = CAST(:instrument AS text))
+        GROUP BY e.passage_id
+        ORDER BY distance, e.passage_id
+        LIMIT :limit
+    )
+    SELECT p.instrument_id, p.instrument_version_id, p.provision_path, p.unit_path, p.kind, p.label,
+           p.title, p.breadcrumb, p.lead, p.body, p.page_start, p.page_end, p.citation,
+           1 - nearest.distance AS score
+    FROM nearest
+    JOIN retrieval_passages p ON p.id = nearest.passage_id
+    ORDER BY nearest.distance, p.instrument_version_id, p.provision_path
+    """
+)
+SNIPPET_CHARS = 240
+
+
+def _plain_snippet(body: str, title: str | None) -> tuple[Segment, ...]:
+    """The beginning of the text (no words are highlighted: the match is by meaning, not by words)."""
+    source = " ".join((body or title or "").split())
+    if len(source) <= SNIPPET_CHARS:
+        return (Segment(source),) if source else ()
+    cut = source[:SNIPPET_CHARS].rsplit(" ", 1)[0]
+    return (Segment(f"{cut}…"),)
+
+
 def segments(headline: str) -> tuple[Segment, ...]:
     """``a \\x01b\\x02 c`` → ``(Segment("a "), Segment("b", match=True), Segment(" c"))``."""
     pieces: list[Segment] = []
@@ -126,6 +163,42 @@ def _row_values(passage: PassageText) -> dict[str, Any]:
         "citation": passage.citation,
         "content_hash": content_hash(passage),
     }
+
+
+def _passage(row: PassageRow) -> PassageText:
+    return PassageText(
+        instrument_id=row.instrument_id,
+        version_id=row.instrument_version_id,
+        path=row.provision_path,
+        unit_path=row.unit_path,
+        kind=row.kind,
+        label=row.label,
+        title=row.title,
+        breadcrumb=row.breadcrumb,
+        lead=row.lead,
+        body=row.body,
+        page_start=row.page_start,
+        page_end=row.page_end,
+        citation=row.citation,
+    )
+
+
+def _passage_from_columns(row: Any) -> PassageText:
+    return PassageText(
+        instrument_id=row.instrument_id,
+        version_id=row.instrument_version_id,
+        path=row.provision_path,
+        unit_path=row.unit_path,
+        kind=row.kind,
+        label=row.label,
+        title=row.title,
+        breadcrumb=row.breadcrumb,
+        lead=row.lead,
+        body=row.body,
+        page_start=row.page_start,
+        page_end=row.page_end,
+        citation=row.citation,
+    )
 
 
 class SqlPassageIndex:
@@ -248,23 +321,89 @@ class SqlPassageIndex:
             rows = (await session.execute(_SEARCH, params)).all()
         return [
             PassageHit(
-                passage=PassageText(
-                    instrument_id=row.instrument_id,
-                    version_id=row.instrument_version_id,
-                    path=row.provision_path,
-                    unit_path=row.unit_path,
-                    kind=row.kind,
-                    label=row.label,
-                    title=row.title,
-                    breadcrumb=row.breadcrumb,
-                    lead=row.lead,
-                    body=row.body,
-                    page_start=row.page_start,
-                    page_end=row.page_end,
-                    citation=row.citation,
-                ),
+                passage=_passage_from_columns(row),
                 score=float(row.score),
                 snippet=segments(row.headline or ""),
+            )
+            for row in rows
+        ]
+
+    # ---- the meaning search: vectors
+    async def missing_windows(self, model: str) -> Sequence[WindowToEmbed]:
+        async with self._sessions() as session:
+            rows = (await session.execute(select(PassageRow))).scalars().all()
+            known = {
+                (row.passage_id, row.window): row.content_hash
+                for row in (
+                    await session.execute(
+                        select(
+                            EmbeddingRow.passage_id, EmbeddingRow.window, EmbeddingRow.content_hash
+                        ).where(EmbeddingRow.model == model)
+                    )
+                ).all()
+            }
+        pending: list[WindowToEmbed] = []
+        for row in rows:
+            passage = _passage(row)
+            for number, window in enumerate(embedding_windows(passage)):
+                digest = window_hash(window)
+                if known.get((row.id, number)) != digest:
+                    pending.append(WindowToEmbed(str(row.id), number, window, digest))
+        return pending
+
+    async def store_embeddings(self, model: str, items: Sequence[StoredEmbedding]) -> None:
+        if not items:
+            return
+        async with self._sessions() as session, session.begin():
+            for start in range(0, len(items), _BATCH):
+                values = [
+                    {
+                        "passage_id": uuid.UUID(item.passage_id),
+                        "model": model,
+                        "window": item.window,
+                        "dims": len(item.vector),
+                        "content_hash": item.content_hash,
+                        "embedding": list(item.vector),
+                    }
+                    for item in items[start : start + _BATCH]
+                ]
+                statement = pg_insert(EmbeddingRow).values(values)
+                await session.execute(
+                    statement.on_conflict_do_update(
+                        index_elements=["passage_id", "model", "window"],
+                        set_={
+                            "dims": statement.excluded.dims,
+                            "content_hash": statement.excluded.content_hash,
+                            "embedding": statement.excluded.embedding,
+                        },
+                    )
+                )
+
+    async def embedded_passages(self, model: str) -> int:
+        async with self._sessions() as session:
+            return int(
+                (
+                    await session.execute(
+                        text(
+                            "SELECT count(DISTINCT passage_id) FROM retrieval_embeddings WHERE model = :m"
+                        ),
+                        {"m": model},
+                    )
+                ).scalar_one()
+            )
+
+    async def vector_search(
+        self, model: str, vector: Sequence[float], *, instrument_id: str | None, limit: int
+    ) -> Sequence[PassageHit]:
+        literal = "[" + ",".join(f"{value:.7g}" for value in vector) + "]"
+        params = {"vector": literal, "model": model, "instrument": instrument_id, "limit": limit}
+        async with self._sessions() as session:
+            rows = (await session.execute(_VECTOR_SEARCH, params)).all()
+        return [
+            PassageHit(
+                passage=_passage_from_columns(row),
+                score=float(row.score),
+                snippet=_plain_snippet(row.body, row.title),
             )
             for row in rows
         ]

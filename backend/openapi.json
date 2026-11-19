@@ -1640,7 +1640,7 @@
             "required": true,
             "schema": {
               "description": "Referencia escrita por la persona.",
-              "maxLength": 200,
+              "maxLength": 300,
               "minLength": 1,
               "title": "Q",
               "type": "string"

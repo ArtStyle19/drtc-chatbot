@@ -14,7 +14,7 @@ from drtc_chatbot.contexts.retrieval.domain.text import normalize
 from drtc_chatbot.shared_kernel.application import Actor
 from drtc_chatbot.shared_kernel.domain import InvariantViolationError
 
-MAX_QUERY_LENGTH = 200
+MAX_QUERY_LENGTH = 300  # same limit as the content search (spec 004): one box, one rule
 MAX_HITS = 20
 EXAMPLES = "«art. 5 Ley 27181», «218.2 TUO», «anexo 2 RENAT» o «primera disposición final LGTTT»"
 # Words that may surround a reference without being part of it ("el art. 5 de la ley ...").

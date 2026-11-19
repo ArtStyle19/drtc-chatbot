@@ -4,7 +4,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -49,6 +49,29 @@ class Settings(BaseSettings):
     # Unset = auto_dev in local/test, manual elsewhere.
     # auto_dev is refused in staging/production (ADR-0011).
     ingestion_approval_policy: Literal["manual", "auto_dev"] | None = None
+
+    # --- meaning search (spec 004). The key lives ONLY in the environment / .env, never in code.
+    openai_api_key: SecretStr | None = None
+    openai_embedding_model: str = "text-embedding-3-small"
+    # Optional shortened vectors (text-embedding-3-* accept it); None = the model's own size.
+    openai_embedding_dimensions: int | None = Field(default=None, ge=64)
+    # Unset = "openai" when there is a key, "none" otherwise (the search then falls back to words).
+    # "fake" is a deterministic offline provider for tests and demos; refused in staging/production.
+    embedding_provider: Literal["openai", "fake", "none"] | None = None
+    search_rrf_k: int = Field(default=60, ge=1)
+    search_arm_top_n: int = Field(default=50, ge=1, le=200)
+    search_vector_timeout_seconds: float = Field(default=3.0, gt=0)
+
+    @model_validator(mode="after")
+    def _resolve_embedding_provider(self) -> Self:
+        protected = self.environment in {Environment.STAGING, Environment.PRODUCTION}
+        if self.embedding_provider == "fake" and protected:
+            raise ValueError("DRTC_EMBEDDING_PROVIDER=fake is not allowed in staging or production")
+        if self.embedding_provider == "openai" and self.openai_api_key is None:
+            raise ValueError("DRTC_EMBEDDING_PROVIDER=openai needs DRTC_OPENAI_API_KEY")
+        if self.embedding_provider is None:
+            self.embedding_provider = "openai" if self.openai_api_key is not None else "none"
+        return self
 
     @model_validator(mode="after")
     def _resolve_approval_policy(self) -> Self:

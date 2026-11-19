@@ -97,6 +97,11 @@ class Module:
         self.run_evaluation = RunEvaluation(FakeDirectory())  # type: ignore[arg-type]
         self.retrievers, self.store = retrievers, store
         self.default_dataset, self.clock = Path("golden.jsonl"), FakeClock()
+        self.embedding = None  # no meaning provider: these tests are about the deterministic arms
+        self.embed_passages = None
+        self.search_passages = None
+        self.passage_index = None
+        self.build_index = None
 
     def golden_set(self, path: Path) -> GoldenSet:
         return Golden()

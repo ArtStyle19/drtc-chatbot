@@ -8,7 +8,7 @@ import { toUserMessage } from '../../../core/http/problem-details';
 import { LookupApi } from './lookup-api';
 
 export const LOOKUP_DEBOUNCE_MS = 250;
-export const MAX_QUERY_LENGTH = 200;
+export const MAX_QUERY_LENGTH = 300;
 
 interface LookupState {
   readonly query: string;

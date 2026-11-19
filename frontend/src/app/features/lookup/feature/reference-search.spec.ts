@@ -88,7 +88,7 @@ describe('ReferenceSearch', () => {
     expect(input.getAttribute('role')).toBe('combobox');
     expect(input.getAttribute('aria-expanded')).toBe('false');
     expect(el.querySelector('label')?.getAttribute('for')).toBe(input.id);
-    expect(input.maxLength).toBe(200);
+    expect(input.maxLength).toBe(300);
   });
 
   it('lists the result with the citation written by the server, its page and the edition status', async () => {

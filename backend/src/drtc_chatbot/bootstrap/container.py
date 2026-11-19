@@ -27,6 +27,7 @@ from drtc_chatbot.contexts.legal_corpus.api import (
     GetProvision,
     GetReadingUnit,
     GetSourceDocument,
+    ListApprovedEditions,
     ListIndexablePassages,
     ListLegalInstruments,
     ListProvisionIndex,
@@ -46,21 +47,29 @@ from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlRea
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
 from drtc_chatbot.contexts.retrieval.api import LookupReference
 from drtc_chatbot.contexts.retrieval.application.build_index import BuildIndex
+from drtc_chatbot.contexts.retrieval.application.embed_passages import EmbedPassages
 from drtc_chatbot.contexts.retrieval.application.exact_retriever import ExactRetriever
+from drtc_chatbot.contexts.retrieval.application.hybrid_retriever import HybridRetriever
 from drtc_chatbot.contexts.retrieval.application.lexical_retriever import LexicalRetriever
 from drtc_chatbot.contexts.retrieval.application.ports import (
+    EmbeddingProvider,
     EvaluationStore,
     GoldenSet,
     PassageIndex,
     Retriever,
 )
 from drtc_chatbot.contexts.retrieval.application.run_evaluation import RunEvaluation
+from drtc_chatbot.contexts.retrieval.application.search_passages import SearchPassages
+from drtc_chatbot.contexts.retrieval.application.vector_retriever import VectorRetriever
 from drtc_chatbot.contexts.retrieval.infrastructure.evaluation_files import FileEvaluationStore
+from drtc_chatbot.contexts.retrieval.infrastructure.fake_embeddings import FakeEmbeddingProvider
 from drtc_chatbot.contexts.retrieval.infrastructure.jsonl_golden_set import JsonlGoldenSet
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
     LegalCorpusDirectory,
 )
+from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_editions import LegalCorpusEditions
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_passages import LegalCorpusPassages
+from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import OpenAIEmbeddingProvider
 from drtc_chatbot.contexts.retrieval.infrastructure.sql_passage_index import SqlPassageIndex
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
@@ -86,6 +95,7 @@ class RetrievalModule:
     """Use cases of the retrieval context, as seen by its HTTP router."""
 
     lookup_reference: LookupReference
+    search_passages: SearchPassages
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +104,9 @@ class RetrievalCliModule:
 
     run_evaluation: RunEvaluation
     build_index: BuildIndex
+    embed_passages: EmbedPassages | None  # None when no meaning provider is configured
+    embedding: EmbeddingProvider | None
+    search_passages: SearchPassages
     passage_index: PassageIndex
     retrievers: Mapping[str, Retriever]
     default_dataset: Path
@@ -129,6 +142,19 @@ class Container:
         await self.engine.dispose()
 
 
+def build_embedding_provider(settings: Settings) -> EmbeddingProvider | None:
+    """The meaning provider the settings ask for (None = the search answers with words only)."""
+    if settings.embedding_provider == "openai" and settings.openai_api_key is not None:
+        return OpenAIEmbeddingProvider(
+            settings.openai_api_key,
+            settings.openai_embedding_model,
+            dimensions=settings.openai_embedding_dimensions,
+        )
+    if settings.embedding_provider == "fake":
+        return FakeEmbeddingProvider()
+    return None
+
+
 def build_container(settings: Settings) -> Container:
     engine = create_database_engine(settings.database_url, echo=settings.database_echo)
     clock = SystemClock()
@@ -159,6 +185,16 @@ def build_container(settings: Settings) -> Container:
     lookup = LookupReference(directory)
     passage_index = SqlPassageIndex(sessions)
     passage_source = LegalCorpusPassages(list_instruments, ListIndexablePassages(reading))
+    embedding = build_embedding_provider(settings)
+    search = SearchPassages(
+        lookup,
+        passage_index,
+        LegalCorpusEditions(ListApprovedEditions(catalog, reading)),
+        embedding,
+        rrf_k=settings.search_rrf_k,
+        arm_top_n=settings.search_arm_top_n,
+        vector_timeout_seconds=settings.search_vector_timeout_seconds,
+    )
     return Container(
         settings=settings,
         engine=engine,
@@ -180,14 +216,19 @@ def build_container(settings: Settings) -> Container:
             gateway=gateway,
             jobs=jobs,
         ),
-        retrieval=RetrievalModule(lookup_reference=lookup),
+        retrieval=RetrievalModule(lookup_reference=lookup, search_passages=search),
         retrieval_cli=RetrievalCliModule(
             run_evaluation=RunEvaluation(directory),
             build_index=BuildIndex(passage_source, passage_index),
+            embed_passages=EmbedPassages(passage_index, embedding) if embedding else None,
+            embedding=embedding,
+            search_passages=search,
             passage_index=passage_index,
             retrievers={
                 "exact": ExactRetriever(lookup),
                 "lexical": LexicalRetriever(passage_index),
+                "vector": VectorRetriever(passage_index, embedding),
+                "hybrid": HybridRetriever(search),
             },
             default_dataset=settings.evaluation_dir / "datasets" / "golden-v1.jsonl",
             store=FileEvaluationStore(settings.evaluation_dir),

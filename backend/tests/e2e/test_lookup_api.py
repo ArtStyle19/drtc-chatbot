@@ -71,7 +71,7 @@ async def test_ambiguous_missing_unknown_and_free_text_cases(full_corpus: str) -
         unknown = await lookup(client, "art 5 ley 99999")
         free = await lookup(client, "transporte de mercancías")
         norm = await lookup(client, "LPAG")
-        too_long = await client.get("/api/v1/lookup", params={"q": "x" * 201})
+        too_long = await client.get("/api/v1/lookup", params={"q": "x" * 301})
         empty = await client.get("/api/v1/lookup", params={"q": ""})
         absent = await client.get("/api/v1/lookup")
 

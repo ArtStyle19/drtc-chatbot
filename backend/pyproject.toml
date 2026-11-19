@@ -7,6 +7,7 @@ requires-python = ">=3.14,<3.15"
 dependencies = [
     "alembic>=1.20",
     "fastapi>=0.163",
+    "openai>=3.55.1",
     "pgvector>=0.5",
     "psycopg[binary]>=3.3",
     "pydantic>=2.14",
@@ -61,7 +62,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["RUF001", "S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
+"tests/**" = ["ARG005", "RUF001", "S311", "S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
 "migrations/**" = ["INP001"]
 # The article parser is a single-pass state machine: branching is its nature, and legal texts use
 # typographic dashes/quotes that the regexes must match literally.
