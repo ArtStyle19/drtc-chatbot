@@ -61,7 +61,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
+"tests/**" = ["RUF001", "S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
 "migrations/**" = ["INP001"]
 # The article parser is a single-pass state machine: branching is its nature, and legal texts use
 # typographic dashes/quotes that the regexes must match literally.
@@ -70,9 +70,9 @@ ignore = [
 ]
 "tests/unit/ingestion/*.py" = ["E501", "RUF001"]
 # Citations and review-flag messages are user-facing Spanish sentences; the location formatter is a flat dispatch on the path key.
-"src/drtc_chatbot/contexts/legal_corpus/domain/*.py" = ["E501", "PLR0911", "PLR0912"]
+"src/drtc_chatbot/contexts/legal_corpus/domain/*.py" = ["E501", "PLR0911", "PLR0912", "RUF001", "RUF002"]
 # The reference parser holds user-facing Spanish text, regexes and a flat dispatch on step kinds.
-"src/drtc_chatbot/contexts/retrieval/**/*.py" = ["E501", "PLR0911", "PLR0912", "PLR0913", "PLR0917", "RUF001"]
+"src/drtc_chatbot/contexts/retrieval/**/*.py" = ["E501", "PLR0911", "PLR0912", "PLR0913", "PLR0917", "RUF001", "RUF002"]
 # FastAPI routers declare each query parameter as an argument; the CLI/ingestion samples use random sampling.
 "src/drtc_chatbot/contexts/*/presentation/http/router.py" = ["PLR0917", "E501"]
 "src/drtc_chatbot/contexts/*/presentation/http/schemas.py" = ["E501"]

@@ -17,6 +17,8 @@ from drtc_chatbot.contexts.legal_corpus.application.dto import (
     ApprovalResult,
     EditionSummary,
     EventRequest,
+    IndexablePassage,
+    IndexablePassages,
     IngestionTarget,
     LegalInstrumentSummary,
     ManifestSnapshot,
@@ -34,6 +36,9 @@ from drtc_chatbot.contexts.legal_corpus.application.queries.get_provision import
 from drtc_chatbot.contexts.legal_corpus.application.queries.get_reading_unit import GetReadingUnit
 from drtc_chatbot.contexts.legal_corpus.application.queries.get_source_document import (
     GetSourceDocument,
+)
+from drtc_chatbot.contexts.legal_corpus.application.queries.list_indexable_passages import (
+    ListIndexablePassages,
 )
 from drtc_chatbot.contexts.legal_corpus.application.queries.list_legal_instruments import (
     ListLegalInstruments,
@@ -56,8 +61,11 @@ __all__ = [
     "GetProvision",
     "GetReadingUnit",
     "GetSourceDocument",
+    "IndexablePassage",
+    "IndexablePassages",
     "IngestionTarget",
     "LegalInstrumentSummary",
+    "ListIndexablePassages",
     "ListLegalInstruments",
     "ListProvisionIndex",
     "ListProvisions",

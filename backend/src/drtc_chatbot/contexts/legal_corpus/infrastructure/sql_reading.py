@@ -22,6 +22,7 @@ from drtc_chatbot.contexts.legal_corpus.application.dto import (
     SourceRef,
 )
 from drtc_chatbot.contexts.legal_corpus.domain.approval import ApprovalMode
+from drtc_chatbot.contexts.legal_corpus.domain.passages import ProvisionText
 from drtc_chatbot.contexts.legal_corpus.domain.provisions import (
     PageBox,
     ProvisionKind,
@@ -291,4 +292,37 @@ class SqlReadingStore:
                 parent_path=parent_path,
             )
             for provision, title, snippet, page_start, parent_path in rows
+        ]
+
+    async def get_provision_texts(self, version_id: str) -> Sequence[ProvisionText]:
+        first = self._first_ordinals(version_id)
+        parent = aliased(ProvisionRow)
+        async with self._sessions() as session:
+            rows = (
+                await session.execute(
+                    select(ProvisionRow, ProvisionRevisionRow, parent.structural_path)
+                    .join(
+                        ProvisionRevisionRow, ProvisionRevisionRow.provision_id == ProvisionRow.id
+                    )
+                    .join(first, first.c.provision_id == ProvisionRow.id)
+                    .outerjoin(parent, parent.id == ProvisionRow.parent_id)
+                    .where(
+                        ProvisionRevisionRow.instrument_version_id == version_id,
+                        ProvisionRevisionRow.status == RevisionStatus.CURRENT.value,
+                    )
+                    .order_by(first.c.first_ordinal)
+                )
+            ).all()
+        return [
+            ProvisionText(
+                path=provision.structural_path,
+                kind=ProvisionKind(provision.kind),
+                label=provision.label,
+                title=revision.title,
+                text=revision.text,
+                page_start=revision.page_start,
+                page_end=revision.page_end,
+                parent_path=parent_path,
+            )
+            for provision, revision, parent_path in rows
         ]

@@ -433,3 +433,28 @@ class ProvisionIndex:
 
     edition: EditionContext
     entries: tuple[ProvisionIndexEntry, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class IndexablePassage:
+    """The current text of one provision plus the context the content search indexes with it."""
+
+    path: str
+    unit_path: str
+    kind: ProvisionKind
+    label: str
+    title: str | None
+    breadcrumb: str  # "Ley 27181 (LGTTT) > Título I > Art. 2 > lit. e)"
+    lead: str | None  # beginning of the parent's own text (numerals and literals)
+    body: str
+    page_start: int
+    page_end: int
+    citation: str  # short citation
+
+
+@dataclass(frozen=True, slots=True)
+class IndexablePassages:
+    """Every indexable passage of the latest approved edition of one norm."""
+
+    edition: EditionContext
+    passages: tuple[IndexablePassage, ...]
