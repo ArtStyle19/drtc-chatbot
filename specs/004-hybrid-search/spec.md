@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-18
 
-**Status**: Draft
+**Status**: Implementada salvo la medición con la clave real (T036-T038) y la prueba con personas (SC-011)
 
 **Input**: "Que el personal encuentre disposiciones escribiendo lo que busca en lenguaje natural ('¿se puede
 cobrar por el servicio de mototaxi?') y no solo por referencia. Combina la búsqueda exacta por
@@ -264,6 +264,29 @@ depurar la búsqueda y explicar sus resultados al revisor.
 - **SC-010**: Preparar los vectores de las tres normas y evaluar los dos modelos candidatos cuesta menos de 0,50 USD en total (estimado antes y registrado después).
 - **SC-011**: Una persona llega, con una pregunta en sus propias palabras, a un artículo pertinente en menos de 20 segundos sin ayuda
   (**pendiente de prueba con personas**; no la puede medir el equipo de desarrollo).
+
+### Resultados medidos (2026-11-19)
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| SC-001 | ✅ | `golden-v1.jsonl`: 61 preguntas (52 con respuesta, 9 sin respuesta), todas `draft` hasta que las apruebe el revisor; `tests/integration/corpus/test_golden_set.py` y `tests/e2e/test_golden_set_corpus.py` verifican ruta, páginas y texto de respaldo contra el PDF y el corpus ingerido |
+| SC-002 | ✅ | Brazo exacto: 6 de 6 preguntas con referencia explícita en el 1.er lugar y ninguna sin respuesta devuelve resultados (`evaluation/baseline.json`) |
+| SC-003 | ⏳ | Solo palabras: acierto@10 por unidad 67 %, MRR 0,445 (no alcanza solo). La combinada se mide con la clave real (T036); los umbrales siguen siendo provisionales |
+| SC-004 | ⏳ | Necesita las tres corridas (palabras, significado, combinada) con la clave real |
+| SC-005 | ◐ | Palabras: p50 19 ms · p95 47 ms (< 0,5 s ✅). Con significado (llamada a OpenAI) se mide con la clave real |
+| SC-006 | ✅ | `test_without_a_meaning_provider_the_api_still_answers_with_words_and_says_why`, pruebas de degradación (sin clave, error, demora, vectores sin calcular) |
+| SC-007 | ✅ | Comprobado una vez: degradar a propósito el brazo de palabras hace fallar `test_retrieval_baseline.py`; ejecución normal pasa |
+| SC-008 | ✅ | Playwright + axe (WCAG 2.2 AA): resultados, degradado, vacío, error, sin texto, panel del encabezado y diagnóstico, escritorio y móvil; operable con teclado |
+| SC-009 | ✅ | `test_nothing_is_ever_presented_as_current_while_the_editions_are_unverified` (API) y `result-card.spec.ts` (el sello solo puede volverse más cauteloso) |
+| SC-010 | ◐ | Estimación previa (cota superior): 2.896 ventanas, 1,55 M caracteres ≈ 516.654 tokens → small ≤ US$ 0,0103, large ≤ US$ 0,0672; las cuatro corridas previstas (small, large, large@1024, large@1536) ≤ US$ 0,21. El costo real se registra tras la corrida (T036) |
+| SC-011 | ⏳ | Pendiente de prueba con personas |
+
+**Hallazgos que cambiaron el diseño** (detalle en [research](research.md) y en los informes de `evaluation/reports/`):
+`unaccent` + `spanish_stem` rompía el singular/plural de «-ción» (366 de 6.403 palabras) → configuración `spanish` +
+ampliación de la consulta con las tildes del corpus; la normalización por longitud casi duplicó el MRR de palabras
+(0,226 → 0,445); el analizador del corpus leía referencias cruzadas como numerales (RENAT 108.1.8 fantasma, art. 20.1 con
+todo el texto sustituido) y se corrigió con pruebas contra el PDF; la comprobación de privacidad con el stack real
+encontró tres fugas del texto de la búsqueda (respuestas 422, registro de acceso de `uvicorn` y de `nginx`) y se cerraron.
 
 ## Assumptions
 

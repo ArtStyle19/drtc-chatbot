@@ -9,7 +9,7 @@ debe respetar en la [constitución](../.specify/memory/constitution.md).
 | [001-instrument-catalog](001-instrument-catalog/spec.md) | R0 | ✅ Implementada (Sprint 0) | spec · plan · tasks |
 | [002-corpus-ingestion](002-corpus-ingestion/spec.md) | R1 | ✅ Implementada (Sprint 1) · revisión SC-001 pendiente | spec · plan · data-model · contracts · quickstart · tasks |
 | [003-legal-reader](003-legal-reader/spec.md) | R1 | ✅ Implementada (Sprint 2) · prueba SC-001 con personas pendiente | spec · plan · contracts · tasks |
-| 004-hybrid-search | R2 | ⏳ Backlog | — |
+| [004-hybrid-search](004-hybrid-search/spec.md) | R2 | 🚧 Implementada salvo la medición con la clave real de OpenAI (T036-T038) · prueba SC-011 con personas pendiente | spec · plan · research · data-model · contracts · quickstart · tasks |
 | 005-cited-answers | R2 | ⏳ Backlog | — |
 | 006-conversations-feedback | R2 | ⏳ Backlog | — |
 | 007-identity | R3 | ⏳ Backlog | — |
