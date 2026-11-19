@@ -22,11 +22,16 @@ import time
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterator, Sequence
 
+import openai
 from openai import AsyncOpenAI
 from pydantic import SecretStr
 
 from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch, EmbeddingPurpose
-from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingRateLimitedError
+from drtc_chatbot.contexts.retrieval.domain.errors import (
+    EmbeddingQuotaExhaustedError,
+    EmbeddingRateLimitedError,
+    EmbeddingUnavailableError,
+)
 from drtc_chatbot.contexts.retrieval.domain.pricing import estimate_tokens
 from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import (
     OpenAIEmbeddingProvider,
@@ -35,7 +40,9 @@ from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import (
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 DEFAULT_MODEL = "gemini-embedding-2"
 BATCH_ITEMS = 16
-INDEXING_RETRIES = 6
+# The SDK retries a 429 within seconds, which only meets the per-minute limit again: the pauses of a whole
+# window are ours (below). It keeps a couple of retries for the transient 5xx answers.
+INDEXING_RETRIES = 2
 RATE_LIMIT_PAUSES = 4  # whole minutes to wait through a 429 before giving up on a batch
 RATE_LIMIT_PAUSE_SECONDS = 65.0
 VERIFY_TIMEOUT_SECONDS = 15.0
@@ -79,6 +86,12 @@ class PerMinuteLimit:
             await self._sleep(max(WINDOW_SECONDS - (now - self._spent[0][0]), 0.05))
 
 
+def _is_daily_quota(error: openai.RateLimitError) -> bool:
+    """Google names the quota in the 429 body ("... per day limit exceeded on Free Tier"). Only a fixed
+    marker is looked for; nothing of the body is ever copied into a message."""
+    return "per day" in str(error.body).lower()
+
+
 class GeminiEmbeddingProvider(OpenAIEmbeddingProvider):
     data_notice = FREE_TIER_NOTICE
 
@@ -107,6 +120,16 @@ class GeminiEmbeddingProvider(OpenAIEmbeddingProvider):
         self._sleep = sleep
         self._token_limit = PerMinuteLimit(max_tokens_per_minute, clock=clock, sleep=sleep)
         self._text_limit = PerMinuteLimit(max_requests_per_minute, clock=clock, sleep=sleep)
+
+    @staticmethod
+    def _unavailable(error: openai.OpenAIError) -> EmbeddingUnavailableError:
+        """A daily quota is told apart from a per-minute limit: only the second is cured by waiting."""
+        if isinstance(error, openai.RateLimitError) and _is_daily_quota(error):
+            return EmbeddingQuotaExhaustedError(
+                "The embeddings provider's daily free quota is used up: it resets at midnight "
+                "Pacific time (03:00 in Lima); wait for it or enable billing on the Google project"
+            )
+        return OpenAIEmbeddingProvider._unavailable(error)
 
     async def verify(self) -> None:
         """One tiny real embedding: proves the key, the model and the address together."""

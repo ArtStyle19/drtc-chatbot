@@ -11,6 +11,7 @@ from pydantic import SecretStr
 
 from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingPurpose
 from drtc_chatbot.contexts.retrieval.domain.errors import (
+    EmbeddingQuotaExhaustedError,
     EmbeddingRateLimitedError,
     EmbeddingUnavailableError,
 )
@@ -304,6 +305,76 @@ async def test_a_429_that_never_clears_is_given_up_with_a_rate_limit_error() -> 
 
     assert len(recorder.requests) == 5  # the first try and four more after a pause each
     assert clock.slept.count(65.0) == 4
+
+
+DAILY_429 = {
+    "error": {
+        "code": 429,
+        "status": "RESOURCE_EXHAUSTED",
+        "message": (
+            "Quota exceeded for metric: generativelanguage.googleapis.com/embed_content_free_tier_requests, "
+            "limit: 1000, model: gemini-embedding-2. Embed content requests per day limit exceeded on "
+            f"Free Tier. echo of your input: {QUESTION}"
+        ),
+    }
+}
+
+
+@pytest.mark.spec("004-FR-013")
+async def test_a_daily_quota_stops_indexing_at_once_it_is_not_waited_out() -> None:
+    """Found with the real API: 1,000 embed requests a day on the free tier, one per text."""
+    clock = Clock()
+    p, recorder, clock = make(lambda request: httpx.Response(429, json=DAILY_429), clock=clock)
+
+    with pytest.raises(EmbeddingQuotaExhaustedError, match="daily free quota is used up"):
+        await p.embed(["uno", "dos"])
+
+    assert len(recorder.requests) == 1  # no retries that would only meet the same wall
+    assert clock.slept == []  # and no minute-long pauses
+
+
+@pytest.mark.spec("004-FR-014")
+async def test_the_daily_quota_message_is_fixed_it_never_copies_what_google_or_the_person_wrote() -> (
+    None
+):
+    p, _, _ = make(lambda request: httpx.Response(429, json=DAILY_429))
+
+    with pytest.raises(EmbeddingQuotaExhaustedError) as raised:
+        await p.embed([QUESTION], purpose=EmbeddingPurpose.QUERY, timeout_seconds=3.0)
+
+    text = str(raised.value)
+    assert QUESTION not in text
+    assert "12345678" not in text
+    assert KEY.get_secret_value() not in text
+    assert "1000" not in text  # nothing of the body: only a fixed message
+    assert "midnight Pacific" in text
+
+
+async def test_a_daily_quota_during_a_search_is_still_a_degradation_not_a_failure() -> None:
+    p, _, _ = make(lambda request: httpx.Response(429, json=DAILY_429))
+
+    with pytest.raises(EmbeddingUnavailableError):  # the search catches this one and uses words
+        await p.embed(["plazo"], purpose=EmbeddingPurpose.QUERY, timeout_seconds=3.0)
+
+
+async def test_a_per_minute_429_is_still_waited_out_and_is_not_taken_for_a_daily_one() -> None:
+    clock = Clock()
+    per_minute = {
+        "error": {"code": 429, "message": "Embed content requests per minute limit exceeded."}
+    }
+    answers = iter([429, 200])
+
+    def limited_once(request: httpx.Request) -> httpx.Response:
+        if next(answers) == 429:
+            return httpx.Response(429, json=per_minute)
+        return response_for(request)
+
+    p, recorder, clock = make(limited_once, clock=clock)
+
+    await p.embed(["uno"])
+
+    assert len(recorder.requests) == 2
+    assert 65.0 in clock.slept
 
 
 async def test_an_interactive_query_does_not_wait_out_a_429_it_degrades() -> None:
