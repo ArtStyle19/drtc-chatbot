@@ -91,8 +91,8 @@ class LookupReference:
                 return self._whole_norms(text, [by_id[i] for i in mentions.instrument_ids])
             return self._result(
                 LookupStatus.UNRECOGNIZED, text, norms=named,
-                message=f"Por ahora solo busco por referencia: pruebe {EXAMPLES}. "
-                "La búsqueda por significado llegará en una próxima versión.",
+                message="No reconozco una referencia en ese texto, pero puede buscarlo por su contenido. "
+                f"Para ir a una disposición concreta pruebe {EXAMPLES}.",
             )  # fmt: skip
         return await self._search(actor, text, norms, mentions.instrument_ids, parsed.steps, words)
 

@@ -5,11 +5,14 @@ from typing import Annotated, Protocol, cast
 from fastapi import Depends, Request
 
 from drtc_chatbot.contexts.retrieval.application.lookup_reference import LookupReference
+from drtc_chatbot.contexts.retrieval.application.search_passages import SearchPassages
 
 
 class RetrievalUseCases(Protocol):
     @property
     def lookup_reference(self) -> LookupReference: ...
+    @property
+    def search_passages(self) -> SearchPassages: ...
 
 
 def get_retrieval(request: Request) -> RetrievalUseCases:

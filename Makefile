@@ -47,7 +47,7 @@ ingest: ## Load the manifest and ingest every corpus PDF into the dev database (
 
 .PHONY: dev-backend
 dev-backend: ## Run the API with auto-reload on http://localhost:8000
-	$(BACKEND) uv run uvicorn drtc_chatbot.main:app --reload --port 8000
+	$(BACKEND) uv run uvicorn drtc_chatbot.main:app --reload --port 8000 --no-access-log
 
 .PHONY: dev-frontend
 dev-frontend: ## Run Angular on http://localhost:4200 (proxies /api to :8000)

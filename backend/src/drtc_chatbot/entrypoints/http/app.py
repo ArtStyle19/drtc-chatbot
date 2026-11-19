@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from drtc_chatbot import __version__
 from drtc_chatbot.bootstrap.container import build_container
 from drtc_chatbot.bootstrap.logging import configure_logging
-from drtc_chatbot.bootstrap.settings import Settings
+from drtc_chatbot.bootstrap.settings import Environment, Settings
 from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
     provisions_router,
     versions_router,
@@ -19,9 +19,14 @@ from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
     router as legal_corpus_router,
 )
 from drtc_chatbot.contexts.retrieval.presentation.http.router import router as retrieval_router
+from drtc_chatbot.contexts.retrieval.presentation.http.search_router import router as search_router
 from drtc_chatbot.entrypoints.http.errors import register_exception_handlers
 from drtc_chatbot.entrypoints.http.health import router as health_router
-from drtc_chatbot.entrypoints.http.middleware import REQUEST_ID_HEADER, RequestIdMiddleware
+from drtc_chatbot.entrypoints.http.middleware import (
+    REQUEST_ID_HEADER,
+    RequestIdMiddleware,
+    RequestLogMiddleware,
+)
 
 API_DESCRIPTION = (
     "API del asistente normativo de la DRTC Puno. Toda respuesta jurídica se apoya en "
@@ -56,6 +61,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.identity_provider = container.identity_provider
     app.state.legal_corpus = container.legal_corpus
     app.state.retrieval = container.retrieval
+    # The diagnostic view of the search (which method found what) exists only where developers work.
+    app.state.search_debug_enabled = settings.environment in {Environment.LOCAL, Environment.TEST}
 
     register_exception_handlers(app)
     app.add_middleware(
@@ -71,6 +78,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "ETag",
         ],
     )
+    app.add_middleware(
+        RequestLogMiddleware
+    )  # inside the request id: its lines carry it; no query string
     app.add_middleware(RequestIdMiddleware)  # outermost: every response carries a request id
 
     api_v1 = APIRouter(prefix="/api/v1")
@@ -78,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api_v1.include_router(provisions_router)
     api_v1.include_router(versions_router)
     api_v1.include_router(retrieval_router)
+    api_v1.include_router(search_router)
     app.include_router(health_router)
     app.include_router(api_v1)
     return app

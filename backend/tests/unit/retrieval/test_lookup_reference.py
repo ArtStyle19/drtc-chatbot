@@ -168,9 +168,8 @@ async def test_text_that_is_not_a_reference_is_explained_with_examples(query: st
     result = await look(query)
 
     assert result.status is LookupStatus.UNRECOGNIZED
-    assert "solo busco por referencia" in result.message
+    assert "puede buscarlo por su contenido" in result.message
     assert "art. 5 Ley 27181" in result.message
-    assert "próxima versión" in result.message
 
 
 async def test_a_norm_name_alone_opens_the_norm() -> None:

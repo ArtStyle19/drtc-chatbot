@@ -676,6 +676,42 @@
         "title": "LookupStatus",
         "type": "string"
       },
+      "MatchedPassageOut": {
+        "properties": {
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "page_end": {
+            "title": "Page End",
+            "type": "integer"
+          },
+          "page_start": {
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "snippet": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentOut"
+            },
+            "title": "Snippet",
+            "type": "array"
+          }
+        },
+        "required": [
+          "path",
+          "citation",
+          "page_start",
+          "page_end",
+          "snippet"
+        ],
+        "title": "MatchedPassageOut",
+        "type": "object"
+      },
       "OutlineEntryOut": {
         "properties": {
           "kind": {
@@ -1280,6 +1316,264 @@
         "title": "RevisionStatus",
         "type": "string"
       },
+      "SearchFacetOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "short_name",
+          "count"
+        ],
+        "title": "SearchFacetOut",
+        "type": "object"
+      },
+      "SearchMode": {
+        "enum": [
+          "hybrid",
+          "lexical",
+          "vector"
+        ],
+        "title": "SearchMode",
+        "type": "string"
+      },
+      "SearchOut": {
+        "properties": {
+          "degraded": {
+            "description": "Por qué se respondió con menos de lo pedido (p. ej. sin búsqueda por significado).",
+            "items": {
+              "enum": [
+                "vector_unavailable",
+                "vector_not_indexed"
+              ],
+              "type": "string"
+            },
+            "title": "Degraded",
+            "type": "array"
+          },
+          "facets": {
+            "description": "Conteo por norma, para el filtro.",
+            "items": {
+              "$ref": "#/components/schemas/SearchFacetOut"
+            },
+            "title": "Facets",
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SearchMode"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lo que se entendió como referencia, p. ej. 'art. 5'.",
+            "title": "Reference"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResultOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "total": {
+            "description": "Unidades de lectura encontradas (antes del límite).",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query",
+          "mode",
+          "degraded",
+          "total",
+          "reference",
+          "facets",
+          "results"
+        ],
+        "title": "SearchOut",
+        "type": "object"
+      },
+      "SearchResultOut": {
+        "properties": {
+          "citation": {
+            "description": "Cita breve generada por el servidor.",
+            "title": "Citation",
+            "type": "string"
+          },
+          "debug": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Solo con debug=true en entornos de desarrollo y prueba.",
+            "title": "Debug"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "instrument_short_name": {
+            "title": "Instrument Short Name",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "matched": {
+            "description": "Pasajes de la unidad que coincidieron (hasta 5), el principal primero.",
+            "items": {
+              "$ref": "#/components/schemas/MatchedPassageOut"
+            },
+            "title": "Matched",
+            "type": "array"
+          },
+          "may_be_presented_as_current": {
+            "description": "Verdadero solo si la edición fue verificada como vigente.",
+            "title": "May Be Presented As Current",
+            "type": "boolean"
+          },
+          "page_end": {
+            "title": "Page End",
+            "type": "integer"
+          },
+          "page_start": {
+            "title": "Page Start",
+            "type": "integer"
+          },
+          "path": {
+            "description": "Mejor pasaje dentro de la unidad: lo que el lector resalta.",
+            "title": "Path",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "snippet": {
+            "description": "Fragmento; nunca HTML.",
+            "items": {
+              "$ref": "#/components/schemas/SegmentOut"
+            },
+            "title": "Snippet",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "unit_path": {
+            "description": "Unidad de lectura (artículo, disposición o anexo) que se abre.",
+            "title": "Unit Path",
+            "type": "string"
+          },
+          "verification_status": {
+            "description": "Estado de verificación de la edición; solo 'verified_current' es vigente verificado.",
+            "title": "Verification Status",
+            "type": "string"
+          },
+          "version_id": {
+            "description": "Edición aprobada de la que viene el resultado.",
+            "title": "Version Id",
+            "type": "string"
+          },
+          "via": {
+            "description": "Cómo se halló: reference (referencia exacta, siempre al principio), lexical, vector.",
+            "items": {
+              "enum": [
+                "reference",
+                "lexical",
+                "vector"
+              ],
+              "type": "string"
+            },
+            "title": "Via",
+            "type": "array"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "instrument_short_name",
+          "version_id",
+          "edition_label",
+          "verification_status",
+          "may_be_presented_as_current",
+          "unit_path",
+          "path",
+          "kind",
+          "label",
+          "title",
+          "citation",
+          "page_start",
+          "page_end",
+          "snippet",
+          "matched",
+          "via",
+          "score"
+        ],
+        "title": "SearchResultOut",
+        "type": "object"
+      },
+      "SegmentOut": {
+        "properties": {
+          "match": {
+            "description": "Verdadero si son palabras que coincidieron con la búsqueda.",
+            "title": "Match",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "match"
+        ],
+        "title": "SegmentOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1717,6 +2011,109 @@
         "summary": "Leer una disposición con su historial de revisiones",
         "tags": [
           "Corpus normativo"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "description": "Encuentra disposiciones escribiendo lo que se busca con las propias palabras. Si el texto identifica una disposición por referencia («art. 5 Ley 27181») esa va primero y marcada; después, las coincidencias por palabras y por significado, fusionadas y agrupadas por unidad de lectura. **Son coincidencias, no una respuesta ni una opinión legal.** Siempre responde 200: si la búsqueda por significado no está disponible (sin clave, error o demora) responde con palabras e indica el motivo en `degraded`. El texto de la búsqueda no se guarda ni se registra.",
+        "operationId": "search_api_v1_search_get",
+        "parameters": [
+          {
+            "description": "Lo que se busca.",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Lo que se busca.",
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unidades de lectura a devolver.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "description": "Unidades de lectura a devolver.",
+              "maximum": 30,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Limita la búsqueda a una norma (se aplica antes del límite).",
+            "in": "query",
+            "name": "instrument",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9-]{1,80}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Limita la búsqueda a una norma (se aplica antes del límite).",
+              "title": "Instrument"
+            }
+          },
+          {
+            "description": "hybrid (por defecto), lexical o vector; los dos últimos sirven para evaluar.",
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/SearchMode",
+              "default": "hybrid",
+              "description": "hybrid (por defecto), lexical o vector; los dos últimos sirven para evaluar."
+            }
+          },
+          {
+            "description": "Muestra qué método halló cada resultado. Solo en desarrollo y prueba.",
+            "in": "query",
+            "name": "debug",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Muestra qué método halló cada resultado. Solo en desarrollo y prueba.",
+              "title": "Debug",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Buscar disposiciones por su contenido",
+        "tags": [
+          "Búsqueda por contenido"
         ]
       }
     },

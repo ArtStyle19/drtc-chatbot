@@ -121,6 +121,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Buscar disposiciones por su contenido
+         * @description Encuentra disposiciones escribiendo lo que se busca con las propias palabras. Si el texto identifica una disposición por referencia («art. 5 Ley 27181») esa va primero y marcada; después, las coincidencias por palabras y por significado, fusionadas y agrupadas por unidad de lectura. **Son coincidencias, no una respuesta ni una opinión legal.** Siempre responde 200: si la búsqueda por significado no está disponible (sin clave, error o demora) responde con palabras e indica el motivo en `degraded`. El texto de la búsqueda no se guarda ni se registra.
+         */
+        get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/versions/{version_id}/source": {
         parameters: {
             query?: never;
@@ -469,6 +489,19 @@ export interface components {
          * @enum {string}
          */
         LookupStatus: "resolved" | "ambiguous" | "not_found" | "unrecognized";
+        /** MatchedPassageOut */
+        MatchedPassageOut: {
+            /** Citation */
+            citation: string;
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /** Path */
+            path: string;
+            /** Snippet */
+            snippet: components["schemas"]["SegmentOut"][];
+        };
         /** OutlineEntryOut */
         OutlineEntryOut: {
             kind: components["schemas"]["ProvisionKind"];
@@ -695,6 +728,131 @@ export interface components {
          * @enum {string}
          */
         RevisionStatus: "current" | "superseded";
+        /** SearchFacetOut */
+        SearchFacetOut: {
+            /** Count */
+            count: number;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Short Name */
+            short_name: string;
+        };
+        /**
+         * SearchMode
+         * @enum {string}
+         */
+        SearchMode: "hybrid" | "lexical" | "vector";
+        /** SearchOut */
+        SearchOut: {
+            /**
+             * Degraded
+             * @description Por qué se respondió con menos de lo pedido (p. ej. sin búsqueda por significado).
+             */
+            degraded: ("vector_unavailable" | "vector_not_indexed")[];
+            /**
+             * Facets
+             * @description Conteo por norma, para el filtro.
+             */
+            facets: components["schemas"]["SearchFacetOut"][];
+            mode: components["schemas"]["SearchMode"];
+            /** Query */
+            query: string;
+            /**
+             * Reference
+             * @description Lo que se entendió como referencia, p. ej. 'art. 5'.
+             */
+            reference: string | null;
+            /** Results */
+            results: components["schemas"]["SearchResultOut"][];
+            /**
+             * Total
+             * @description Unidades de lectura encontradas (antes del límite).
+             */
+            total: number;
+        };
+        /** SearchResultOut */
+        SearchResultOut: {
+            /**
+             * Citation
+             * @description Cita breve generada por el servidor.
+             */
+            citation: string;
+            /**
+             * Debug
+             * @description Solo con debug=true en entornos de desarrollo y prueba.
+             */
+            debug?: {
+                [key: string]: unknown;
+            } | null;
+            /** Edition Label */
+            edition_label: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Instrument Short Name */
+            instrument_short_name: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /**
+             * Matched
+             * @description Pasajes de la unidad que coincidieron (hasta 5), el principal primero.
+             */
+            matched: components["schemas"]["MatchedPassageOut"][];
+            /**
+             * May Be Presented As Current
+             * @description Verdadero solo si la edición fue verificada como vigente.
+             */
+            may_be_presented_as_current: boolean;
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /**
+             * Path
+             * @description Mejor pasaje dentro de la unidad: lo que el lector resalta.
+             */
+            path: string;
+            /** Score */
+            score: number;
+            /**
+             * Snippet
+             * @description Fragmento; nunca HTML.
+             */
+            snippet: components["schemas"]["SegmentOut"][];
+            /** Title */
+            title: string | null;
+            /**
+             * Unit Path
+             * @description Unidad de lectura (artículo, disposición o anexo) que se abre.
+             */
+            unit_path: string;
+            /**
+             * Verification Status
+             * @description Estado de verificación de la edición; solo 'verified_current' es vigente verificado.
+             */
+            verification_status: string;
+            /**
+             * Version Id
+             * @description Edición aprobada de la que viene el resultado.
+             */
+            version_id: string;
+            /**
+             * Via
+             * @description Cómo se halló: reference (referencia exacta, siempre al principio), lexical, vector.
+             */
+            via: ("reference" | "lexical" | "vector")[];
+        };
+        /** SegmentOut */
+        SegmentOut: {
+            /**
+             * Match
+             * @description Verdadero si son palabras que coincidieron con la búsqueda.
+             */
+            match: boolean;
+            /** Text */
+            text: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -935,6 +1093,46 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_search_get: {
+        parameters: {
+            query: {
+                /** @description Lo que se busca. */
+                q: string;
+                /** @description Unidades de lectura a devolver. */
+                limit?: number;
+                /** @description Limita la búsqueda a una norma (se aplica antes del límite). */
+                instrument?: string | null;
+                /** @description hybrid (por defecto), lexical o vector; los dos últimos sirven para evaluar. */
+                mode?: components["schemas"]["SearchMode"];
+                /** @description Muestra qué método halló cada resultado. Solo en desarrollo y prueba. */
+                debug?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
             };
             /** @description Validation Error */
             422: {

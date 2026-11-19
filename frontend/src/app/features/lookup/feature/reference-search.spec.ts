@@ -216,7 +216,7 @@ describe('ReferenceSearch', () => {
   it('explains what it did not understand, without a list', async () => {
     const api = new FakeApi();
     api.response = {
-      ...result('unrecognized', [], 'No reconozco una referencia: solo busco por referencia.'),
+      ...result('unrecognized', [], 'No reconozco una referencia, pero puede buscarlo por su contenido.'),
       ignored_text: 'transporte',
     };
     const { type, el, options } = setup(api);
@@ -225,7 +225,7 @@ describe('ReferenceSearch', () => {
 
     expect(options()).toHaveLength(0);
     expect(el.querySelector('[role="listbox"]')).toBeNull();
-    expect(text(el.querySelector('.message'))).toContain('solo busco por referencia');
+    expect(text(el.querySelector('.message'))).toContain('puede buscarlo por su contenido');
     expect(text(el.querySelector('.ignored'))).toBe('No tuve en cuenta: «transporte»');
   });
 

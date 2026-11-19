@@ -91,7 +91,7 @@ async def test_ambiguous_missing_unknown_and_free_text_cases(full_corpus: str) -
     assert "No reconozco la norma" in unknown["message"]
     assert unknown["hits"] == []
     assert free["status"] == "unrecognized"
-    assert "solo busco por referencia" in free["message"]
+    assert "puede buscarlo por su contenido" in free["message"]
     assert (norm["status"], norm["hits"][0]["instrument_id"], norm["hits"][0]["path"]) == (
         "resolved",
         "tuo-ley-27444",

@@ -81,7 +81,9 @@ async def _on_validation_error(request: Request, error: Exception) -> JSONRespon
         status=HTTPStatus.UNPROCESSABLE_CONTENT,
         code="validation_error",
         detail="La solicitud no es válida.",
-        extra={"errors": error.errors()},
+        # Never echo what the person typed back (pydantic includes it as `input`): a search text may
+        # hold personal data and must not travel anywhere it does not have to (constitution VI).
+        extra={"errors": [{k: v for k, v in e.items() if k != "input"} for e in error.errors()]},
     )
 
 

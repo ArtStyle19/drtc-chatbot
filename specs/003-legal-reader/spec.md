@@ -110,8 +110,9 @@ muestra las normas que tienen artículo 5 para elegir.
    la tiene, con el nombre de la norma y el comienzo del texto, para elegir (nunca se elige una por el usuario).
 3. **Given** una referencia bien escrita a algo que no existe (`art. 999 ley 27181`), **Then** se dice qué se
    entendió y que esa norma no tiene tal disposición en la edición cargada.
-4. **Given** texto que no es una referencia (`transporte de mercancías`), **Then** se explica que por
-   ahora solo se busca por referencia y se dan ejemplos (la búsqueda por significado llega en la spec 004).
+4. **Given** texto que no es una referencia (`transporte de mercancías`), **Then** se explica que no se reconoce una
+   referencia pero que puede buscarse por su contenido y se dan ejemplos de referencias (la búsqueda por contenido es la
+   [spec 004](../004-hybrid-search/spec.md): el buscador del encabezado ofrece «Buscar … en el texto»).
 5. **Given** disposiciones, anexos, títulos y capítulos (`primera disposición complementaria final RENAT`,
    `anexo 2 RENAT`, `título IV TUO`), **Then** también se resuelven.
 6. **Given** la búsqueda en el encabezado de cualquier pantalla, **Then** se puede usar con teclado

@@ -82,6 +82,8 @@ ignore = [
 "src/drtc_chatbot/contexts/ingestion/presentation/cli/app.py" = ["PLR0915", "FBT002"]
 "src/drtc_chatbot/contexts/retrieval/presentation/cli/app.py" = ["PLR0915", "PLR0913", "PLR0917", "FBT002", "E501"]
 "src/drtc_chatbot/contexts/retrieval/presentation/cli/render.py" = ["E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/http/search_router.py" = ["FBT002", "E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/http/search_schemas.py" = ["E501"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
