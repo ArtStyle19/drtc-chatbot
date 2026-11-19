@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Protocol
 
+from drtc_chatbot.contexts.retrieval.domain.chunking import PassageText
 from drtc_chatbot.contexts.retrieval.domain.evaluation import (
     GoldenQuestion,
     MethodReport,
@@ -111,3 +112,56 @@ class EvaluationStore(Protocol):
         payload: Mapping[str, Any],
         markdown: str,
     ) -> tuple[Path, Path]: ...
+
+
+@dataclass(frozen=True, slots=True)
+class Segment:
+    """A piece of a snippet; ``match`` marks the words that matched the search (never HTML)."""
+
+    text: str
+    match: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class PassageHit:
+    """A passage found by one arm of the search, with that arm's score and the matching words."""
+
+    passage: PassageText
+    score: float
+    snippet: tuple[Segment, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class IndexStats:
+    """What a synchronisation did: how many passages were added, changed, removed or already fine."""
+
+    added: int = 0
+    changed: int = 0
+    removed: int = 0
+    unchanged: int = 0
+
+    @property
+    def total(self) -> int:
+        return self.added + self.changed + self.unchanged
+
+
+class PassageSource(Protocol):
+    """Anticorruption layer: the passages of every APPROVED edition, from the legal corpus."""
+
+    async def passages(self, actor: Actor) -> Sequence[PassageText]: ...
+
+
+class PassageIndex(Protocol):
+    """The derived search index (words now, meaning in the next phase). Rebuildable from the corpus."""
+
+    async def sync(self, passages: Sequence[PassageText]) -> IndexStats:
+        """Makes the index contain EXACTLY ``passages``: adds, updates what changed, removes the rest."""
+        ...
+
+    async def count(self) -> int: ...
+
+    async def lexical_search(
+        self, text: str, *, instrument_id: str | None, limit: int
+    ) -> Sequence[PassageHit]:
+        """Passages that share words with ``text`` (accent- and plural-insensitive), best first."""
+        ...

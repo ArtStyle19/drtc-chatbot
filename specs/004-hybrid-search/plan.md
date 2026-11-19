@@ -20,7 +20,7 @@ el buscador del encabezado cuando el texto no es una referencia. No se generan r
 |---|---|---|
 | Orden del trabajo | Evaluación → exacta (línea base) → palabras → significado → combinada → API → interfaz | Constitución IV: ninguna variante se integra sin medirla; la línea base existe antes de la búsqueda |
 | Brazo exacto | Reutiliza `LookupReference` (spec 003); su `ignored_text` es el texto restante que busca por contenido | Constitución I.6: una disposición identificada va antes que la similitud; sin código duplicado |
-| Palabras | Configuración de búsqueda `es_unaccent` (copia de `spanish` + diccionario `unaccent`), `tsvector` **generado** con pesos (título/etiqueta A, texto B), consulta = OR de raíces, `ts_rank_cd` | Verificado en la base real: sin tildes, plurales y formas verbales; `ts_headline` conserva el texto original ([research R1-R2](research.md)) |
+| Palabras | Configuración estándar `spanish`, `tsvector` **generado** con pesos (título A, texto B, miga de pan y encabezado del padre C), consulta = OR de raíces ampliada con la forma acentuada de cada palabra tecleada sin tilde (vocabulario del corpus + regla «-ión»), `ts_rank_cd` con normalización por longitud | Medido en el corpus real: `unaccent` rompía singular/plural en «-ción»; el lematizador necesita la tilde ([research R1](research.md), [ajuste](../../evaluation/reports/2026-11-19-lexical-tuning.md)) |
 | Significado | Puerto `EmbeddingProvider`; adaptador OpenAI (SDK `openai` 3.x) y adaptador falso determinista; modelo y dimensiones desde configuración; se comparan `text-embedding-3-small` y `-large` | ADR-0006; la clave es del líder del proyecto, solo en `.env` (`SecretStr`) |
 | Vectores | Tabla aparte `retrieval_embeddings` (pasaje, modelo, ventana), columna `vector` sin dimensión fija, **sin índice ANN** | Varios modelos conviven para evaluarlos; ~2.600 filas se recorren en milisegundos; HNSW exigiría reducir dimensiones sin beneficio (VIII) |
 | Fusión | RRF (k = 60) sobre los 50 primeros de cada brazo, a nivel de **pasaje**; luego agrupa por unidad de lectura (puntaje = el del mejor pasaje) | Pasajes que ambos brazos prefieren suben; la unidad es lo que el lector abre. Variantes (k, suma en vez de máximo) se miden |
@@ -87,7 +87,7 @@ backend/src/drtc_chatbot/contexts/
     │   └── run_evaluation.py    corre un método sobre el golden set y calcula métricas
     ├── infrastructure/
     │   ├── legal_corpus_passages.py   PassageSource sobre legal_corpus.api
-    │   ├── sql_passage_index.py       tablas, FTS, vectores, resaltado
+    │   ├── sql_passage_index.py       tablas, FTS, vocabulario de tildes, resaltado, (vectores: fase 3)
     │   ├── openai_embeddings.py       lotes, tiempos, reintentos, uso real
     │   └── fake_embeddings.py         determinista (pruebas y CI)
     └── presentation/

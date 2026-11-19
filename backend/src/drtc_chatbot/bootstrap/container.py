@@ -27,6 +27,7 @@ from drtc_chatbot.contexts.legal_corpus.api import (
     GetProvision,
     GetReadingUnit,
     GetSourceDocument,
+    ListIndexablePassages,
     ListLegalInstruments,
     ListProvisionIndex,
     ListProvisions,
@@ -44,14 +45,23 @@ from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_reader import Ya
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlReadingStore
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
 from drtc_chatbot.contexts.retrieval.api import LookupReference
+from drtc_chatbot.contexts.retrieval.application.build_index import BuildIndex
 from drtc_chatbot.contexts.retrieval.application.exact_retriever import ExactRetriever
-from drtc_chatbot.contexts.retrieval.application.ports import EvaluationStore, GoldenSet, Retriever
+from drtc_chatbot.contexts.retrieval.application.lexical_retriever import LexicalRetriever
+from drtc_chatbot.contexts.retrieval.application.ports import (
+    EvaluationStore,
+    GoldenSet,
+    PassageIndex,
+    Retriever,
+)
 from drtc_chatbot.contexts.retrieval.application.run_evaluation import RunEvaluation
 from drtc_chatbot.contexts.retrieval.infrastructure.evaluation_files import FileEvaluationStore
 from drtc_chatbot.contexts.retrieval.infrastructure.jsonl_golden_set import JsonlGoldenSet
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
     LegalCorpusDirectory,
 )
+from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_passages import LegalCorpusPassages
+from drtc_chatbot.contexts.retrieval.infrastructure.sql_passage_index import SqlPassageIndex
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
 from drtc_chatbot.shared_kernel.infrastructure.system_clock import SystemClock
@@ -68,6 +78,7 @@ class LegalCorpusModule:
     get_reading_unit: GetReadingUnit
     get_source_document: GetSourceDocument
     list_provision_index: ListProvisionIndex
+    list_indexable_passages: ListIndexablePassages
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +93,8 @@ class RetrievalCliModule:
     """What the ``drtc-retrieval`` command line needs from the retrieval context."""
 
     run_evaluation: RunEvaluation
+    build_index: BuildIndex
+    passage_index: PassageIndex
     retrievers: Mapping[str, Retriever]
     default_dataset: Path
     store: EvaluationStore
@@ -144,6 +157,8 @@ def build_container(settings: Settings) -> Container:
     list_index = ListProvisionIndex(reading)
     directory = LegalCorpusDirectory(list_instruments, list_index)
     lookup = LookupReference(directory)
+    passage_index = SqlPassageIndex(sessions)
+    passage_source = LegalCorpusPassages(list_instruments, ListIndexablePassages(reading))
     return Container(
         settings=settings,
         engine=engine,
@@ -157,6 +172,7 @@ def build_container(settings: Settings) -> Container:
             get_reading_unit=GetReadingUnit(reading),
             get_source_document=GetSourceDocument(reading, documents),
             list_provision_index=list_index,
+            list_indexable_passages=ListIndexablePassages(reading),
         ),
         ingestion=IngestionModule(
             run_ingestion=RunIngestion(gateway, extractor, jobs, clock),
@@ -167,7 +183,12 @@ def build_container(settings: Settings) -> Container:
         retrieval=RetrievalModule(lookup_reference=lookup),
         retrieval_cli=RetrievalCliModule(
             run_evaluation=RunEvaluation(directory),
-            retrievers={"exact": ExactRetriever(lookup)},
+            build_index=BuildIndex(passage_source, passage_index),
+            passage_index=passage_index,
+            retrievers={
+                "exact": ExactRetriever(lookup),
+                "lexical": LexicalRetriever(passage_index),
+            },
             default_dataset=settings.evaluation_dir / "datasets" / "golden-v1.jsonl",
             store=FileEvaluationStore(settings.evaluation_dir),
             clock=clock,

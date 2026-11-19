@@ -7,7 +7,7 @@ Pertenece al contexto `retrieval`; `legal_corpus` no sabe que existe.
 
 ### Configuración de búsqueda
 
-`es_unaccent`: copia de `spanish` con el diccionario `unaccent` antes del stemmer (ver [research R1](research.md)). Se elimina al revertir la migración.
+Se usa la configuración estándar `spanish` (no hay configuración propia): las tildes de la **consulta** se resuelven ampliándola con la tabla `retrieval_accents` (ver [research R1](research.md)).
 
 ### `retrieval_passages` — un pasaje por revisión vigente indexada
 
@@ -26,10 +26,19 @@ Pertenece al contexto `retrieval`; `legal_corpus` no sabe que existe.
 | `body` | text | Texto vigente completo |
 | `page_start`, `page_end` | int | |
 | `content_hash` | text | SHA-256 de lo que se indexa (`breadcrumb + lead + title + body`); decide si hay que recalcular |
-| `search_vector` | tsvector **generado, almacenado** | `setweight(to_tsvector('es_unaccent', label‖title), 'A') ‖ setweight(…(breadcrumb), 'C') ‖ setweight(…(body), 'B')` |
+| `search_vector` | tsvector **generado, almacenado** | `setweight(to_tsvector('spanish', title), 'A') ‖ setweight(…(body), 'B') ‖ setweight(…(breadcrumb ‖ ' ' ‖ lead), 'C')` |
 
 Restricciones e índices: `UNIQUE (instrument_version_id, provision_path)`; índice **GIN** sobre `search_vector`; índice por `(instrument_id)`.
 Al preparar el índice se **eliminan** los pasajes de la edición que ya no existen (texto sustituido o ingesta nueva); los vectores caen en cascada.
+
+### `retrieval_accents` — vocabulario de tildes del corpus
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `plain` | text PK | La palabra tecleada sin tilde (`apelacion`); la `ñ` se conserva |
+| `accented` | text PK | La palabra como está escrita en el corpus (`apelación`) |
+
+Se reconstruye completa en cada sincronización a partir de los pasajes.
 
 ### `retrieval_embeddings` — varios modelos conviven
 

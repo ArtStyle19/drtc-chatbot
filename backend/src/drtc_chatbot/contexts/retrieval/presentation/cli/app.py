@@ -8,7 +8,13 @@ from typing import Annotated, Protocol, TypeVar
 
 import typer
 
-from drtc_chatbot.contexts.retrieval.application.ports import EvaluationStore, GoldenSet, Retriever
+from drtc_chatbot.contexts.retrieval.application.build_index import BuildIndex
+from drtc_chatbot.contexts.retrieval.application.ports import (
+    EvaluationStore,
+    GoldenSet,
+    PassageIndex,
+    Retriever,
+)
 from drtc_chatbot.contexts.retrieval.application.run_evaluation import RunEvaluation
 from drtc_chatbot.contexts.retrieval.domain.evaluation import MethodReport
 from drtc_chatbot.contexts.retrieval.domain.metrics import (
@@ -16,6 +22,7 @@ from drtc_chatbot.contexts.retrieval.domain.metrics import (
     DEFAULT_KS,
     compare_to_baseline,
 )
+from drtc_chatbot.contexts.retrieval.domain.query import validate_query
 from drtc_chatbot.contexts.retrieval.presentation.cli.render import render_markdown
 from drtc_chatbot.shared_kernel.application import Actor, ActorKind, Clock
 from drtc_chatbot.shared_kernel.domain import DomainError
@@ -27,6 +34,10 @@ ACTOR = Actor("cli", ActorKind.SERVICE)
 class RetrievalCliModule(Protocol):
     @property
     def run_evaluation(self) -> RunEvaluation: ...
+    @property
+    def build_index(self) -> BuildIndex: ...
+    @property
+    def passage_index(self) -> PassageIndex: ...
     @property
     def retrievers(self) -> Mapping[str, Retriever]: ...
     @property
@@ -91,6 +102,45 @@ def build_app(factory: ModuleFactory) -> typer.Typer:
     @app.callback()
     def main() -> None:
         """Búsqueda por contenido: evaluación y operación (Spec 004)."""
+
+    @app.command("index")
+    def index_cmd() -> None:
+        """Prepara el índice de la búsqueda con las ediciones aprobadas (se puede repetir sin riesgo)."""
+
+        async def action(module: RetrievalCliModule) -> None:
+            stats = await module.build_index.execute(ACTOR)
+            typer.secho(
+                f"Índice al día: {stats.total} pasajes · {stats.added} agregados, {stats.changed} "
+                f"cambiados, {stats.removed} borrados, {stats.unchanged} sin cambios.",
+                bold=True,
+            )
+
+        run(action)
+
+    @app.command("search")
+    def search_cmd(
+        text: Annotated[str, typer.Argument(help="Lo que se busca, con sus propias palabras.")],
+        limit: Annotated[
+            int, typer.Option("--limit", min=1, max=30, help="Resultados a mostrar.")
+        ] = 10,
+    ) -> None:
+        """Busca por palabras en el índice (mismas reglas que la búsqueda de la aplicación)."""
+        query = validate_query(text)
+
+        async def action(module: RetrievalCliModule) -> None:
+            hits = await module.passage_index.lexical_search(query, instrument_id=None, limit=limit)
+            if not hits:
+                typer.echo("Sin coincidencias.")
+            for number, hit in enumerate(hits, start=1):
+                passage = hit.passage
+                shown = "".join(f"**{s.text}**" if s.match else s.text for s in hit.snippet)
+                typer.secho(
+                    f"{number:>2}. {passage.citation} · p. {passage.page_start}  [{hit.score:.3f}]",
+                    bold=True,
+                )
+                typer.echo(f"    {shown}")
+
+        run(action)
 
     @app.command("eval")
     def evaluate(

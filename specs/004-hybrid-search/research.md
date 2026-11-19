@@ -2,20 +2,25 @@
 
 Formato: **Decisión · Por qué · Alternativas**. Lo marcado «se mide» queda definido por el golden set y se registra en el ADR-0014.
 
-## R1. Búsqueda por palabras: configuración `es_unaccent`
+## R1. Búsqueda por palabras: configuración `spanish` y tildes en la consulta
 
-- **Decisión**: `CREATE TEXT SEARCH CONFIGURATION es_unaccent (COPY = spanish)` y mapear `hword, hword_part, word` a `unaccent, spanish_stem`.
-- **Por qué**: probado en la base real (PostgreSQL 18, `unaccent` 1.1): "Los vehículos motorizados menores sancionan; ¿cuál es el PLAZO de apelación?" →
-  `'apelacion' 'menor' 'motoriz' 'plaz' 'sancion' 'vehicul'`. Al ser una configuración (no una llamada a `unaccent()`), el `tsvector` puede ser una columna
-  **generada** (inmutable) y `ts_headline` ignora las tildes pero **devuelve el texto original** ("<<apelación>>").
-- **Alternativas**: función envoltorio `immutable_unaccent()` (más SQL propio); normalizar el texto al guardarlo (el fragmento resaltado perdería las tildes).
+- **Decisión (corregida con datos)**: documentos con la configuración estándar `spanish` (columna `tsvector` **generada**) y, en la consulta, cada palabra
+  tecleada sin tilde se amplía con su forma acentuada: la que tiene el corpus (tabla `retrieval_accents`, reconstruida en cada sincronización) y, de respaldo, la regla «consonante + ion → ión».
+- **Por qué**: lo planeado inicialmente (`es_unaccent` = `unaccent` + `spanish_stem`) **rompía el singular/plural de las palabras en «-ción»**: el lematizador solo reconoce «-ción» con tilde, pero «-ciones» sin ella,
+  así que `apelación` → `apelacion` y `apelaciones` → `apel` nunca coinciden. Medido sobre el vocabulario real: **366 de 6.403 palabras distintas** (202 en «-ción», 36 en «-ía», verbos como «sustituirá») se lematizan
+  distinto si se teclean sin tilde con la configuración estándar. Con la ampliación de la consulta, `resolucion`, `resoluciones` y `resolución` coinciden entre sí.
+- **Alternativas**: `es_unaccent` (rompe -ción); doble `tsvector` (estándar + sin tilde) con consulta doble (no cubre singular tecleado sin tilde frente a un plural); reglas de acentuación solo por expresión regular (no cubre verbos ni «-ía»).
+- **Fuera de alcance**: la `ñ` no se pliega a `n` (`año` ≠ `ano`); el PDF de la Ley dice «danos y perjuicios» (error del propio documento) y por eso «daños» no lo encuentra.
 
 ## R2. Forma de la consulta y puntaje
 
-- **Decisión**: la pregunta se convierte con `plainto_tsquery('es_unaccent', q)` y se cambia `&` por `|` (OR). Probado: "¿Se puede cobrar por el servicio de mototaxi?" →
-  `'pued' | 'cobr' | 'servici' | 'mototaxi'` (las palabras vacías desaparecen). Puntaje: `ts_rank_cd` sobre un `tsvector` con pesos (título y etiqueta = A, texto = B).
-- **Por qué**: el modo AND por defecto no devuelve nada para preguntas largas; el OR ordena por cuántos términos y con qué cercanía coinciden.
-- **Se mide**: pesos A/B, normalización de longitud de `ts_rank_cd`, y un respaldo AND-primero. **Alternativa**: `pg_trgm` (tolerancia a errores de tipeo) solo si el golden set muestra fallos por ortografía.
+- **Decisión (medida con el golden set)**: la pregunta, ampliada con las tildes (R1), se convierte con `plainto_tsquery('spanish', q)` y se cambia `&` por `|` (OR): "¿Se puede cobrar por el servicio de mototaxi?" →
+  `'pued' | 'cobr' | 'servici' | 'mototaxi'` (las palabras vacías desaparecen). Puntaje: `ts_rank_cd` sobre un `tsvector` con pesos **A = título 0,4 · B = texto 0,4 · C = miga de pan y encabezado del padre 0,2 · D = 0,1** y
+  **normalización 2 (dividir por la longitud del pasaje)**.
+- **Por qué**: el modo AND por defecto no devuelve nada para preguntas largas; el OR ordena por cuántos términos coinciden y con qué cercanía. Resultado de la cuadrícula (ver [informe de ajuste](../../evaluation/reports/2026-11-19-lexical-tuning.md)):
+  la normalización por longitud casi **duplica el MRR** (0,226 → 0,397) porque un anexo de 35.000 caracteres dejaba de ganar solo por acumular coincidencias; el título debe pesar **igual** que el texto (no más); y el contexto (peso C) sí ayuda (quitarlo baja el MRR de 0,445 a 0,340).
+  Final: acierto@10 por unidad 55 % → **67 %**, MRR 0,226 → **0,445**, p95 40 ms.
+- **Pendiente de medir**: respaldo AND-primero y `pg_trgm` solo si el golden set muestra fallos por ortografía (los fallos observados son de **vocabulario**, no de ortografía: eso lo cubre el significado).
 
 ## R3. Modelo de significado
 
