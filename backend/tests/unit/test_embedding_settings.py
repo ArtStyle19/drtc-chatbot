@@ -101,6 +101,7 @@ def test_gemini_defaults_and_a_floor_for_the_rate_limit_ceiling() -> None:
 
     assert configured.gemini_embedding_model == "gemini-embedding-2"
     assert configured.gemini_max_tokens_per_minute == 25_000
+    assert configured.gemini_max_requests_per_minute == 80  # the free tier allows 100 per minute
     with pytest.raises(ValueError, match="greater than or equal to 1000"):
         settings(gemini_max_tokens_per_minute=10)
 

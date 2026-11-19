@@ -156,6 +156,7 @@ def build_embedding_provider(settings: Settings) -> EmbeddingProvider | None:
             settings.gemini_api_key,
             settings.gemini_embedding_model,
             max_tokens_per_minute=settings.gemini_max_tokens_per_minute,
+            max_requests_per_minute=settings.gemini_max_requests_per_minute,
         )
     if settings.embedding_provider == "fake":
         return FakeEmbeddingProvider()

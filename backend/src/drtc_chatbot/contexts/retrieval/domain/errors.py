@@ -10,3 +10,8 @@ class EmbeddingUnavailableError(DomainError):
     """
 
     code = "embedding_unavailable"
+
+
+class EmbeddingRateLimitedError(EmbeddingUnavailableError):
+    """The provider answered "too many requests". Waiting a minute is the cure while indexing; an
+    interactive search just degrades (it is an EmbeddingUnavailableError like the others)."""

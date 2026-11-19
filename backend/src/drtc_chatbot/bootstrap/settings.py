@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     gemini_api_key: SecretStr | None = None
     gemini_embedding_model: str = "gemini-embedding-2"
     gemini_max_tokens_per_minute: int = Field(default=25_000, ge=1_000)
+    # Free tier of gemini-embedding-2: 100 requests a minute; every text of a batch counts as one.
+    gemini_max_requests_per_minute: int = Field(default=80, ge=1)
     search_rrf_k: int = Field(default=60, ge=1)
     search_arm_top_n: int = Field(default=50, ge=1, le=200)
     search_vector_timeout_seconds: float = Field(default=3.0, gt=0)

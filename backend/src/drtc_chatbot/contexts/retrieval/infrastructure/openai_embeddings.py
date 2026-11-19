@@ -15,7 +15,10 @@ from openai import AsyncOpenAI
 from pydantic import SecretStr
 
 from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch, EmbeddingPurpose
-from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingUnavailableError
+from drtc_chatbot.contexts.retrieval.domain.errors import (
+    EmbeddingRateLimitedError,
+    EmbeddingUnavailableError,
+)
 from drtc_chatbot.contexts.retrieval.domain.pricing import estimate_tokens
 
 INDEXING_TIMEOUT_SECONDS = 30.0
@@ -122,7 +125,7 @@ class OpenAIEmbeddingProvider:
                 "The embeddings provider does not know that model or address (HTTP 404)"
             )
         if isinstance(error, openai.RateLimitError):
-            return EmbeddingUnavailableError(
+            return EmbeddingRateLimitedError(
                 "The embeddings provider is limiting requests (rate limit)"
             )
         if isinstance(error, openai.APITimeoutError):

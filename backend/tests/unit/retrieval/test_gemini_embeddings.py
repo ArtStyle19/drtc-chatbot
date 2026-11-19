@@ -10,14 +10,17 @@ from openai import AsyncOpenAI
 from pydantic import SecretStr
 
 from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingPurpose
-from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingUnavailableError
+from drtc_chatbot.contexts.retrieval.domain.errors import (
+    EmbeddingRateLimitedError,
+    EmbeddingUnavailableError,
+)
 from drtc_chatbot.contexts.retrieval.infrastructure.gemini_embeddings import (
     BATCH_ITEMS,
     DOCUMENT_PREFIX,
     GEMINI_BASE_URL,
     QUERY_PREFIX,
     GeminiEmbeddingProvider,
-    TokensPerMinute,
+    PerMinuteLimit,
 )
 
 KEY = SecretStr("AIza-test-NOT-A-REAL-KEY-abcdef0123456789")  # fake: to prove it never leaks
@@ -72,6 +75,7 @@ def make(
     *,
     model: str = "gemini-embedding-2",
     max_tokens_per_minute: int = 25_000,
+    max_requests_per_minute: int = 1_000,
     clock: Clock | None = None,
 ) -> tuple[GeminiEmbeddingProvider, Recorder, Clock]:
     recorder = Recorder(handler)
@@ -86,6 +90,7 @@ def make(
         KEY,
         model,
         max_tokens_per_minute=max_tokens_per_minute,
+        max_requests_per_minute=max_requests_per_minute,
         client=client,
         indexing_retries=0,
         clock=clock,
@@ -252,6 +257,68 @@ async def test_the_limiter_makes_indexing_wait_instead_of_failing_with_429() -> 
     assert clock.now >= 60.0 - 0.5  # the fourth request went out only after the window moved
 
 
+async def test_every_text_counts_as_one_request_against_the_per_minute_ceiling() -> None:
+    """Found with the real API: Google's free tier allows 100 embed requests a minute, per TEXT."""
+    clock = Clock()
+    p, recorder, clock = make(max_requests_per_minute=30, clock=clock)
+    texts = [f"texto {i}" for i in range(70)]  # 16 per batch: 16+16+16+16+6
+
+    await p.embed(texts)
+
+    assert len(recorder.requests) == 5
+    assert sum(len(recorder.inputs(n)) for n in range(5)) == 70  # nothing was dropped
+    # 30 a minute: the first 16 go at once, every later batch has to wait for room in the minute
+    assert clock.slept, "70 texts cannot go out inside one minute at 30 per minute"
+    assert (
+        clock.now >= 120.0 - 0.5
+    )  # 70 texts need three minutes of 30: the last batch goes out in the third
+
+
+async def test_a_429_while_indexing_waits_a_whole_minute_and_sends_the_same_batch_again() -> None:
+    clock = Clock()
+    answers = iter([429, 200])
+
+    def limited_once(request: httpx.Request) -> httpx.Response:
+        if next(answers) == 429:
+            return httpx.Response(429, json={"error": {"message": "slow down"}})
+        return response_for(request)
+
+    p, recorder, clock = make(limited_once, clock=clock)
+
+    batch = await p.embed(["uno", "dos"])
+
+    assert len(recorder.requests) == 2  # the same batch twice
+    assert recorder.inputs(0) == recorder.inputs(1)
+    assert 65.0 in clock.slept  # a whole window, not a quick retry
+    assert len(batch.vectors) == 2
+
+
+async def test_a_429_that_never_clears_is_given_up_with_a_rate_limit_error() -> None:
+    clock = Clock()
+    p, recorder, clock = make(
+        lambda request: httpx.Response(429, json={"error": {"message": "x"}}), clock=clock
+    )
+
+    with pytest.raises(EmbeddingRateLimitedError, match="limiting requests"):
+        await p.embed(["uno"])
+
+    assert len(recorder.requests) == 5  # the first try and four more after a pause each
+    assert clock.slept.count(65.0) == 4
+
+
+async def test_an_interactive_query_does_not_wait_out_a_429_it_degrades() -> None:
+    clock = Clock()
+    p, recorder, clock = make(
+        lambda request: httpx.Response(429, json={"error": {"message": "x"}}), clock=clock
+    )
+
+    with pytest.raises(EmbeddingUnavailableError, match="limiting requests"):
+        await p.embed(["plazo"], purpose=EmbeddingPurpose.QUERY, timeout_seconds=3.0)
+
+    assert len(recorder.requests) == 1
+    assert clock.slept == []
+
+
 async def test_an_interactive_query_never_waits_for_the_limiter() -> None:
     clock = Clock()
     p, recorder, clock = make(max_tokens_per_minute=1_000, clock=clock)
@@ -265,7 +332,7 @@ async def test_an_interactive_query_never_waits_for_the_limiter() -> None:
 
 async def test_the_limiter_alone_lets_a_request_through_when_there_is_room() -> None:
     clock = Clock()
-    limiter = TokensPerMinute(1_000, clock=clock, sleep=clock.sleep)
+    limiter = PerMinuteLimit(1_000, clock=clock, sleep=clock.sleep)
 
     await limiter.acquire(400)
     await limiter.acquire(400)
@@ -277,7 +344,7 @@ async def test_the_limiter_clamps_a_request_bigger_than_the_ceiling_instead_of_w
     None
 ):
     clock = Clock()
-    limiter = TokensPerMinute(1_000, clock=clock, sleep=clock.sleep)
+    limiter = PerMinuteLimit(1_000, clock=clock, sleep=clock.sleep)
 
     await limiter.acquire(50_000)
 
