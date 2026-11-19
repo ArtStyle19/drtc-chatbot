@@ -1,0 +1,113 @@
+{
+  "dataset": "golden-v1",
+  "recorded_on": "2026-11-19",
+  "questions": 61,
+  "methods": {
+    "exact": {
+      "overall": {
+        "provision": {
+          "n": 51,
+          "hit@1": 0.1176,
+          "hit@3": 0.1176,
+          "hit@5": 0.1176,
+          "hit@10": 0.1176,
+          "recall@1": 0.1176,
+          "recall@3": 0.1176,
+          "recall@5": 0.1176,
+          "recall@10": 0.1176,
+          "mrr": 0.1176
+        },
+        "unit": {
+          "n": 51,
+          "hit@1": 0.1176,
+          "hit@3": 0.1176,
+          "hit@5": 0.1176,
+          "hit@10": 0.1176,
+          "recall@1": 0.1176,
+          "recall@3": 0.1176,
+          "recall@5": 0.1176,
+          "recall@10": 0.1176,
+          "mrr": 0.1176
+        }
+      },
+      "tag:colloquial": {
+        "provision": {
+          "n": 29,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        },
+        "unit": {
+          "n": 29,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "tag:cross_norm": {
+        "provision": {
+          "n": 4,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        },
+        "unit": {
+          "n": 4,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "tag:explicit_reference": {
+        "provision": {
+          "n": 6,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        },
+        "unit": {
+          "n": 6,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        }
+      }
+    }
+  }
+}

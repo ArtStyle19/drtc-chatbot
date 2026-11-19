@@ -4,9 +4,10 @@ Dependencies are wired by hand on purpose (ADR-0002): it keeps the wiring explic
 to read. Revisit a DI library (e.g. dishka) only when this file becomes hard to maintain.
 """
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
@@ -43,6 +44,11 @@ from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_reader import Ya
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlReadingStore
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
 from drtc_chatbot.contexts.retrieval.api import LookupReference
+from drtc_chatbot.contexts.retrieval.application.exact_retriever import ExactRetriever
+from drtc_chatbot.contexts.retrieval.application.ports import EvaluationStore, GoldenSet, Retriever
+from drtc_chatbot.contexts.retrieval.application.run_evaluation import RunEvaluation
+from drtc_chatbot.contexts.retrieval.infrastructure.evaluation_files import FileEvaluationStore
+from drtc_chatbot.contexts.retrieval.infrastructure.jsonl_golden_set import JsonlGoldenSet
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
     LegalCorpusDirectory,
 )
@@ -72,6 +78,20 @@ class RetrievalModule:
 
 
 @dataclass(frozen=True, slots=True)
+class RetrievalCliModule:
+    """What the ``drtc-retrieval`` command line needs from the retrieval context."""
+
+    run_evaluation: RunEvaluation
+    retrievers: Mapping[str, Retriever]
+    default_dataset: Path
+    store: EvaluationStore
+    clock: Clock
+
+    def golden_set(self, path: Path) -> GoldenSet:
+        return JsonlGoldenSet(path)
+
+
+@dataclass(frozen=True, slots=True)
 class IngestionModule:
     """Use cases of the ingestion context, as seen by its CLI."""
 
@@ -90,6 +110,7 @@ class Container:
     legal_corpus: LegalCorpusModule
     ingestion: IngestionModule
     retrieval: RetrievalModule
+    retrieval_cli: RetrievalCliModule
 
     async def aclose(self) -> None:
         await self.engine.dispose()
@@ -121,6 +142,8 @@ def build_container(settings: Settings) -> Container:
     jobs = SqlIngestionJobRepository(sessions)
     list_instruments = ListLegalInstruments(catalog)
     list_index = ListProvisionIndex(reading)
+    directory = LegalCorpusDirectory(list_instruments, list_index)
+    lookup = LookupReference(directory)
     return Container(
         settings=settings,
         engine=engine,
@@ -141,8 +164,13 @@ def build_container(settings: Settings) -> Container:
             gateway=gateway,
             jobs=jobs,
         ),
-        retrieval=RetrievalModule(
-            lookup_reference=LookupReference(LegalCorpusDirectory(list_instruments, list_index))
+        retrieval=RetrievalModule(lookup_reference=lookup),
+        retrieval_cli=RetrievalCliModule(
+            run_evaluation=RunEvaluation(directory),
+            retrievers={"exact": ExactRetriever(lookup)},
+            default_dataset=settings.evaluation_dir / "datasets" / "golden-v1.jsonl",
+            store=FileEvaluationStore(settings.evaluation_dir),
+            clock=clock,
         ),
     )
 
@@ -153,5 +181,15 @@ async def ingestion_module(settings: Settings | None = None) -> AsyncIterator[In
     container = build_container(settings or Settings())
     try:
         yield container.ingestion
+    finally:
+        await container.aclose()
+
+
+@asynccontextmanager
+async def retrieval_module(settings: Settings | None = None) -> AsyncIterator[RetrievalCliModule]:
+    """Use-case bundle for ``drtc-retrieval``; closes the database pool when done."""
+    container = build_container(settings or Settings())
+    try:
+        yield container.retrieval_cli
     finally:
         await container.aclose()

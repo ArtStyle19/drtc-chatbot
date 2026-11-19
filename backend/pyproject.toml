@@ -21,6 +21,7 @@ dependencies = [
 
 [project.scripts]
 drtc-ingest = "drtc_chatbot.entrypoints.cli.ingest:main"
+drtc-retrieval = "drtc_chatbot.entrypoints.cli.retrieval:main"
 
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
@@ -78,6 +79,8 @@ ignore = [
 "src/drtc_chatbot/contexts/ingestion/application/commands/preview_ingestion.py" = ["S311"]
 # Typer builds the CLI from nested command functions and boolean flag options.
 "src/drtc_chatbot/contexts/ingestion/presentation/cli/app.py" = ["PLR0915", "FBT002"]
+"src/drtc_chatbot/contexts/retrieval/presentation/cli/app.py" = ["PLR0915", "PLR0913", "PLR0917", "FBT002", "E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/cli/render.py" = ["E501"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"

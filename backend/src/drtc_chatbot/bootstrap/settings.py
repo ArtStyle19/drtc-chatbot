@@ -21,6 +21,11 @@ def _default_manifest_path() -> Path:
     return Path(__file__).resolve().parents[4] / "corpus" / "manifest.yaml"
 
 
+def _default_evaluation_dir() -> Path:
+    # Same rule as the manifest: source checkout only; containers set DRTC_EVALUATION_DIR.
+    return Path(__file__).resolve().parents[4] / "evaluation"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="DRTC_",
@@ -36,6 +41,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://drtc:drtc@localhost:5433/drtc_chatbot"
     database_echo: bool = False
     corpus_manifest_path: Path = Field(default_factory=_default_manifest_path)
+    evaluation_dir: Path = Field(default_factory=_default_evaluation_dir)
     cors_allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:4200"])
     # "database": catalog from PostgreSQL (needs migrations + `drtc-ingest sync`).
     # "manifest": reads corpus/manifest.yaml directly (fast tests, development without a database).
