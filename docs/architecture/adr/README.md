@@ -18,6 +18,7 @@ crea uno nuevo que lo sustituye y se actualiza el estado del anterior.
 | [0011](0011-ingestion-approval-policy.md) | Política de aprobación de la ingesta (auto en desarrollo) | Aceptada |
 | [0012](0012-pypdfium2-for-pdf-extraction.md) | pypdfium2 para la extracción de texto de los PDF | Aceptada |
 | [0013](0013-reader-pdfjs-folio-and-reference-lookup.md) | Lector: visor pdf.js (Folio), la URL como estado y búsqueda por referencia determinista | Aceptada |
+| [0014](0014-hybrid-search-and-evaluation.md) | Búsqueda por contenido híbrida (referencia + palabras + significado + RRF), con la evaluación primero | Propuesta |
 
 ## Plantilla
 

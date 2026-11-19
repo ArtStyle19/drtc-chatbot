@@ -23,3 +23,5 @@ SQLAlchemy 2.1 asíncrono y psycopg 3; migraciones con Alembic.
 - (−) Búsqueda BM25 avanzada limitada; se evaluará OpenSearch solo con decenas de miles de documentos.
 - (−) Los índices HNSW de `vector` admiten hasta 2000 dimensiones: el modelo de embeddings debe
   ajustarse (dimensiones reducidas o `halfvec`).
+
+> **Nota (spec 004, ADR-0014):** con 2.896 ventanas de vectores no hace falta un índice aproximado (HNSW): el recorrido exacto por coseno responde en milisegundos y evita el tope de 2.000 dimensiones de HNSW sobre `vector`. La columna `vector` no tiene dimensión fija para que convivan varios modelos. Se reevalúa con una spec si el corpus crece por órdenes de magnitud.
