@@ -30,3 +30,12 @@ export type ProvisionKind = Schemas['ProvisionKind'];
 export type LookupResult = Schemas['LookupOut'];
 export type LookupHit = Schemas['LookupHitOut'];
 export type LookupStatus = Schemas['LookupStatus'];
+
+// ---- content search (spec 004)
+export type SearchResponse = Schemas['SearchOut'];
+export type SearchResult = Schemas['SearchResultOut'];
+export type SearchSegment = Schemas['SegmentOut'];
+export type SearchMatchedPassage = Schemas['MatchedPassageOut'];
+export type SearchFacet = Schemas['SearchFacetOut'];
+export type SearchDegradedReason = SearchResponse['degraded'][number];
+export type SearchVia = SearchResult['via'][number];

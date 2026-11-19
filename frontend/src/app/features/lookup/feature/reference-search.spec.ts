@@ -71,8 +71,10 @@ function setup(api = new FakeApi()) {
     await vi.advanceTimersByTimeAsync(1);
     fixture.detectChanges();
   };
-  const options = () => [...el.querySelectorAll<HTMLElement>('[role="option"]')];
-  return { fixture, el, input, api, navigate, type, press, options };
+  /** The results of the reference search (not the final «search in the text» option). */
+  const options = () => [...el.querySelectorAll<HTMLElement>('[role="option"]:not(.text-option)')];
+  const textOption = () => el.querySelector<HTMLElement>('.text-option');
+  return { fixture, el, input, api, navigate, type, press, options, textOption };
 }
 
 const text = (el: Element | null | undefined) => el?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
@@ -115,9 +117,8 @@ describe('ReferenceSearch', () => {
 
   it('opens the active result on Enter in the edition where it was found, and clears the field', async () => {
     const { type, press, navigate, input } = setup();
-    await type('art 5 ley 27181');
+    await type('art 5 ley 27181'); // a single result is already the active one
 
-    await press('ArrowDown');
     await press('Enter');
 
     expect(navigate).toHaveBeenCalledWith(['/biblioteca', 'ley-27181'], {
@@ -167,7 +168,7 @@ describe('ReferenceSearch', () => {
       hit(),
       hit({ path: 'articulo:6', citation: 'Ley N.° 27181, art. 6' }),
     ]);
-    const { type, press, input, options } = setup(api);
+    const { type, press, input, options, textOption } = setup(api);
     await type('art');
 
     await press('ArrowDown');
@@ -176,6 +177,10 @@ describe('ReferenceSearch', () => {
 
     await press('ArrowDown');
     expect(input.getAttribute('aria-activedescendant')).toBe(options()[1]!.id);
+
+    await press('ArrowDown'); // the last stop is the way out to the text search
+    expect(input.getAttribute('aria-activedescendant')).toBe(textOption()!.id);
+    expect(textOption()!.getAttribute('aria-selected')).toBe('true');
 
     await press('ArrowDown'); // wraps
     expect(options()[0]!.getAttribute('aria-selected')).toBe('true');
@@ -205,7 +210,6 @@ describe('ReferenceSearch', () => {
     await type('LPAG');
 
     expect(text(options()[0])).toContain('TUO de la Ley 27444');
-    await press('ArrowDown');
     await press('Enter');
 
     expect(navigate).toHaveBeenCalledWith(['/biblioteca', 'ley-27181'], {
@@ -216,17 +220,107 @@ describe('ReferenceSearch', () => {
   it('explains what it did not understand, without a list', async () => {
     const api = new FakeApi();
     api.response = {
-      ...result('unrecognized', [], 'No reconozco una referencia, pero puede buscarlo por su contenido.'),
+      ...result(
+        'unrecognized',
+        [],
+        'No reconozco una referencia, pero puede buscarlo por su contenido.',
+      ),
       ignored_text: 'transporte',
     };
-    const { type, el, options } = setup(api);
+    const { type, el, options, textOption } = setup(api);
 
     await type('transporte de mercancías');
 
-    expect(options()).toHaveLength(0);
-    expect(el.querySelector('[role="listbox"]')).toBeNull();
+    expect(options()).toHaveLength(0); // no reference results...
+    expect(text(textOption())).toBe('Buscar «transporte de mercancías» en el texto'); // ...only the way out
     expect(text(el.querySelector('.message'))).toContain('puede buscarlo por su contenido');
     expect(text(el.querySelector('.ignored'))).toBe('No tuve en cuenta: «transporte»');
+  });
+
+  describe('«Buscar … en el texto»', () => {
+    it('is the last option whatever the reference search answered', async () => {
+      for (const status of ['resolved', 'ambiguous', 'not_found'] as const) {
+        const api = new FakeApi();
+        api.response = result(
+          status,
+          status === 'not_found' ? [] : [hit(), hit({ path: 'articulo:6' })],
+        );
+        const { type, el, textOption, fixture } = setup(api);
+
+        await type('plazo de apelación');
+
+        const options = [...el.querySelectorAll('[role="option"]')];
+        expect(options.at(-1)).toBe(textOption());
+        expect(text(textOption())).toBe('Buscar «plazo de apelación» en el texto');
+        fixture.destroy();
+        TestBed.resetTestingModule();
+      }
+    });
+
+    it('is offered while the reference search is still loading', async () => {
+      const { input, textOption, fixture } = setup();
+      input.dispatchEvent(new Event('focusin', { bubbles: true }));
+      input.value = 'plazo';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+
+      expect(text(textOption())).toBe('Buscar «plazo» en el texto');
+    });
+
+    it('goes to /buscar with the trimmed text when it is clicked, and clears the field', async () => {
+      const { type, textOption, navigate, input, fixture } = setup();
+      await type('  plazo para apelar  ');
+
+      textOption()!.click();
+      fixture.detectChanges();
+
+      expect(navigate).toHaveBeenCalledExactlyOnceWith(['/buscar'], {
+        queryParams: { q: 'plazo para apelar' },
+      });
+      expect(input.value).toBe('');
+    });
+
+    it('is reached with the arrows and chosen with Enter', async () => {
+      const { type, press, navigate } = setup(); // one result, already active
+
+      await type('art 5 ley 27181');
+      await press('ArrowDown');
+      await press('Enter');
+
+      expect(navigate).toHaveBeenCalledExactlyOnceWith(['/buscar'], {
+        queryParams: { q: 'art 5 ley 27181' },
+      });
+    });
+
+    it('takes the person there on Enter when the text is not a reference at all', async () => {
+      const api = new FakeApi();
+      api.response = result('unrecognized', [], 'No reconozco una referencia.');
+      const { input, press, navigate, fixture } = setup(api);
+      input.dispatchEvent(new Event('focusin', { bubbles: true }));
+      input.value = 'se puede cobrar por mototaxi';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      await press('Enter'); // before the answer: it waits for it, then decides
+      fixture.detectChanges();
+
+      expect(navigate).toHaveBeenCalledExactlyOnceWith(['/buscar'], {
+        queryParams: { q: 'se puede cobrar por mototaxi' },
+      });
+    });
+
+    it('does NOT leave for the text search by itself: an unknown reference stays here', async () => {
+      const api = new FakeApi();
+      api.response = result('not_found', [], 'La Ley 27181 no tiene art. 999.');
+      const { input, press, navigate, fixture } = setup(api);
+      input.dispatchEvent(new Event('focusin', { bubbles: true }));
+      input.value = 'art 999 ley 27181';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      await press('Enter');
+      fixture.detectChanges();
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
   });
 
   it('closes on Escape and clears the field on a second Escape', async () => {

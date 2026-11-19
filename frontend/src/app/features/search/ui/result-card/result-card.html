@@ -1,0 +1,63 @@
+<article class="card" [attr.aria-labelledby]="uid" [attr.data-exact]="isExactReference()">
+  <p class="reference">{{ result().instrument_short_name }}</p>
+  <h2 class="title" [id]="uid">{{ result().citation }}</h2>
+  @if (result().title) {
+    <p class="subtitle">{{ result().title }}</p>
+  }
+
+  <!-- An article that only has numerals has no text of its own: nothing to quote, so no empty line. -->
+  @if (result().snippet.length) {
+    <p class="snippet"><drtc-snippet [segments]="result().snippet" /></p>
+  }
+
+  @if (others().length) {
+    <details class="others">
+      <summary>
+        {{
+          others().length === 1
+            ? 'Otro pasaje coincide'
+            : others().length + ' pasajes más coinciden'
+        }}
+        <span class="sr-only"> en {{ result().citation }}</span>
+      </summary>
+      <ul>
+        @for (passage of others(); track passage.path) {
+          <li>
+            <a class="other-link" [routerLink]="readLink()" [queryParams]="paramsFor(passage.path)">
+              {{ passage.citation }}
+            </a>
+            <span class="page">{{ otherPages(passage) }}</span>
+            <p class="other-snippet"><drtc-snippet [segments]="passage.snippet" /></p>
+          </li>
+        }
+      </ul>
+    </details>
+  }
+
+  <div class="foot">
+    <drtc-validity-seal [status]="seal()" />
+    <span class="edition">{{ result().edition_label }}</span>
+    <span class="page">{{ pages() }}</span>
+    <ul class="vias" aria-label="Cómo se encontró">
+      @for (label of vias(); track label) {
+        <li class="via">{{ label }}</li>
+      }
+    </ul>
+  </div>
+
+  <a class="read" [routerLink]="readLink()" [queryParams]="readParams()">
+    Leer en la norma<span class="sr-only">: {{ result().citation }}</span>
+  </a>
+
+  @if (diagnostics() && debugEntries().length) {
+    <details class="debug">
+      <summary>Diagnóstico</summary>
+      <dl>
+        @for (entry of debugEntries(); track entry[0]) {
+          <dt>{{ entry[0] }}</dt>
+          <dd>{{ entry[1] }}</dd>
+        }
+      </dl>
+    </details>
+  }
+</article>

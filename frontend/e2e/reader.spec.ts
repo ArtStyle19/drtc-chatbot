@@ -77,6 +77,10 @@ async function expectNoSeriousViolations(page: Page): Promise<void> {
 }
 
 const marks = (page: Page) => page.locator('drtc-folio .mark');
+/** Results of the reference search, not the final «Buscar … en el texto» option (spec 004). */
+const results = (page: Page) =>
+  page.getByRole('option').filter({ hasNotText: /Buscar «.*» en el texto/s });
+const textOption = (page: Page) => page.getByRole('option', { name: /en el texto/ });
 
 test.describe('Lector normativo (spec 003)', () => {
   test.beforeEach(async ({ page }) => {
@@ -222,8 +226,7 @@ test.describe('Lector normativo (spec 003)', () => {
 
       await page.getByRole('combobox').fill('art 5 ley 27181');
       await expect(page.getByRole('option', { name: /Ley N\.° 27181, art\. 5/ })).toBeVisible();
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter'); // a single result is already the active one
 
       await expect(page).toHaveURL(
         /\/biblioteca\/ley-27181\?p=articulo(:|%3A)5&v=ley-27181(@|%40)2020-05/,
@@ -245,7 +248,8 @@ test.describe('Lector normativo (spec 003)', () => {
 
       await page.getByRole('combobox').fill('art 11');
 
-      await expect(page.getByRole('option')).toHaveCount(3);
+      await expect(results(page)).toHaveCount(3);
+      await expect(textOption(page)).toBeVisible(); // always the last way out
       await expect(page.locator('drtc-reference-search .message')).toContainText('elija una');
       await expect(page).toHaveURL(/\/biblioteca$/);
     });
@@ -256,7 +260,7 @@ test.describe('Lector normativo (spec 003)', () => {
       await page.getByRole('combobox').fill('art 999 ley 27181');
 
       await expect(page.locator('drtc-reference-search .message')).toContainText('art. 999');
-      await expect(page.getByRole('option')).toHaveCount(0);
+      await expect(results(page)).toHaveCount(0);
     });
 
     test('closes with Escape', async ({ page }) => {
@@ -302,7 +306,7 @@ test.describe('Lector normativo (spec 003)', () => {
     test('search results panel', async ({ page }) => {
       await page.goto('/biblioteca');
       await page.getByRole('combobox').fill('art 11');
-      await expect(page.getByRole('option')).toHaveCount(3);
+      await expect(results(page)).toHaveCount(3);
       await page.keyboard.press('ArrowDown');
 
       await expectNoSeriousViolations(page);

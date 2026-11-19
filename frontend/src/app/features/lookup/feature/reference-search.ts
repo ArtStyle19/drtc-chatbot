@@ -49,7 +49,13 @@ export class ReferenceSearch {
   protected readonly isOpen = computed(
     () => this.focused() && !this.dismissed() && this.store.status() !== 'idle',
   );
-  protected readonly showList = computed(() => this.isOpen() && this.store.hasResults());
+  /** The listbox always has the final «search in the text» option while there is text to search. */
+  protected readonly showList = computed(() => this.isOpen() && this.store.query().trim() !== '');
+  /** Index of the «search in the text» option: right after the last result. */
+  protected readonly textOptionIndex = computed(() => this.store.hits().length);
+  protected readonly textOptionActive = computed(
+    () => this.showList() && this.store.activeIndex() === this.textOptionIndex(),
+  );
   protected readonly activeId = computed(() => {
     const index = this.store.activeIndex();
     return this.showList() && index >= 0 ? `${this.uid}-op-${index}` : null;
@@ -81,6 +87,8 @@ export class ReferenceSearch {
       this.goWhenResolved = false;
       const [only] = result.hits;
       if (result.status === 'resolved' && result.hits.length === 1 && only) this.open(only);
+      // Not a reference at all: the person wants to search the text, so take them there.
+      else if (result.status === 'unrecognized') this.searchText();
     });
   }
 
@@ -94,15 +102,17 @@ export class ReferenceSearch {
     switch (event.key) {
       case 'ArrowDown':
       case 'ArrowUp':
-        if (!this.store.hasResults()) return;
+        if (!this.store.query().trim()) return;
         event.preventDefault();
         this.dismissed.set(false);
-        this.store.moveActive(event.key === 'ArrowDown' ? 1 : -1);
+        this.store.moveActive(event.key === 'ArrowDown' ? 1 : -1, 1);
         return;
       case 'Enter': {
         event.preventDefault();
         const active = this.showList() ? this.store.activeHit() : null;
-        if (active) {
+        if (this.textOptionActive()) {
+          this.searchText();
+        } else if (active) {
           this.open(active);
         } else if (this.store.query().trim()) {
           this.dismissed.set(false);
@@ -144,6 +154,20 @@ export class ReferenceSearch {
     if (hit.path) queryParams['p'] = hit.path;
     if (hit.version_id) queryParams['v'] = hit.version_id;
     void this.router.navigate(['/biblioteca', hit.instrument_id], { queryParams });
+    this.goWhenResolved = false;
+    this.store.clear();
+    this.dismissed.set(true);
+    this.field().nativeElement.blur();
+  }
+
+  /**
+   * Search the CONTENT of the norms for what was typed. Only here — on Enter or a click — does the
+   * text leave the box towards /search: typing alone only ever asks /lookup (local and free).
+   */
+  protected searchText(): void {
+    const q = this.store.query().trim();
+    if (!q) return;
+    void this.router.navigate(['/buscar'], { queryParams: { q } });
     this.goWhenResolved = false;
     this.store.clear();
     this.dismissed.set(true);
