@@ -116,8 +116,8 @@ def test_it_is_an_external_provider() -> None:
 @pytest.mark.parametrize(
     ("status", "message"),
     [
-        (401, "rejected the API key"),
-        (403, "rejected the API key"),
+        (401, "API key is not valid"),
+        (403, "has no permission for this call"),
         (429, "limiting requests"),
         (500, "server error (HTTP 500)"),
         (503, "server error (HTTP 503)"),

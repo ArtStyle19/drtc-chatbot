@@ -92,8 +92,14 @@ class OpenAIEmbeddingProvider:
     @staticmethod
     def _unavailable(error: openai.OpenAIError) -> EmbeddingUnavailableError:
         """A fixed, safe message per kind of failure: never the body of the request or the response."""
-        if isinstance(error, openai.AuthenticationError | openai.PermissionDeniedError):
-            return EmbeddingUnavailableError("The embeddings provider rejected the API key")
+        if isinstance(error, openai.AuthenticationError):  # HTTP 401
+            return EmbeddingUnavailableError(
+                "The embeddings provider says the API key is not valid (revoked, deleted or mistyped)"
+            )
+        if isinstance(error, openai.PermissionDeniedError):  # HTTP 403
+            return EmbeddingUnavailableError(
+                "The embeddings provider says this API key has no permission for this call"
+            )
         if isinstance(error, openai.RateLimitError):
             return EmbeddingUnavailableError(
                 "The embeddings provider is limiting requests (rate limit)"
