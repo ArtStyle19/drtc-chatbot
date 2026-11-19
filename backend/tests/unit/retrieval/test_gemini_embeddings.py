@@ -177,6 +177,35 @@ async def test_when_the_provider_reports_no_usage_the_tokens_are_estimated_not_a
     assert p.tokens_used == batch.tokens
 
 
+async def test_a_missing_index_on_the_first_item_means_zero_as_the_real_endpoint_does() -> None:
+    """Found with the real API: the first item comes without `index` (proto3 omits a default 0)."""
+
+    def first_item_has_no_index(request: httpx.Request) -> httpx.Response:
+        body = response_for(request).json()
+        del body["data"][0]["index"]
+        return httpx.Response(200, json=body)
+
+    p, _, _ = make(first_item_has_no_index)
+
+    batch = await p.embed(["uno", "dos", "tres"])
+
+    assert [v[0] for v in batch.vectors] == [0.0, 1.0, 2.0]
+
+
+async def test_an_answer_with_no_indexes_at_all_keeps_the_order_it_came_in() -> None:
+    def no_indexes(request: httpx.Request) -> httpx.Response:
+        body = response_for(request).json()
+        for item in body["data"]:
+            del item["index"]
+        return httpx.Response(200, json=body)
+
+    p, _, _ = make(no_indexes)
+
+    batch = await p.embed(["uno", "dos", "tres"])
+
+    assert [v[0] for v in batch.vectors] == [0.0, 1.0, 2.0]
+
+
 async def test_an_empty_list_sends_nothing() -> None:
     p, recorder, _ = make()
 

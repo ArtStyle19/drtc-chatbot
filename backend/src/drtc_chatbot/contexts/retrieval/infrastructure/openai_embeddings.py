@@ -93,7 +93,9 @@ class OpenAIEmbeddingProvider:
             response = await client.embeddings.create(encoding_format="float", **options)  # type: ignore[arg-type]
         except openai.OpenAIError as error:
             raise self._unavailable(error) from error
-        ordered = sorted(response.data, key=lambda item: item.index)
+        # Gemini's compatible endpoint omits `index` for the first item (a proto3 default of 0): a missing
+        # index means 0. The sort is stable, so an answer with no indexes at all keeps its own order.
+        ordered = sorted(response.data, key=lambda item: item.index or 0)
         # Providers that speak this protocol do not all report usage: then it is estimated (upper bound).
         usage = response.usage
         tokens = (
