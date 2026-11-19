@@ -12,6 +12,10 @@ from collections.abc import Mapping
 PRICE_PER_MILLION_TOKENS: Mapping[str, float] = {
     "text-embedding-3-small": 0.02,
     "text-embedding-3-large": 0.13,
+    # Google, paid tier (the free tier charges nothing): an upper bound for a run on the free tier.
+    # Source: https://ai.google.dev/gemini-api/docs/pricing, 2026-11-19.
+    "gemini-embedding-2": 0.20,
+    "gemini-embedding-001": 0.15,
 }
 # Upper bound for Spanish with the tokenizer of these models (about 3.5-4 characters per token), so
 # the estimate shown before a run is never lower than what will really be billed.

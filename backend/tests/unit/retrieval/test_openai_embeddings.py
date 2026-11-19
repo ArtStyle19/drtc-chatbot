@@ -118,6 +118,7 @@ def test_it_is_an_external_provider() -> None:
     [
         (401, "API key is not valid"),
         (403, "has no permission for this call"),
+        (404, "does not know that model or address (HTTP 404)"),
         (429, "limiting requests"),
         (500, "server error (HTTP 500)"),
         (503, "server error (HTTP 503)"),

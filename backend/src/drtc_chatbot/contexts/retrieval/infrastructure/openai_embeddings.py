@@ -14,8 +14,9 @@ import openai
 from openai import AsyncOpenAI
 from pydantic import SecretStr
 
-from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch
+from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch, EmbeddingPurpose
 from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingUnavailableError
+from drtc_chatbot.contexts.retrieval.domain.pricing import estimate_tokens
 
 INDEXING_TIMEOUT_SECONDS = 30.0
 INDEXING_RETRIES = 2
@@ -24,6 +25,8 @@ HTTP_SERVER_ERROR = 500
 
 class OpenAIEmbeddingProvider:
     external = True
+    # Something the person must read before text is sent (None = nothing special to say).
+    data_notice: str | None = None
 
     def __init__(
         self,
@@ -33,6 +36,7 @@ class OpenAIEmbeddingProvider:
         dimensions: int | None = None,
         client: AsyncOpenAI | None = None,
         indexing_retries: int = INDEXING_RETRIES,
+        base_url: str | None = None,
     ) -> None:
         self._model_id = model
         self._dimensions = dimensions
@@ -40,6 +44,7 @@ class OpenAIEmbeddingProvider:
         self._tokens_used = 0
         self._client = client or AsyncOpenAI(
             api_key=api_key.get_secret_value(),
+            base_url=base_url,
             timeout=INDEXING_TIMEOUT_SECONDS,
             max_retries=indexing_retries,
         )
@@ -67,8 +72,13 @@ class OpenAIEmbeddingProvider:
             raise self._unavailable(error) from error
 
     async def embed(
-        self, texts: Sequence[str], *, timeout_seconds: float | None = None
+        self,
+        texts: Sequence[str],
+        *,
+        purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+        timeout_seconds: float | None = None,
     ) -> EmbeddingBatch:
+        del purpose  # OpenAI's models embed a query and a document the same way
         if not texts:
             return EmbeddingBatch((), 0)
         interactive = timeout_seconds is not None
@@ -84,10 +94,15 @@ class OpenAIEmbeddingProvider:
         except openai.OpenAIError as error:
             raise self._unavailable(error) from error
         ordered = sorted(response.data, key=lambda item: item.index)
-        self._tokens_used += response.usage.total_tokens
-        return EmbeddingBatch(
-            tuple(tuple(item.embedding) for item in ordered), tokens=response.usage.total_tokens
+        # Providers that speak this protocol do not all report usage: then it is estimated (upper bound).
+        usage = response.usage
+        tokens = (
+            usage.total_tokens
+            if usage is not None
+            else estimate_tokens(sum(len(text) for text in texts))
         )
+        self._tokens_used += tokens
+        return EmbeddingBatch(tuple(tuple(item.embedding) for item in ordered), tokens=tokens)
 
     @staticmethod
     def _unavailable(error: openai.OpenAIError) -> EmbeddingUnavailableError:
@@ -99,6 +114,10 @@ class OpenAIEmbeddingProvider:
         if isinstance(error, openai.PermissionDeniedError):  # HTTP 403
             return EmbeddingUnavailableError(
                 "The embeddings provider says this API key has no permission for this call"
+            )
+        if isinstance(error, openai.NotFoundError):  # HTTP 404
+            return EmbeddingUnavailableError(
+                "The embeddings provider does not know that model or address (HTTP 404)"
             )
         if isinstance(error, openai.RateLimitError):
             return EmbeddingUnavailableError(

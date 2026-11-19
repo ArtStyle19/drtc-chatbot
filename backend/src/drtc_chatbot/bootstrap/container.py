@@ -63,6 +63,7 @@ from drtc_chatbot.contexts.retrieval.application.search_passages import SearchPa
 from drtc_chatbot.contexts.retrieval.application.vector_retriever import VectorRetriever
 from drtc_chatbot.contexts.retrieval.infrastructure.evaluation_files import FileEvaluationStore
 from drtc_chatbot.contexts.retrieval.infrastructure.fake_embeddings import FakeEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.gemini_embeddings import GeminiEmbeddingProvider
 from drtc_chatbot.contexts.retrieval.infrastructure.jsonl_golden_set import JsonlGoldenSet
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
     LegalCorpusDirectory,
@@ -149,6 +150,12 @@ def build_embedding_provider(settings: Settings) -> EmbeddingProvider | None:
             settings.openai_api_key,
             settings.openai_embedding_model,
             dimensions=settings.openai_embedding_dimensions,
+        )
+    if settings.embedding_provider == "gemini" and settings.gemini_api_key is not None:
+        return GeminiEmbeddingProvider(
+            settings.gemini_api_key,
+            settings.gemini_embedding_model,
+            max_tokens_per_minute=settings.gemini_max_tokens_per_minute,
         )
     if settings.embedding_provider == "fake":
         return FakeEmbeddingProvider()

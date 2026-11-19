@@ -46,6 +46,14 @@ class Paid(FakeEmbeddingProvider):
         super().__init__(model="text-embedding-3-small")
 
 
+class PaidWithNotice(Paid):
+    data_notice = "Google puede usar y revisar lo que se envíe."
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._model = "gemini-embedding-2"
+
+
 class Index(ScriptedIndex):
     """The scripted arms plus pending windows and storage, as the CLI needs for `embed`."""
 
@@ -320,3 +328,38 @@ async def test_the_hybrid_retriever_flattens_each_unit_into_its_matching_passage
     assert [r.path for r in retrieval.results] == ["articulo:2/literal:e", "articulo:2/literal:a"]
     assert {r.unit_path for r in retrieval.results} == {"articulo:2"}
     assert retrieval.degraded == ("vector_unavailable",)
+
+
+@pytest.mark.spec("004-FR-005")
+def test_a_provider_with_a_data_notice_shows_it_before_anything_is_sent() -> None:
+    provider = PaidWithNotice()
+
+    result, _ = invoke(Index(), provider, "embed", "--dry-run")
+
+    assert result.exit_code == 0, result.output
+    assert "Aviso: Google puede usar y revisar lo que se envíe." in result.output
+    assert provider.calls == []
+
+
+@pytest.mark.spec("004-FR-005")
+def test_the_notice_is_shown_too_before_sending_the_evaluation_questions() -> None:
+    provider = PaidWithNotice()
+
+    result, _ = invoke(Index(embedded=9), provider, "eval", "--modes", "vector")
+
+    assert result.exit_code == 2  # no --yes: nothing sent
+    assert "Aviso: Google puede usar y revisar lo que se envíe." in result.output
+    assert provider.calls == []
+
+
+def test_a_provider_without_a_notice_prints_none() -> None:
+    result, _ = invoke(Index(), Paid(), "embed", "--dry-run")
+
+    assert "Aviso:" not in result.output
+
+
+def test_without_a_provider_the_message_names_both_keys() -> None:
+    result, _ = invoke(Index(), None, "embed")
+
+    assert "DRTC_OPENAI_API_KEY" in result.output
+    assert "DRTC_GEMINI_API_KEY" in result.output

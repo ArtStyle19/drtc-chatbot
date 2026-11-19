@@ -31,6 +31,7 @@ from drtc_chatbot.contexts.retrieval.application.ports import (
     EditionCatalog,
     EditionInfo,
     EmbeddingProvider,
+    EmbeddingPurpose,
     PassageHit,
     PassageIndex,
     Segment,
@@ -169,7 +170,9 @@ class SearchPassages:
             return None, (DEGRADED_VECTOR_UNAVAILABLE,)
         try:
             batch = await asyncio.wait_for(
-                self._provider.embed([text], timeout_seconds=self._timeout),
+                self._provider.embed(
+                    [text], purpose=EmbeddingPurpose.QUERY, timeout_seconds=self._timeout
+                ),
                 timeout=self._timeout + GRACE_SECONDS,
             )
         except EmbeddingUnavailableError, TimeoutError:

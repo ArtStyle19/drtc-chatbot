@@ -31,6 +31,16 @@ Formato: **Decisión · Por qué · Alternativas**. Lo marcado «se mide» queda
 - **Verificar al usar la clave**: los identificadores vigentes (`models.retrieve`) y la versión del SDK (3.55.1 en PyPI al 2026-11-18, Python ≥ 3.10).
 - **Alternativas**: modelo local (dependencias de ~1-2 GB; contradice ADR-0006); `ada-002` (superado).
 
+### R3 bis — segundo proveedor: Gemini (2026-11-19)
+
+Con la clave de OpenAI rechazada (HTTP 401) y sin API de embeddings en DeepSeek (su documentación oficial no la lista), se añadió **Gemini** detrás del mismo puerto para medir sin esperar. Se compara con el golden set igual que cualquier modelo (los vectores de cada modelo conviven en `retrieval_embeddings`).
+
+- **Modelos**: `gemini-embedding-2` (GA, texto e imagen, hasta 8.192 tokens por texto, normaliza solo si se acortan) y `gemini-embedding-001` (solo texto, 2.048 tokens, `task_type` solo por la API nativa). Sus espacios no son comparables.
+- **Endpoint compatible con OpenAI** (`/v1beta/openai/embeddings`): el adaptador de Gemini es una subclase del de OpenAI. No admite `task_type`; `gemini-embedding-2` pide en su lugar un **prefijo de texto**: consulta `task: search result | query: …`, documento `title: none | text: …`. Por eso el puerto distingue `EmbeddingPurpose.QUERY` y `DOCUMENT`.
+- **Dimensiones**: 3072 (la de fábrica) para no tener que normalizar; la distancia coseno no depende de la norma.
+- **Plan gratuito**: límites por proyecto no publicados en la documentación (se ven en AI Studio): lotes de 16 y un limitador de tokens por minuto configurable (`DRTC_GEMINI_MAX_TOKENS_PER_MINUTE`); una corrida cortada se reanuda. **Datos**: en el plan gratuito Google puede usar y revisar lo que se envíe (ver [seguridad y privacidad](../../docs/architecture/security-privacy.md)).
+- **Sin verificar al escribir esto**: que el endpoint compatible acepte listas de textos y devuelva `usage` (la documentación no lo dice): se comprueba con una sonda mínima antes de la corrida completa; si falla, plan B = API nativa `batchEmbedContents`.
+
 ## R4. Sin índice aproximado (ANN)
 
 - **Decisión**: no crear HNSW/IVFFlat. Búsqueda exacta por `ORDER BY embedding <=> $1 LIMIT N` filtrando por modelo.

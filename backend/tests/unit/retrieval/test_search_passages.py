@@ -10,6 +10,7 @@ from drtc_chatbot.contexts.retrieval.application.lookup_reference import LookupR
 from drtc_chatbot.contexts.retrieval.application.ports import (
     EditionInfo,
     EmbeddingBatch,
+    EmbeddingPurpose,
     PassageHit,
     Segment,
 )
@@ -288,7 +289,11 @@ async def test_without_a_provider_the_search_answers_with_words_and_says_so() ->
 async def test_a_provider_error_is_a_degradation_not_a_failure() -> None:
     class Down(FakeEmbeddingProvider):
         async def embed(
-            self, texts: Sequence[str], *, timeout_seconds: float | None = None
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
         ) -> EmbeddingBatch:
             raise EmbeddingUnavailableError("503")
 
@@ -304,10 +309,14 @@ async def test_a_provider_error_is_a_degradation_not_a_failure() -> None:
 async def test_a_provider_that_is_too_slow_is_a_degradation_within_the_time_limit() -> None:
     class Slow(FakeEmbeddingProvider):
         async def embed(
-            self, texts: Sequence[str], *, timeout_seconds: float | None = None
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
         ) -> EmbeddingBatch:
             await asyncio.sleep(5)
-            return await super().embed(texts)
+            return await super().embed(texts, purpose=purpose)
 
     index = ScriptedIndex(lexical=[hit(LEY, "articulo:1")])
     search = search_with(index, Slow(), vector_timeout_seconds=0.05)
@@ -335,15 +344,39 @@ async def test_a_vector_arm_that_simply_found_nothing_is_not_a_degradation() -> 
     assert (await run(search_with(index), "algo")).degraded == ()
 
 
+@pytest.mark.spec("004-FR-004")
+async def test_the_search_embeds_what_was_typed_as_a_query_not_as_a_document() -> None:
+    seen: list[EmbeddingPurpose] = []
+
+    class Spy(FakeEmbeddingProvider):
+        async def embed(
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
+        ) -> EmbeddingBatch:
+            seen.append(purpose)
+            return await super().embed(texts, purpose=purpose)
+
+    await run(search_with(ScriptedIndex(), Spy()), "algo")
+
+    assert seen == [EmbeddingPurpose.QUERY]
+
+
 async def test_the_provider_is_asked_with_the_configured_timeout() -> None:
     seen: list[float | None] = []
 
     class Spy(FakeEmbeddingProvider):
         async def embed(
-            self, texts: Sequence[str], *, timeout_seconds: float | None = None
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
         ) -> EmbeddingBatch:
             seen.append(timeout_seconds)
-            return await super().embed(texts)
+            return await super().embed(texts, purpose=purpose)
 
     await run(search_with(ScriptedIndex(), Spy(), vector_timeout_seconds=2.5), "algo")
 

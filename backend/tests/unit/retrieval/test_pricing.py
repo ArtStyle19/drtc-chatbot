@@ -41,3 +41,9 @@ def test_prices_can_be_overridden() -> None:
 
 def test_both_candidate_models_have_a_price() -> None:
     assert set(PRICE_PER_MILLION_TOKENS) >= {"text-embedding-3-small", "text-embedding-3-large"}
+
+
+def test_gemini_models_have_a_list_price_as_an_upper_bound_for_the_free_tier() -> None:
+    assert PRICE_PER_MILLION_TOKENS["gemini-embedding-2"] == 0.20
+    assert PRICE_PER_MILLION_TOKENS["gemini-embedding-001"] == 0.15
+    assert estimate_cost_usd(1_000_000, "gemini-embedding-2") == 0.20

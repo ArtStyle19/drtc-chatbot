@@ -9,7 +9,7 @@ import hashlib
 import math
 from collections.abc import Mapping, Sequence
 
-from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch
+from drtc_chatbot.contexts.retrieval.application.ports import EmbeddingBatch, EmbeddingPurpose
 from drtc_chatbot.contexts.retrieval.domain.lexical import strip_accents, words
 
 DIMENSIONS = 256
@@ -17,6 +17,7 @@ DIMENSIONS = 256
 
 class FakeEmbeddingProvider:
     external = False
+    data_notice: str | None = None
 
     def __init__(
         self, aliases: Mapping[str, str] | None = None, *, model: str = "fake-hash-256"
@@ -35,9 +36,13 @@ class FakeEmbeddingProvider:
         return self._tokens_used
 
     async def embed(
-        self, texts: Sequence[str], *, timeout_seconds: float | None = None
+        self,
+        texts: Sequence[str],
+        *,
+        purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+        timeout_seconds: float | None = None,
     ) -> EmbeddingBatch:
-        del timeout_seconds
+        del purpose, timeout_seconds
         self.calls.append(len(texts))
         vectors = tuple(self._vector(text) for text in texts)
         tokens = sum(len(words(t)) for t in texts)

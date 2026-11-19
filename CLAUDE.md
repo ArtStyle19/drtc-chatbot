@@ -74,5 +74,5 @@ Node se gestiona con nvm (`.nvmrc` = 26): en shells nuevos ejecuta `nvm use` ant
 - No hagas commits ni push sin que el usuario lo pida.
 - No agregues infraestructura (Redis, colas, OCR, reranker) sin una spec que la justifique.
 - No pongas claves de API ni datos personales en código, tests, logs o fixtures.
-- No envíes nada a OpenAI (`embed`, `eval --modes vector,hybrid`) sin mostrar antes la estimación de costo y que la persona usuaria confirme; el texto de una búsqueda nunca se registra.
+- No envíes nada a un proveedor externo (OpenAI o Gemini: `embed`, `eval --modes vector,hybrid`) sin mostrar antes la estimación y el aviso de datos, y que la persona usuaria confirme; el texto de una búsqueda nunca se registra.
 - Cambiar `evaluation/baseline.json` exige `--reason` y una entrada en `evaluation/CHANGELOG.md`: ninguna mejora de la búsqueda se funde si empeora el golden set.

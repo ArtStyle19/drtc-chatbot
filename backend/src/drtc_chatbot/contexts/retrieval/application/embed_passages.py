@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from drtc_chatbot.contexts.retrieval.application.ports import (
     EmbeddingProvider,
+    EmbeddingPurpose,
     PassageIndex,
     StoredEmbedding,
     WindowToEmbed,
@@ -86,7 +87,9 @@ class EmbedPassages:
         batches = 0
         for start in range(0, len(pending), BATCH_SIZE):
             batch = pending[start : start + BATCH_SIZE]
-            result = await self._provider.embed([w.text for w in batch])
+            result = await self._provider.embed(
+                [w.text for w in batch], purpose=EmbeddingPurpose.DOCUMENT
+            )
             if len(result.vectors) != len(batch):
                 raise InvariantViolationError(
                     f"The provider returned {len(result.vectors)} vectors for {len(batch)} texts"

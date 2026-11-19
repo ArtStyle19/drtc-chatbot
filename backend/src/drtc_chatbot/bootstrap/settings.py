@@ -55,9 +55,15 @@ class Settings(BaseSettings):
     openai_embedding_model: str = "text-embedding-3-small"
     # Optional shortened vectors (text-embedding-3-* accept it); None = the model's own size.
     openai_embedding_dimensions: int | None = Field(default=None, ge=64)
-    # Unset = "openai" when there is a key, "none" otherwise (the search then falls back to words).
+    # Unset = "openai" with an OpenAI key, else "gemini" with a Gemini key, else "none" (the search
+    # then falls back to words). With both keys, say which one: it is a choice of provider.
     # "fake" is a deterministic offline provider for tests and demos; refused in staging/production.
-    embedding_provider: Literal["openai", "fake", "none"] | None = None
+    embedding_provider: Literal["openai", "gemini", "fake", "none"] | None = None
+    # Google Gemini embeddings (OpenAI-compatible endpoint). The free tier is rate limited per
+    # project; the ceiling is estimated tokens per minute (raise it on a paid tier).
+    gemini_api_key: SecretStr | None = None
+    gemini_embedding_model: str = "gemini-embedding-2"
+    gemini_max_tokens_per_minute: int = Field(default=25_000, ge=1_000)
     search_rrf_k: int = Field(default=60, ge=1)
     search_arm_top_n: int = Field(default=50, ge=1, le=200)
     search_vector_timeout_seconds: float = Field(default=3.0, gt=0)
@@ -69,8 +75,15 @@ class Settings(BaseSettings):
             raise ValueError("DRTC_EMBEDDING_PROVIDER=fake is not allowed in staging or production")
         if self.embedding_provider == "openai" and self.openai_api_key is None:
             raise ValueError("DRTC_EMBEDDING_PROVIDER=openai needs DRTC_OPENAI_API_KEY")
+        if self.embedding_provider == "gemini" and self.gemini_api_key is None:
+            raise ValueError("DRTC_EMBEDDING_PROVIDER=gemini needs DRTC_GEMINI_API_KEY")
         if self.embedding_provider is None:
-            self.embedding_provider = "openai" if self.openai_api_key is not None else "none"
+            if self.openai_api_key is not None:
+                self.embedding_provider = "openai"
+            elif self.gemini_api_key is not None:
+                self.embedding_provider = "gemini"
+            else:
+                self.embedding_provider = "none"
         return self
 
     @model_validator(mode="after")

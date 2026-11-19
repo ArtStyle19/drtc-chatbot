@@ -101,8 +101,8 @@ _DEGRADED_TEXT = {
     "vector_not_indexed": "aún no se calcularon los vectores (ejecute `drtc-retrieval embed`); se muestran coincidencias de palabras.",
 }
 NO_PROVIDER = (
-    "No hay proveedor de significado: ponga DRTC_OPENAI_API_KEY en su archivo .env "
-    "(nunca en el código ni en la línea de comandos)."
+    "No hay proveedor de significado: ponga DRTC_OPENAI_API_KEY (o DRTC_GEMINI_API_KEY y "
+    "DRTC_EMBEDDING_PROVIDER=gemini) en su archivo .env (nunca en el código ni en la línea de comandos)."
 )
 
 
@@ -206,6 +206,8 @@ def build_app(factory: ModuleFactory) -> typer.Typer:
                     fg=typer.colors.GREEN,
                 )
                 return
+            if plan.external and provider.data_notice:
+                typer.secho(f"Aviso: {provider.data_notice}", fg=typer.colors.YELLOW)
             if dry_run:
                 typer.echo("(--dry-run: no se envió nada)")
                 return
@@ -336,6 +338,8 @@ def build_app(factory: ModuleFactory) -> typer.Typer:
                     )
                     raise typer.Exit(1)
                 if provider.external:
+                    if provider.data_notice:
+                        typer.secho(f"Aviso: {provider.data_notice}", fg=typer.colors.YELLOW)
                     tokens, cost = _question_cost(provider, questions)
                     typer.echo(
                         f"Se enviarán {len(questions)} preguntas a {provider.model}: ≈ {tokens:,} tokens, "

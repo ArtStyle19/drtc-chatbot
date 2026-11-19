@@ -81,7 +81,7 @@ En la spec 002 el adaptador se reemplaza por un repositorio PostgreSQL en `boots
 
 | Ruta / comando | Caso de uso | Puertos → adaptadores |
 |---|---|---|
-| `GET /search?q=&limit=&instrument=&mode=&debug=` | `SearchPassages` | `Retriever` (exacto = `LookupReference`, palabras, significado) · `PassageIndex` → `SqlPassageIndex` · `EmbeddingProvider` → `OpenAIEmbeddingProvider` / `FakeEmbeddingProvider` · `EditionCatalog` → `LegalCorpusEditions` |
+| `GET /search?q=&limit=&instrument=&mode=&debug=` | `SearchPassages` | `Retriever` (exacto = `LookupReference`, palabras, significado) · `PassageIndex` → `SqlPassageIndex` · `EmbeddingProvider` → `OpenAIEmbeddingProvider` / `GeminiEmbeddingProvider` (mismo adaptador apuntado a Google, con prefijos por propósito y un limitador de tokens por minuto) / `FakeEmbeddingProvider` · `EditionCatalog` → `LegalCorpusEditions` |
 | `drtc-retrieval index` | `BuildIndex` (idempotente: compara `content_hash`; borra lo que ya no existe) | `PassageSource` → `LegalCorpusPassages` (solo `legal_corpus.api`) · `PassageIndex` |
 | `drtc-retrieval embed` | `EmbedPassages` (estimación + confirmación; guarda por lotes, se puede reanudar) | `EmbeddingProvider` · `PassageIndex` |
 | `drtc-retrieval eval` | `RunEvaluation` (+ compuerta de línea base) | `GoldenSet` → `JsonlGoldenSet` · `EvaluationStore` → `EvaluationFiles` |

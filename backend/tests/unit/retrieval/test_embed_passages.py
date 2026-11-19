@@ -10,6 +10,7 @@ from drtc_chatbot.contexts.retrieval.application.embed_passages import (
 )
 from drtc_chatbot.contexts.retrieval.application.ports import (
     EmbeddingBatch,
+    EmbeddingPurpose,
     StoredEmbedding,
     WindowToEmbed,
 )
@@ -136,12 +137,16 @@ async def test_when_the_provider_fails_halfway_what_was_done_is_kept_and_the_run
 ):
     class Flaky(FakeEmbeddingProvider):
         async def embed(
-            self, texts: Sequence[str], *, timeout_seconds: float | None = None
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
         ) -> EmbeddingBatch:
             if len(self.calls) == 1:
                 self.calls.append(-1)
                 raise EmbeddingUnavailableError("503 from the provider")
-            return await super().embed(texts, timeout_seconds=timeout_seconds)
+            return await super().embed(texts, purpose=purpose, timeout_seconds=timeout_seconds)
 
     provider = Flaky()
     index = MemoryIndex(windows(BATCH_SIZE + 20))
@@ -158,7 +163,11 @@ async def test_when_the_provider_fails_halfway_what_was_done_is_kept_and_the_run
 async def test_a_provider_answering_with_the_wrong_number_of_vectors_is_refused() -> None:
     class Short(FakeEmbeddingProvider):
         async def embed(
-            self, texts: Sequence[str], *, timeout_seconds: float | None = None
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
         ) -> EmbeddingBatch:
             return EmbeddingBatch(((0.0,),), tokens=1)
 
@@ -174,3 +183,22 @@ async def test_progress_is_reported_after_each_batch() -> None:
     )
 
     assert seen == [(BATCH_SIZE, BATCH_SIZE + 1), (BATCH_SIZE + 1, BATCH_SIZE + 1)]
+
+
+async def test_passages_are_embedded_as_documents() -> None:
+    seen: list[EmbeddingPurpose] = []
+
+    class Spy(FakeEmbeddingProvider):
+        async def embed(
+            self,
+            texts: Sequence[str],
+            *,
+            purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+            timeout_seconds: float | None = None,
+        ) -> EmbeddingBatch:
+            seen.append(purpose)
+            return await super().embed(texts, purpose=purpose, timeout_seconds=timeout_seconds)
+
+    await use_case(MemoryIndex(windows(3)), Spy()).run()
+
+    assert seen == [EmbeddingPurpose.DOCUMENT]

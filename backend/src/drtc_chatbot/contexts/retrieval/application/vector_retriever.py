@@ -6,6 +6,7 @@ from drtc_chatbot.contexts.retrieval.application.lexical_retriever import (
 )
 from drtc_chatbot.contexts.retrieval.application.ports import (
     EmbeddingProvider,
+    EmbeddingPurpose,
     PassageIndex,
     Retrieval,
 )
@@ -28,13 +29,13 @@ class VectorRetriever:
         if self._provider is None:
             # An evaluation of the meaning arm without a provider would score zeros silently: refuse.
             raise EmbeddingUnavailableError(
-                "No hay proveedor de significado configurado (DRTC_OPENAI_API_KEY)"
+                "No hay proveedor de significado configurado (DRTC_OPENAI_API_KEY o DRTC_GEMINI_API_KEY)"
             )
         try:
             query = validate_query(text)
         except InvariantViolationError:
             return Retrieval(())
-        batch = await self._provider.embed([query])
+        batch = await self._provider.embed([query], purpose=EmbeddingPurpose.QUERY)
         hits = await self._index.vector_search(
             self._provider.model,
             batch.vectors[0],

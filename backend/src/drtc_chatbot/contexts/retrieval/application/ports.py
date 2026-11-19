@@ -3,6 +3,7 @@
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -191,6 +192,14 @@ class EmbeddingBatch:
     tokens: int
 
 
+class EmbeddingPurpose(StrEnum):
+    """What a text is embedded FOR. Some models want to be told (Gemini prefixes the text differently
+    for a search query and for a document being indexed); the others ignore it."""
+
+    DOCUMENT = "document"  # a passage of a norm being indexed
+    QUERY = "query"  # what a person typed
+
+
 class EmbeddingProvider(Protocol):
     """Turns text into vectors that are close when the meaning is close (spec 004, meaning search)."""
 
@@ -210,8 +219,17 @@ class EmbeddingProvider(Protocol):
         """Tokens the provider reported for everything this instance has embedded (real usage)."""
         ...
 
+    @property
+    def data_notice(self) -> str | None:
+        """What the person must read before text is sent (e.g. how the provider may use it); or None."""
+        ...
+
     async def embed(
-        self, texts: Sequence[str], *, timeout_seconds: float | None = None
+        self,
+        texts: Sequence[str],
+        *,
+        purpose: EmbeddingPurpose = EmbeddingPurpose.DOCUMENT,
+        timeout_seconds: float | None = None,
     ) -> EmbeddingBatch:
         """Raises ``EmbeddingUnavailableError`` when it cannot (no key, provider error, timeout)."""
         ...
