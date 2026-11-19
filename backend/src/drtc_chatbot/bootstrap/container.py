@@ -71,6 +71,7 @@ from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory impor
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_editions import LegalCorpusEditions
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_passages import LegalCorpusPassages
 from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import OpenAIEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.query_cache import QueryCachingEmbeddingProvider
 from drtc_chatbot.contexts.retrieval.infrastructure.sql_passage_index import SqlPassageIndex
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
@@ -163,7 +164,9 @@ def build_embedding_provider(settings: Settings) -> EmbeddingProvider | None:
     return None
 
 
-def build_container(settings: Settings) -> Container:
+def build_container(settings: Settings, *, remember_queries: bool = False) -> Container:
+    """``remember_queries`` is for the command line only (an evaluation embeds the same question
+    many times): the web application leaves it off so what people search for is never kept."""
     engine = create_database_engine(settings.database_url, echo=settings.database_echo)
     clock = SystemClock()
     sessions = async_sessionmaker(engine, expire_on_commit=False)
@@ -194,6 +197,8 @@ def build_container(settings: Settings) -> Container:
     passage_index = SqlPassageIndex(sessions)
     passage_source = LegalCorpusPassages(list_instruments, ListIndexablePassages(reading))
     embedding = build_embedding_provider(settings)
+    if embedding is not None and remember_queries:
+        embedding = QueryCachingEmbeddingProvider(embedding)
     search = SearchPassages(
         lookup,
         passage_index,
@@ -258,7 +263,7 @@ async def ingestion_module(settings: Settings | None = None) -> AsyncIterator[In
 @asynccontextmanager
 async def retrieval_module(settings: Settings | None = None) -> AsyncIterator[RetrievalCliModule]:
     """Use-case bundle for ``drtc-retrieval``; closes the database pool when done."""
-    container = build_container(settings or Settings())
+    container = build_container(settings or Settings(), remember_queries=True)
     try:
         yield container.retrieval_cli
     finally:
