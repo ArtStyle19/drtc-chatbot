@@ -30,6 +30,10 @@ make e2e            # Playwright + axe (API simulada)
 make arch           # solo contratos de arquitectura
 make test-db        # PostgreSQL temporal para las pruebas (luego export DRTC_TEST_DATABASE_URL=… que imprime)
 make ingest         # manifiesto -> BD + ingesta de los tres PDF (cd backend && uv run drtc-ingest --help)
+make index          # prepara el índice de búsqueda (palabras); se puede repetir
+make embed          # vectores de significado: muestra el costo y pide confirmación antes de gastar
+make search Q="…"   # busca el contenido como la aplicación (referencia + palabras + significado)
+make eval           # compuerta de evaluación (exacta + palabras vs evaluation/baseline.json; sin red ni costo)
 make openapi        # exporta backend/openapi.json y regenera frontend/src/app/core/api/schema.d.ts
 cd backend && uv run pytest -q -m "not docker"   # tests rápidos sin Docker
 ```
@@ -70,3 +74,5 @@ Node se gestiona con nvm (`.nvmrc` = 26): en shells nuevos ejecuta `nvm use` ant
 - No hagas commits ni push sin que el usuario lo pida.
 - No agregues infraestructura (Redis, colas, OCR, reranker) sin una spec que la justifique.
 - No pongas claves de API ni datos personales en código, tests, logs o fixtures.
+- No envíes nada a OpenAI (`embed`, `eval --modes vector,hybrid`) sin mostrar antes la estimación de costo y que la persona usuaria confirme; el texto de una búsqueda nunca se registra.
+- Cambiar `evaluation/baseline.json` exige `--reason` y una entrada en `evaluation/CHANGELOG.md`: ninguna mejora de la búsqueda se funde si empeora el golden set.

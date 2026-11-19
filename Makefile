@@ -45,6 +45,24 @@ migrate: ## Apply database migrations to the dev database
 ingest: ## Load the manifest and ingest every corpus PDF into the dev database (spec 002)
 	$(BACKEND) uv run drtc-ingest run --all
 
+# --------------------------------------------------------------------------- search (spec 004)
+.PHONY: index
+index: ## Prepare the search index (words) from the approved editions; safe to repeat
+	$(BACKEND) uv run drtc-retrieval index
+
+.PHONY: embed
+embed: ## Compute the meaning vectors: shows the cost estimate first and asks before spending (DRTC_OPENAI_API_KEY)
+	$(BACKEND) uv run drtc-retrieval embed
+
+.PHONY: search
+search: ## Search the content like the app does: make search Q="plazo para apelar"
+	@test -n "$(Q)" || { echo 'usage: make search Q="plazo para apelar"'; exit 2; }
+	$(BACKEND) uv run drtc-retrieval search "$(Q)"
+
+.PHONY: eval
+eval: ## Evaluation gate: exact + words against the committed baseline (no network, no cost)
+	$(BACKEND) uv run drtc-retrieval eval --modes exact,lexical --check-baseline
+
 .PHONY: dev-backend
 dev-backend: ## Run the API with auto-reload on http://localhost:8000
 	$(BACKEND) uv run uvicorn drtc_chatbot.main:app --reload --port 8000 --no-access-log

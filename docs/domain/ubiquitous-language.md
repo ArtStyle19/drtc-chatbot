@@ -50,10 +50,17 @@ identificador en inglés. Si un término nuevo aparece en una spec, se agrega aq
 | Búsqueda exacta (por referencia) | `LookupReference` | Por identificador: "art. 218.2 del TUO". Determinista; si hay varias coincidencias las lista y no elige. *(spec 003)* |
 | Referencia legal | `LegalReference` | Lo que la persona escribió, analizado en norma + unidad (artículo, numeral, literal, anexo, disposición, título…). |
 | Alias de una norma | `aliases` | Nombres y siglas con que el personal nombra una norma (`LGTTT`, `RENAT`, `LPAG`, `TUO`); vienen del manifiesto. |
-| Búsqueda textual | `LexicalSearch` | `tsvector` en español con `unaccent`. |
-| Búsqueda semántica | `VectorSearch` | Embeddings en pgvector. |
-| Fusión de rankings | `reciprocal_rank_fusion` | RRF: combina las listas de candidatos. |
-| Expansión de contexto | `ContextExpansion` | Agregar artículo padre, numerales hermanos, definiciones, excepciones. |
+| Pasaje | `Passage` | Texto vigente de un artículo, numeral, literal, disposición o anexo de una edición aprobada: lo que se indexa y lo que la búsqueda devuelve. *(spec 004)* |
+| Miga de pan y encabezado | `breadcrumb` / `lead` | Ruta legible del pasaje («Ley 27181 › Título I › Art. 2 › lit. e)») y el comienzo (≤ 300 caracteres) del texto del padre; se indexan junto al pasaje para que un literal suelto tenga contexto. |
+| Brazo de búsqueda | `arm` (`reference` / `lexical` / `vector`) | Cada método que aporta resultados: referencia exacta, palabras o significado. La respuesta dice con cuál(es) se halló cada uno (`via`). |
+| Búsqueda por palabras | `LexicalSearch` | PostgreSQL full-text con la configuración `spanish`; la consulta se amplía con las tildes que usa el corpus. *(spec 004)* |
+| Búsqueda por significado | `VectorSearch` | Embeddings (OpenAI) en pgvector, comparados por coseno exacto (sin índice aproximado). *(spec 004)* |
+| Fusión de rankings (RRF) | `reciprocal_rank_fusion` | *Reciprocal Rank Fusion*: cada pasaje suma `1/(k+posición)` por cada lista en que aparece; no mezcla puntajes de escalas distintas. |
+| Búsqueda degradada | `degraded` (`vector_unavailable` / `vector_not_indexed`) | La búsqueda por significado no pudo usarse (sin clave, error, demora o vectores sin calcular): se responde igual con palabras y se avisa por qué. |
+| Golden set | `golden-v1.jsonl` | Preguntas reales de trabajo con la disposición, la página y el texto de respaldo esperados, y su estado de revisión (`draft` hasta que lo apruebe el revisor jurídico). |
+| Línea base de evaluación | `evaluation/baseline.json` | Métricas aceptadas de los brazos determinísticos; ninguna mejora se funde si las empeora más de la tolerancia (0,02). Cambiarla exige `--reason` y una entrada en `evaluation/CHANGELOG.md`. |
+| Acierto@K / MRR | `hit@K` / `MRR` | Proporción de preguntas con la respuesta esperada entre los K primeros / media del inverso de la posición de la primera. Se miden por **disposición** (la ruta es la esperada o está debajo de ella) y por **unidad de lectura**. |
+| Expansión de contexto | `ContextExpansion` | Agregar artículo padre, numerales hermanos, definiciones, excepciones. *(spec 005)* |
 
 ## Consultas (`consultation`)
 

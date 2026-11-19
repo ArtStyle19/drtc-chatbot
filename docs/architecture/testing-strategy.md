@@ -31,3 +31,18 @@ El golden set (`evaluation/datasets/`) tiene preguntas con disposición, página
 esperados, y un `review_status`. Ningún cambio en recuperación o generación se integra si empeora las
 métricas sin una decisión registrada. Las preguntas `draft` no cuentan para el criterio de lanzamiento
 hasta que un abogado las apruebe.
+
+### La compuerta determinista (spec 004)
+
+Una prueba marcada `docker` (`tests/e2e/test_retrieval_baseline.py`, corre en CI sin red) ingesta las tres
+normas, prepara el índice **sin vectores**, evalúa los brazos exacto y de palabras con el golden set y los
+compara con `evaluation/baseline.json` (tolerancia 0,02 por métrica). Verifica además que sin proveedor
+de significado la búsqueda sigue respondiendo con palabras (SC-006/007) y que preparar el índice dos veces
+no cambia nada. `make eval` ejecuta la misma compuerta a mano. Las métricas de significado y de la búsqueda
+combinada necesitan la clave: se corren a mano (`drtc-retrieval eval --modes vector,hybrid`, con estimación y
+confirmación de costo) y su informe se guarda en `evaluation/reports/`.
+
+Otras garantías que prueba la suite: el golden set es coherente con el corpus ingerido (la ruta existe, sus
+páginas incluyen las citadas y su texto contiene el texto de respaldo); el texto de una búsqueda no aparece en
+ningún registro ni respuesta de error; el adaptador de OpenAI nunca deja la clave ni el texto en un mensaje de error
+(transporte simulado).

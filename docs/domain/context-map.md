@@ -28,8 +28,11 @@ flowchart LR
 - **legal_corpus → retrieval (lenguaje publicado):** el índice es un modelo derivado y
   reconstruible; se actualiza cuando se publica una versión aprobada. Desde la spec 003 `retrieval`
   existe: resuelve **referencias exactas** leyendo el índice de disposiciones únicamente a través de
-  `contexts.legal_corpus.api` (puerto `ProvisionDirectory`, capa anticorrupción); la búsqueda textual
-  y vectorial llega con la spec 004.
+  `contexts.legal_corpus.api` (puerto `ProvisionDirectory`, capa anticorrupción). Desde la spec 004
+  también **busca por contenido**: lee los pasajes vigentes (`ListIndexablePassages`) y las ediciones
+  aprobadas (`ListApprovedEditions`) por la misma puerta, construye su propio índice derivado
+  (palabras + vectores, `retrieval_*`) y lo reconstruye cuando cambia el texto. `legal_corpus` no sabe
+  que ese índice existe.
 - **consultation → retrieval (ACL):** `consultation` define su propio puerto `EvidenceRetriever` con
   sus propios tipos; un adaptador traduce desde `contexts.retrieval.api`.
 - **Sistemas externos:** OpenAI y el sistema DRTC quedan detrás de adaptadores; cambiar de proveedor
