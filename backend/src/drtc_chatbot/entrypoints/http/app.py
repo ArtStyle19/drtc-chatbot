@@ -13,10 +13,12 @@ from drtc_chatbot.bootstrap.logging import configure_logging
 from drtc_chatbot.bootstrap.settings import Settings
 from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
     provisions_router,
+    versions_router,
 )
 from drtc_chatbot.contexts.legal_corpus.presentation.http.router import (
     router as legal_corpus_router,
 )
+from drtc_chatbot.contexts.retrieval.presentation.http.router import router as retrieval_router
 from drtc_chatbot.entrypoints.http.errors import register_exception_handlers
 from drtc_chatbot.entrypoints.http.health import router as health_router
 from drtc_chatbot.entrypoints.http.middleware import REQUEST_ID_HEADER, RequestIdMiddleware
@@ -53,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.container = container
     app.state.identity_provider = container.identity_provider
     app.state.legal_corpus = container.legal_corpus
+    app.state.retrieval = container.retrieval
 
     register_exception_handlers(app)
     app.add_middleware(
@@ -60,13 +63,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=settings.cors_allowed_origins,
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
-        expose_headers=[REQUEST_ID_HEADER],
+        expose_headers=[
+            REQUEST_ID_HEADER,
+            "Content-Range",
+            "Accept-Ranges",
+            "Content-Length",
+            "ETag",
+        ],
     )
     app.add_middleware(RequestIdMiddleware)  # outermost: every response carries a request id
 
     api_v1 = APIRouter(prefix="/api/v1")
     api_v1.include_router(legal_corpus_router)
     api_v1.include_router(provisions_router)
+    api_v1.include_router(versions_router)
+    api_v1.include_router(retrieval_router)
     app.include_router(health_router)
     app.include_router(api_v1)
     return app

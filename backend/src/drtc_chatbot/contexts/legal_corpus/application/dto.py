@@ -5,6 +5,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from drtc_chatbot.contexts.legal_corpus.domain.approval import ApprovalMode, ApprovalStatus
+from drtc_chatbot.contexts.legal_corpus.domain.citations import Citation
 from drtc_chatbot.contexts.legal_corpus.domain.legal_instrument import (
     InstrumentVersion,
     LegalInstrument,
@@ -14,6 +15,7 @@ from drtc_chatbot.contexts.legal_corpus.domain.provisions import (
     PageBox,
     ProvisionKind,
     ProvisionRevision,
+    ReviewFlag,
     RevisionStatus,
 )
 from drtc_chatbot.contexts.legal_corpus.domain.value_objects import (
@@ -62,6 +64,7 @@ class LegalInstrumentSummary:
     publication_date: date | None
     current_edition: EditionSummary
     version_count: int
+    aliases: tuple[str, ...] = ()
 
     @classmethod
     def from_instrument(cls, instrument: LegalInstrument) -> LegalInstrumentSummary:
@@ -75,6 +78,7 @@ class LegalInstrumentSummary:
             publication_date=instrument.publication_date,
             current_edition=EditionSummary.from_version(instrument.latest_version),
             version_count=len(instrument.versions),
+            aliases=instrument.aliases,
         )
 
 
@@ -112,6 +116,7 @@ class ManifestInstrument:
     short_name: str
     issuing_authority: str
     publication_date: date | None
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,6 +172,7 @@ class RevisionRequest:
     ordinal: int
     boxes: tuple[tuple[int, float, float, float, float], ...] = ()
     event: EventRequest | None = None
+    flags: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -267,3 +273,163 @@ class ApprovalResult:
     mode: ApprovalMode
     approved_by: str
     approved_at: datetime
+
+
+# ----------------------------------------------------------------------------- reader
+@dataclass(frozen=True, slots=True)
+class EditionContext:
+    """The norm and the approved edition a reading belongs to (shown in the reader's header)."""
+
+    instrument_id: str
+    instrument_type: InstrumentType
+    number: str
+    title: str
+    short_name: str
+    version_id: str
+    edition_label: str
+    consolidated_as_of: date | None
+    verification_status: VerificationStatus
+    approval_mode: ApprovalMode
+    source_file_name: str
+    page_count: int
+    alerts: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class OutlineEntry:
+    """One line of a norm's table of contents."""
+
+    path: str
+    kind: ProvisionKind
+    label: str
+    title: str | None
+    parent_path: str | None
+    page_start: int
+    unit_path: str  # what the reader opens when this entry is chosen
+
+
+@dataclass(frozen=True, slots=True)
+class Outline:
+    edition: EditionContext
+    entries: tuple[OutlineEntry, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RawRevision:
+    revision: int
+    title: str | None
+    text: str
+    page_start: int
+    page_end: int
+    boxes: tuple[PageBox, ...] = ()
+    event: LegalEvent | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RawNode:
+    """A provision of a reading unit as stored: current revision, history, notes and flags."""
+
+    path: str
+    kind: ProvisionKind
+    label: str
+    parent_path: str | None
+    revision_count: int
+    current: RawRevision
+    history: tuple[RawRevision, ...] = ()
+    review_flags: tuple[ReviewFlag, ...] = ()
+    notes: tuple[NoteDraft, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewWarning:
+    code: str
+    message: str
+
+
+@dataclass(frozen=True, slots=True)
+class ReadingRevision:
+    revision: int
+    title: str | None
+    text: str
+    page_start: int
+    page_end: int
+    boxes: tuple[PageBox, ...]
+    event: LegalEvent | None
+    citation: Citation
+
+
+@dataclass(frozen=True, slots=True)
+class ReadingNode:
+    path: str
+    kind: ProvisionKind
+    label: str
+    parent_path: str | None
+    revision_count: int
+    current: ReadingRevision
+    history: tuple[ReadingRevision, ...]  # replaced texts, oldest first: NOT in force
+    warnings: tuple[ReviewWarning, ...]
+    notes: tuple[NoteDraft, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ReadingUnit:
+    """What the reader shows for a requested path: the unit that contains it, with its subtree."""
+
+    edition: EditionContext
+    requested_path: str
+    unit_path: str
+    nodes: tuple[ReadingNode, ...]  # document order; nest them with parent_path
+    children: tuple[OutlineEntry, ...] = ()  # for containers: the entries listed under them
+
+
+@dataclass(frozen=True, slots=True)
+class SourceRef:
+    """The original PDF of an approved edition (never a client-supplied path)."""
+
+    version_id: str
+    file_name: str
+    sha256: str
+    page_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class SourceDocument:
+    """A verified file ready to be served."""
+
+    version_id: str
+    file_name: str
+    sha256: str
+    path: Path
+    size: int
+
+
+@dataclass(frozen=True, slots=True)
+class IndexRow:
+    path: str
+    kind: ProvisionKind
+    label: str
+    title: str | None
+    snippet: str
+    page_start: int
+    parent_path: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProvisionIndexEntry:
+    path: str
+    unit_path: str
+    kind: ProvisionKind
+    label: str
+    title: str | None
+    snippet: str
+    page_start: int
+    citation: str  # short citation
+    parent_path: str | None = None  # the container (title, chapter…) of an article
+
+
+@dataclass(frozen=True, slots=True)
+class ProvisionIndex:
+    """Every current provision of an approved edition, for the exact-reference search."""
+
+    edition: EditionContext
+    entries: tuple[ProvisionIndexEntry, ...]

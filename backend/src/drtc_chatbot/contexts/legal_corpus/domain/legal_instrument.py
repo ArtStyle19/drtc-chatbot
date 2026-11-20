@@ -75,6 +75,7 @@ class LegalInstrument(AggregateRoot[InstrumentId]):
     """
 
     __slots__ = (
+        "_aliases",
         "_instrument_type",
         "_issuing_authority",
         "_number",
@@ -95,6 +96,7 @@ class LegalInstrument(AggregateRoot[InstrumentId]):
         issuing_authority: str,
         publication_date: date | None,
         versions: Sequence[InstrumentVersion],
+        aliases: Sequence[str] = (),
     ) -> None:
         super().__init__(instrument_id)
         if not title.strip():
@@ -111,6 +113,7 @@ class LegalInstrument(AggregateRoot[InstrumentId]):
         self._issuing_authority = issuing_authority
         self._publication_date = publication_date
         self._versions = tuple(versions)
+        self._aliases = tuple(alias.strip() for alias in aliases if alias.strip())
 
     @property
     def instrument_type(self) -> InstrumentType:
@@ -135,6 +138,11 @@ class LegalInstrument(AggregateRoot[InstrumentId]):
     @property
     def publication_date(self) -> date | None:
         return self._publication_date
+
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        """Names people use for this norm (acronyms, short titles); used by the reference search."""
+        return self._aliases
 
     @property
     def versions(self) -> tuple[InstrumentVersion, ...]:

@@ -1,0 +1,122 @@
+<div class="head">
+  @if (depth() > 0) {
+    <span class="locator">{{ locator() }}</span>
+  }
+  @if (!isContainer()) {
+    <span class="pages">{{ pages() }}</span>
+    <span class="actions">
+      <button type="button" class="see" (click)="viewPassage.emit(node().path)">
+        Ver en el PDF<span class="sr-only"> de {{ subject() }}</span>
+      </button>
+      <drtc-cite-button [citation]="current().citation" [subject]="subject()" />
+    </span>
+  }
+</div>
+
+@if (depth() > 0 && current().title) {
+  <p class="title">{{ current().title }}</p>
+}
+
+@if (current().text) {
+  @if (isAnnex()) {
+    <div class="annex-text" tabindex="0" role="region" [attr.aria-label]="'Texto del ' + locator()">
+      <p class="text">{{ current().text }}</p>
+    </div>
+  } @else {
+    <p class="text">{{ current().text }}</p>
+  }
+}
+
+@if (current().event; as event) {
+  <p class="event">
+    {{ verb(event) }} <span class="source">{{ event.source }}</span>&ngsp;
+    @if (event.published_on) {
+      <span class="date">({{ event.published_on | date: 'longDate' }})</span>
+    }
+  </p>
+}
+
+@for (warning of node().warnings; track warning.code) {
+  <div class="warning" role="note">
+    <svg lucideTriangleExclamationPoint [size]="16" aria-hidden="true"></svg>
+    <p>{{ warning.message }}</p>
+  </div>
+}
+
+@if (node().history.length > 0) {
+  <details class="history">
+    <summary>Texto anterior, no vigente ({{ node().history.length }})</summary>
+    @for (old of node().history; track old.revision; let index = $index) {
+      <div class="old" [class.is-viewing]="isViewingHistory(old)">
+        <p class="old-head">
+          <span class="not-in-force">No vigente</span>
+          <span class="meta"
+            >revisión {{ old.revision }} ·
+            {{
+              old.page_start === old.page_end
+                ? 'p. ' + old.page_start
+                : 'pp. ' + old.page_start + '-' + old.page_end
+            }}</span
+          >
+        </p>
+        @if (replacedBy(index); as replacement) {
+          <p class="event">
+            Sustituido por
+            <span class="source">{{ replacement.source }}</span>&ngsp;
+            @if (replacement.published_on) {
+              <span class="date">({{ replacement.published_on | date: 'longDate' }})</span>
+            }
+          </p>
+        }
+        <p class="text old-text">{{ old.text }}</p>
+        <div class="old-actions">
+          <button
+            type="button"
+            class="see"
+            (click)="showHistory.emit({ path: node().path, revision: old.revision })"
+          >
+            Ver en el PDF<span class="sr-only">
+              el texto anterior (no vigente) de {{ subject() }}</span
+            >
+          </button>
+          <drtc-cite-button
+            [citation]="old.citation"
+            [subject]="'el texto anterior (no vigente) de ' + subject()"
+          />
+        </div>
+      </div>
+    }
+  </details>
+}
+
+@if (node().notes.length > 0) {
+  <details class="notes">
+    <summary>Notas editoriales ({{ node().notes.length }})</summary>
+    <ul>
+      @for (note of node().notes; track $index) {
+        <li>
+          <span class="note-kind">{{ noteKind(note.kind) }}</span>
+          <span class="note-text">{{ note.text }}</span>
+          <span class="meta">p. {{ note.page }}</span>
+        </li>
+      }
+    </ul>
+  </details>
+}
+
+@if (tree().children.length > 0) {
+  <ul class="children">
+    @for (child of tree().children; track child.node.path) {
+      <li>
+        <drtc-provision-node
+          [tree]="child"
+          [depth]="depth() + 1"
+          [focusPath]="focusPath()"
+          [historyKey]="historyKey()"
+          (viewPassage)="viewPassage.emit($event)"
+          (showHistory)="showHistory.emit($event)"
+        />
+      </li>
+    }
+  </ul>
+}

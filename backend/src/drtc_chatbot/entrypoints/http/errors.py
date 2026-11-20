@@ -10,7 +10,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from drtc_chatbot.shared_kernel.domain import DomainError, InvariantViolationError, NotFoundError
+from drtc_chatbot.shared_kernel.domain import (
+    DomainError,
+    IntegrityViolationError,
+    InvariantViolationError,
+    NotFoundError,
+)
 
 PROBLEM_JSON = "application/problem+json"
 logger = structlog.get_logger(__name__)
@@ -48,6 +53,14 @@ def _status_for(error: DomainError) -> int:
 
 async def _on_domain_error(request: Request, error: Exception) -> JSONResponse:
     assert isinstance(error, DomainError)  # noqa: S101 - registered only for DomainError
+    if isinstance(error, IntegrityViolationError):
+        logger.error("integrity.violation", path=request.url.path, detail=error.message)
+        return problem_response(
+            request,
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            code=error.code,
+            detail="El documento no pasó la verificación de integridad. Avise al equipo técnico.",
+        )
     return problem_response(
         request, status=_status_for(error), code=error.code, detail=error.message
     )

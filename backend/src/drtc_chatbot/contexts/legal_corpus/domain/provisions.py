@@ -33,6 +33,37 @@ class EventKind(StrEnum):
     REPEALED = "repealed"
 
 
+class ReviewFlag(StrEnum):
+    """Things a person must look at before relying on a provision's text (raised by the ingestion)."""
+
+    PARAGRAPH_REPLACEMENT_UNAPPLIED = "paragraph_replacement_unapplied"
+    CONTINUATION_AFTER_QUOTE = "continuation_after_quote"
+    DUPLICATE_UNQUOTED_UNIT = "duplicate_unquoted_unit"
+    ANNEX_TABLE_UNSTRUCTURED = "annex_table_unstructured"
+
+
+REVIEW_FLAG_MESSAGES: dict[ReviewFlag, str] = {
+    ReviewFlag.PARAGRAPH_REPLACEMENT_UNAPPLIED: (
+        "Una norma posterior sustituyó un párrafo de esta disposición y el sistema no pudo aplicar el "
+        "cambio con certeza: el texto mostrado puede contener el párrafo anterior. Consulte la nota "
+        "editorial y el PDF."
+    ),
+    ReviewFlag.CONTINUATION_AFTER_QUOTE: (
+        "Parte de este texto continúa después de un bloque modificado por otra norma y se asignó a esta "
+        "disposición por su ubicación; verifíquelo en el PDF."
+    ),
+    ReviewFlag.ANNEX_TABLE_UNSTRUCTURED: (
+        "Este anexo es una tabla: su texto se extrae sin filas ni columnas, puede aparecer "
+        "desordenado y las filas modificadas por normas posteriores figuran junto con su texto "
+        "anterior. Use el PDF como referencia."
+    ),
+    ReviewFlag.DUPLICATE_UNQUOTED_UNIT: (
+        "El documento repite una unidad con el mismo número (tabla o referencia numerada); se conservó la "
+        "primera aparición. Verifíquelo en el PDF."
+    ),
+}
+
+
 @dataclass(frozen=True, slots=True)
 class LegalEvent:
     """Which norm produced a revision and when (best effort, from the editorial notes)."""
@@ -70,6 +101,7 @@ class ProvisionRevision:
     ordinal: int
     boxes: tuple[PageBox, ...] = ()
     event: LegalEvent | None = None
+    review_flags: tuple[ReviewFlag, ...] = ()
 
 
 def validate_revision_set(revisions: Sequence[ProvisionRevision], *, page_count: int) -> None:

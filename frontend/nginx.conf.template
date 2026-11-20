@@ -11,6 +11,11 @@ server {
     # if the backend is not reachable yet.
     resolver ${NGINX_RESOLVER} valid=30s ipv6=off;
 
+    # JSON (outlines are tens of kB) compresses ~8x; PDFs must stay byte-exact for Range requests.
+    gzip on;
+    gzip_types application/json application/problem+json;
+    gzip_min_length 1024;
+
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -32,6 +37,16 @@ server {
         # Server-Sent Events (consultation progress, spec 005): do not buffer.
         proxy_buffering off;
         proxy_read_timeout 300s;
+    }
+
+    # pdf.js worker (an ES module): nginx's mime.types has no ".mjs", and browsers refuse module
+    # scripts that are not served as JavaScript. Its name is not hashed, so it is revalidated
+    # (ETag) instead of cached for a year, or a new pdfjs-dist would meet a stale worker.
+    location ~* \.mjs$ {
+        default_type text/javascript;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
     }
 
     # Hashed build assets and fonts can be cached for a long time.

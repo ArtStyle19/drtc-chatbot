@@ -8,7 +8,7 @@ debe respetar en la [constitución](../.specify/memory/constitution.md).
 |---|---|---|---|
 | [001-instrument-catalog](001-instrument-catalog/spec.md) | R0 | ✅ Implementada (Sprint 0) | spec · plan · tasks |
 | [002-corpus-ingestion](002-corpus-ingestion/spec.md) | R1 | ✅ Implementada (Sprint 1) · revisión SC-001 pendiente | spec · plan · data-model · contracts · quickstart · tasks |
-| 003-legal-reader | R1 | ⏳ Backlog | — |
+| [003-legal-reader](003-legal-reader/spec.md) | R1 | ✅ Implementada (Sprint 2) · prueba SC-001 con personas pendiente | spec · plan · contracts · tasks |
 | 004-hybrid-search | R2 | ⏳ Backlog | — |
 | 005-cited-answers | R2 | ⏳ Backlog | — |
 | 006-conversations-feedback | R2 | ⏳ Backlog | — |

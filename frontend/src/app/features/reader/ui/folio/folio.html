@@ -1,0 +1,155 @@
+<section class="folio" aria-labelledby="folio-title">
+  <header class="toolbar">
+    <h2 id="folio-title" class="folio-title">
+      Folio
+      @if (fileName()) {
+        <span class="file-name">{{ fileName() }}</span>
+      }
+    </h2>
+
+    <div class="controls" role="toolbar" aria-label="Controles del visor del PDF">
+      <button
+        type="button"
+        class="tool"
+        aria-label="Página anterior"
+        [disabled]="!canPrevious()"
+        (click)="goTo(page() - 1)"
+      >
+        <svg lucideChevronLeft [size]="16" aria-hidden="true"></svg>
+      </button>
+      <label class="page-field">
+        <span class="sr-only">Número de página</span>
+        <input
+          type="number"
+          inputmode="numeric"
+          min="1"
+          [max]="numPages()"
+          [value]="page()"
+          [disabled]="numPages() === 0"
+          (change)="onPageInput($event)"
+        />
+        <span class="of" aria-hidden="true">/ {{ numPages() }}</span>
+        <span class="sr-only">de {{ numPages() }}</span>
+      </label>
+      <button
+        type="button"
+        class="tool"
+        aria-label="Página siguiente"
+        [disabled]="!canNext()"
+        (click)="goTo(page() + 1)"
+      >
+        <svg lucideChevronRight [size]="16" aria-hidden="true"></svg>
+      </button>
+
+      <span class="divider" aria-hidden="true"></span>
+
+      <button
+        type="button"
+        class="tool"
+        aria-label="Alejar"
+        [disabled]="!canZoomOut()"
+        (click)="zoomOut()"
+      >
+        <svg lucideZoomOut [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button
+        type="button"
+        class="zoom-level"
+        [attr.aria-label]="zoomLabel() + ', restablecer el zoom'"
+        (click)="resetZoom()"
+      >
+        {{ zoomLabel() }}
+      </button>
+      <button
+        type="button"
+        class="tool"
+        aria-label="Acercar"
+        [disabled]="!canZoomIn()"
+        (click)="zoomIn()"
+      >
+        <svg lucideZoomIn [size]="16" aria-hidden="true"></svg>
+      </button>
+
+      <a class="open-link" [href]="sourceUrl()" target="_blank" rel="noopener">
+        <span class="open-text">Abrir PDF</span>
+        <svg lucideExternalLink [size]="14" aria-hidden="true"></svg>
+        <span class="sr-only">(se abre en una pestaña nueva)</span>
+      </a>
+    </div>
+  </header>
+
+  @if (target(); as passage) {
+    <div class="passage">
+      <p class="passage-line">
+        <span class="badge" [class.is-replaced]="passage.replaced">
+          {{ passage.replaced ? 'Texto anterior · no vigente' : 'Pasaje' }}
+        </span>
+        <span class="passage-label">{{ passage.label }}</span>
+        <span class="passage-pages">{{ pagesLabel() }}</span>
+      </p>
+      @if (chips().length > 1) {
+        <ul class="chips" aria-label="Páginas del pasaje">
+          @for (chip of chips(); track chip) {
+            <li>
+              <button
+                type="button"
+                class="chip"
+                [attr.aria-pressed]="chip === page()"
+                (click)="goTo(chip)"
+              >
+                {{ chip }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  } @else {
+    <p class="passage hint">Elija una disposición para ver aquí su página en el PDF.</p>
+  }
+
+  <div
+    #viewport
+    class="viewport"
+    tabindex="0"
+    role="region"
+    aria-label="Página del PDF (desplazable)"
+    [attr.aria-busy]="status() === 'loading'"
+  >
+    @if (status() === 'error') {
+      <div role="alert" class="notice">
+        <p class="notice-title">No se pudo cargar el PDF.</p>
+        <p class="notice-text">El texto de la disposición sigue disponible en la lectura.</p>
+        <div class="notice-actions">
+          <button type="button" class="retry" (click)="retry()">Reintentar</button>
+          <a [href]="sourceUrl()" target="_blank" rel="noopener">Abrir el PDF en una pestaña</a>
+        </div>
+      </div>
+    }
+    @if (status() === 'loading') {
+      <div class="skeleton" aria-hidden="true"></div>
+      <p class="sr-only" role="status">Cargando el PDF…</p>
+    }
+    <div
+      class="page"
+      [class.is-hidden]="status() !== 'ready'"
+      [style.width.px]="pageSize()?.width"
+      [style.height.px]="pageSize()?.height"
+    >
+      <canvas #canvas role="img" [attr.aria-label]="canvasLabel()"></canvas>
+      @for (mark of marks(); track $index) {
+        <div
+          class="mark"
+          [class.is-replaced]="target()?.replaced"
+          aria-hidden="true"
+          [style.left.px]="mark.left"
+          [style.top.px]="mark.top"
+          [style.width.px]="mark.width"
+          [style.height.px]="mark.height"
+        ></div>
+      }
+    </div>
+  </div>
+
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+</section>

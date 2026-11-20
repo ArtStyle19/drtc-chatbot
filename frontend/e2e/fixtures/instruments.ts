@@ -10,6 +10,7 @@ export const instrumentsResponse = {
       issuing_authority: 'Congreso de la República',
       publication_date: '1999-10-08',
       version_count: 1,
+      aliases: ['lgttt'],
       current_edition: {
         version_id: 'ley-27181@2020-05',
         edition_label: 'Compilación no oficial con modificaciones hasta mayo de 2020',
@@ -32,6 +33,7 @@ export const instrumentsResponse = {
       issuing_authority: 'Ministerio de Transportes y Comunicaciones',
       publication_date: '2009-04-22',
       version_count: 1,
+      aliases: ['renat'],
       current_edition: {
         version_id: 'ds-017-2009-mtc@2017-01-04',
         edition_label: 'Edición actualizada del MTC (DGTT)',
@@ -55,6 +57,7 @@ export const instrumentsResponse = {
       issuing_authority: 'Poder Ejecutivo (aprobado por DS 004-2019-JUS; edición MINJUSDH)',
       publication_date: '2019-01-25',
       version_count: 1,
+      aliases: ['lpag', 'tuo'],
       current_edition: {
         version_id: 'tuo-ley-27444@ds-004-2019-jus-ed2021',
         edition_label: 'Segunda Edición Oficial MINJUSDH (julio de 2021)',

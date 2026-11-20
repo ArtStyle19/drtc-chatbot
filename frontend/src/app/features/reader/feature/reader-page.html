@@ -1,0 +1,187 @@
+<div class="page">
+  <div class="top">
+    <a routerLink="/biblioteca" class="back">
+      <svg lucideArrowLeft [size]="14" aria-hidden="true"></svg>
+      Biblioteca
+    </a>
+
+    @if (store.edition(); as edition) {
+      <drtc-edition-header [edition]="edition" />
+    } @else if (store.outlineStatus() === 'loading') {
+      <div class="skeleton-header" aria-hidden="true"></div>
+      <p class="sr-only" role="status">Cargando la norma…</p>
+    }
+  </div>
+
+  @if (store.outlineStatus() === 'error') {
+    <div role="alert" class="alert">
+      <p class="alert-title">No pudimos abrir esta norma.</p>
+      <p class="alert-text">{{ store.outlineError() }}</p>
+      <div class="alert-actions">
+        <button type="button" class="primary" (click)="retryOutline()">Reintentar</button>
+        <a routerLink="/biblioteca">Volver a la biblioteca</a>
+      </div>
+    </div>
+  } @else {
+    <div class="controls" role="group" aria-label="Controles de lectura">
+      <button
+        type="button"
+        class="outline-toggle"
+        aria-controls="indice-norma"
+        [attr.aria-expanded]="outlineOpen()"
+        (click)="toggleOutline()"
+      >
+        <svg lucideListTree [size]="16" aria-hidden="true"></svg>
+        Índice
+      </button>
+      <div class="panes" role="group" aria-label="Qué mostrar">
+        <button type="button" [attr.aria-pressed]="pane() === 'text'" (click)="showPane('text')">
+          Texto
+        </button>
+        <button type="button" [attr.aria-pressed]="pane() === 'pdf'" (click)="showPane('pdf')">
+          PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside id="indice-norma" class="index-panel" [class.is-open]="outlineOpen()">
+        @if (store.outlineStatus() === 'loading') {
+          <div class="skeleton-outline" aria-hidden="true"></div>
+        } @else {
+          <drtc-outline-tree
+            [nodes]="store.tree()"
+            [instrumentId]="norma()"
+            [versionId]="v() ?? null"
+            [currentPath]="currentEntry()?.path ?? null"
+            [ancestors]="ancestors()"
+          />
+        }
+      </aside>
+
+      <section class="reading" [class.is-active]="pane() === 'text'" aria-label="Lectura">
+        @if (store.unitStatus() === 'loading') {
+          <div class="skeleton-text" aria-hidden="true"></div>
+          <p class="sr-only" role="status">Cargando la disposición…</p>
+        } @else if (store.unitStatus() === 'error') {
+          <div role="alert" class="alert">
+            <p class="alert-title">No pudimos mostrar esta disposición.</p>
+            <p class="alert-text">{{ store.unitError() }}</p>
+            <div class="alert-actions">
+              <button type="button" class="primary" (click)="retryUnit()">Reintentar</button>
+              <a [routerLink]="route()">Ir al inicio de la norma</a>
+            </div>
+          </div>
+        } @else if (root(); as unitRoot) {
+          @let lead = unitHeading();
+          <div class="unit-meta">
+            @if (breadcrumb().length > 0) {
+              <nav aria-label="Ubicación en la norma" class="breadcrumb">
+                <ol>
+                  @for (crumb of breadcrumb(); track crumb.entry.path) {
+                    <li>
+                      <a [routerLink]="route()" [queryParams]="linkParams(crumb.entry)">
+                        {{ crumb.label.prefix }}
+                      </a>
+                    </li>
+                  }
+                </ol>
+              </nav>
+            }
+            @if (store.edition(); as edition) {
+              <drtc-validity-seal [status]="edition.verification_status" />
+            }
+          </div>
+          <h2 #heading tabindex="-1" class="unit-heading">
+            <span class="locator">{{ lead?.locator }}</span>
+            @if (lead?.title) {
+              &ngsp;<span class="unit-title">{{ lead?.title }}</span>
+            }
+          </h2>
+
+          @if (isContainer()) {
+            <drtc-container-view
+              [children]="store.unit()?.children ?? []"
+              [instrumentId]="norma()"
+              [versionId]="v() ?? null"
+            />
+          } @else {
+            <ul class="unit" role="list">
+              <li>
+                <drtc-provision-node
+                  [tree]="unitRoot"
+                  [focusPath]="store.focusPath()"
+                  [historyKey]="store.history()"
+                  (viewPassage)="viewPassage($event)"
+                  (showHistory)="viewHistory($event)"
+                />
+              </li>
+            </ul>
+          }
+
+          @let near = around();
+          @if (near.previous || near.next) {
+            <nav aria-label="Disposiciones contiguas" class="neighbours">
+              @if (near.previous; as previous) {
+                <a
+                  class="neighbour previous"
+                  [routerLink]="route()"
+                  [queryParams]="linkParams(previous.entry)"
+                  rel="prev"
+                >
+                  <svg lucideArrowLeft [size]="14" aria-hidden="true"></svg>
+                  <span class="neighbour-text">
+                    <span class="neighbour-hint">Anterior</span>
+                    <span class="neighbour-name">
+                      {{ previous.label.prefix }}
+                      @if (previous.label.title) {
+                        · {{ previous.label.title }}
+                      }
+                    </span>
+                  </span>
+                </a>
+              }
+              @if (near.next; as next) {
+                <a
+                  class="neighbour next"
+                  [routerLink]="route()"
+                  [queryParams]="linkParams(next.entry)"
+                  rel="next"
+                >
+                  <span class="neighbour-text">
+                    <span class="neighbour-hint">Siguiente</span>
+                    <span class="neighbour-name">
+                      {{ next.label.prefix }}
+                      @if (next.label.title) {
+                        · {{ next.label.title }}
+                      }
+                    </span>
+                  </span>
+                  <svg lucideArrowRight [size]="14" aria-hidden="true"></svg>
+                </a>
+              }
+            </nav>
+          }
+        } @else if (store.outlineStatus() === 'ready') {
+          <div class="cover">
+            <h2 class="cover-title">Elija una disposición</h2>
+            <p>
+              Abra un título o un artículo desde el índice, o escriba una referencia en el buscador
+              de arriba: por ejemplo «art. 5», «lit. e del art. 2» o «anexo 2».
+            </p>
+            <p class="cover-note">
+              Cada disposición se muestra con su cita exacta y, al lado, la página del PDF original
+              con el pasaje resaltado.
+            </p>
+          </div>
+        }
+      </section>
+
+      <section class="folio-pane" [class.is-active]="pane() === 'pdf'" aria-label="PDF original">
+        @if (pdfUrl(); as url) {
+          <drtc-folio [sourceUrl]="url" [target]="store.folioTarget()" />
+        }
+      </section>
+    </div>
+  }
+</div>

@@ -11,3 +11,22 @@ export type LegalInstrumentList = Schemas['LegalInstrumentListOut'];
 export type Edition = Schemas['EditionOut'];
 export type InstrumentType = Schemas['InstrumentType'];
 export type VerificationStatus = Schemas['VerificationStatus'];
+
+// ---- reader (spec 003)
+export type Outline = Schemas['OutlineOut'];
+export type OutlineEntry = Schemas['OutlineEntryOut'];
+export type EditionContext = Schemas['EditionContextOut'];
+export type ReadingUnit = Schemas['ReadingUnitOut'];
+export type ReadingNode = Schemas['ReadingNodeOut'];
+export type ReadingRevision = Schemas['ReadingRevisionOut'];
+export type TextBox = Schemas['BoxOut'];
+export type CitationText = Schemas['CitationOut'];
+export type LegalEvent = Schemas['LegalEventOut'];
+export type ReviewWarning = Schemas['ReviewWarningOut'];
+export type EditorialNote = Schemas['EditorialNoteOut'];
+export type ProvisionKind = Schemas['ProvisionKind'];
+
+// ---- reference search (spec 003)
+export type LookupResult = Schemas['LookupOut'];
+export type LookupHit = Schemas['LookupHitOut'];
+export type LookupStatus = Schemas['LookupStatus'];

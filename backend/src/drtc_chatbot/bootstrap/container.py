@@ -22,18 +22,30 @@ from drtc_chatbot.contexts.legal_corpus.api import (
     ApprovalPolicy,
     ApprovalPolicyName,
     ApproveInstrumentVersion,
+    GetOutline,
     GetProvision,
+    GetReadingUnit,
+    GetSourceDocument,
     ListLegalInstruments,
+    ListProvisionIndex,
     ListProvisions,
     PublishProvisions,
     SyncCorpusManifest,
 )
 from drtc_chatbot.contexts.legal_corpus.application.ports import LegalInstrumentCatalog
+from drtc_chatbot.contexts.legal_corpus.infrastructure.local_document_storage import (
+    LocalDocumentStorage,
+)
 from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_catalog import (
     ManifestInstrumentCatalog,
 )
 from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_reader import YamlManifestReader
+from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlReadingStore
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
+from drtc_chatbot.contexts.retrieval.api import LookupReference
+from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
+    LegalCorpusDirectory,
+)
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
 from drtc_chatbot.shared_kernel.infrastructure.system_clock import SystemClock
@@ -46,6 +58,17 @@ class LegalCorpusModule:
     list_legal_instruments: ListLegalInstruments
     list_provisions: ListProvisions
     get_provision: GetProvision
+    get_outline: GetOutline
+    get_reading_unit: GetReadingUnit
+    get_source_document: GetSourceDocument
+    list_provision_index: ListProvisionIndex
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalModule:
+    """Use cases of the retrieval context, as seen by its HTTP router."""
+
+    lookup_reference: LookupReference
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +89,7 @@ class Container:
     identity_provider: IdentityProvider
     legal_corpus: LegalCorpusModule
     ingestion: IngestionModule
+    retrieval: RetrievalModule
 
     async def aclose(self) -> None:
         await self.engine.dispose()
@@ -74,7 +98,10 @@ class Container:
 def build_container(settings: Settings) -> Container:
     engine = create_database_engine(settings.database_url, echo=settings.database_echo)
     clock = SystemClock()
-    store = SqlLegalCorpusStore(async_sessionmaker(engine, expire_on_commit=False))
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    store = SqlLegalCorpusStore(sessions)
+    reading = SqlReadingStore(sessions)
+    documents = LocalDocumentStorage(settings.corpus_manifest_path.parent / "sources")
     catalog: LegalInstrumentCatalog = (
         store
         if settings.catalog_backend == "database"
@@ -91,22 +118,31 @@ def build_container(settings: Settings) -> Container:
         approve,
     )
     extractor = PdfiumTextExtractor()
-    jobs = SqlIngestionJobRepository(async_sessionmaker(engine, expire_on_commit=False))
+    jobs = SqlIngestionJobRepository(sessions)
+    list_instruments = ListLegalInstruments(catalog)
+    list_index = ListProvisionIndex(reading)
     return Container(
         settings=settings,
         engine=engine,
         clock=clock,
         identity_provider=AnonymousIdentityProvider(),
         legal_corpus=LegalCorpusModule(
-            list_legal_instruments=ListLegalInstruments(catalog),
+            list_legal_instruments=list_instruments,
             list_provisions=ListProvisions(store),
             get_provision=GetProvision(store),
+            get_outline=GetOutline(reading),
+            get_reading_unit=GetReadingUnit(reading),
+            get_source_document=GetSourceDocument(reading, documents),
+            list_provision_index=list_index,
         ),
         ingestion=IngestionModule(
             run_ingestion=RunIngestion(gateway, extractor, jobs, clock),
             preview=PreviewIngestion(gateway, extractor),
             gateway=gateway,
             jobs=jobs,
+        ),
+        retrieval=RetrievalModule(
+            lookup_reference=LookupReference(LegalCorpusDirectory(list_instruments, list_index))
         ),
     )
 

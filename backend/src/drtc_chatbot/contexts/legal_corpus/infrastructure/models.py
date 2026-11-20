@@ -45,6 +45,7 @@ class InstrumentRow(Base):
     short_name: Mapped[str] = mapped_column(Text)
     issuing_authority: Mapped[str] = mapped_column(Text)
     publication_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    aliases: Mapped[list[Any]] = mapped_column(JsonType, default=list, server_default="[]")
 
 
 class VersionRow(Base):
@@ -103,6 +104,8 @@ class ProvisionRevisionRow(Base):
     ordinal: Mapped[int] = mapped_column(Integer)
     boxes: Mapped[list[Any]] = mapped_column(JsonType, default=list)
     event: Mapped[dict[str, Any] | None] = mapped_column(JsonType, nullable=True)
+    # Codes of things a person must look at (e.g. an unapplied paragraph replacement).
+    review_flags: Mapped[list[Any]] = mapped_column(JsonType, default=list, server_default="[]")
 
     __table_args__ = (
         UniqueConstraint("provision_id", "instrument_version_id", "revision"),

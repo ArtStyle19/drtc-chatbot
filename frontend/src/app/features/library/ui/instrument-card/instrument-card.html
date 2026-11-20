@@ -25,6 +25,12 @@
     {{ ingestionMessage() }}
   </p>
 
+  @if (canRead()) {
+    <a class="read" [routerLink]="['/biblioteca', instrument().id]">
+      Leer norma<span class="sr-only"> {{ reference() }}</span>
+    </a>
+  }
+
   @if (edition().alerts.length) {
     <details class="alerts">
       <summary>Advertencias ({{ edition().alerts.length }})</summary>

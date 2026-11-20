@@ -1,0 +1,239 @@
+:host {
+  display: block;
+  list-style: none;
+  padding: 0.65rem 0 0.65rem 0.9rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+:host(.is-root) {
+  padding-left: 0;
+  border-left: 0;
+}
+
+:host(.is-focused) {
+  border-left-color: var(--color-ink-600);
+  background: color-mix(in srgb, var(--color-ink-100) 55%, transparent);
+}
+
+:host(.in-focus) {
+  border-left-color: color-mix(in srgb, var(--color-ink-600) 35%, transparent);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+}
+
+.locator {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-ink-600);
+}
+
+.pages {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+}
+
+.actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+:host(.is-root) > .head > .actions,
+:host(.is-focused) > .head > .actions,
+:host(:hover) > .head > .actions,
+:host(:focus-within) > .head > .actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+.see {
+  height: 1.75rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-folio);
+  color: var(--color-ink-600);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.see:hover {
+  background: var(--color-ink-100);
+}
+
+.title {
+  margin: 0.3rem 0 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.text {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.annex-text {
+  max-height: 60vh;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-control);
+}
+
+.annex-text .text {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.event {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.event .source {
+  font-weight: 600;
+}
+
+.event .date {
+  color: var(--color-text-tertiary);
+}
+
+.warning {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-seal-unverified) 35%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--color-seal-unverified-soft);
+  color: var(--color-seal-unverified);
+  font-size: 0.82rem;
+}
+
+.warning p {
+  margin: 0;
+}
+
+.warning svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+.history,
+.notes {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
+
+summary {
+  width: fit-content;
+  padding: 0.1rem 0.2rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.old {
+  margin-top: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px dashed var(--color-seal-repealed);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-seal-repealed-soft) 50%, transparent);
+}
+
+.old.is-viewing {
+  border-style: solid;
+}
+
+.old-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.not-in-force {
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-seal-repealed);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.old-text {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.old-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+}
+
+.notes ul {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes li {
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--color-rule-soft);
+  color: var(--color-text-secondary);
+}
+
+.note-kind {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.children {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}

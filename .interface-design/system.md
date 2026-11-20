@@ -34,8 +34,24 @@ Direction: "Mesa de estudio" — calm reading room + official-gazette precision.
   description; tones via `data-tone`. Must appear wherever a norm/provision is shown.
 - `InstrumentCard` (`features/library/ui`): mono reference → serif title → meta → edition block
   pinned to bottom (seal + edition label + "Actualizado al … · N páginas") → `<details>` alerts.
-- Planned: citation chip with "Copiar cita"; Folio side panel with marker highlight; dictamen-style
-  answer card (Conclusión / Fundamento / Análisis / Excepciones / Fuentes).
+- `Folio` (`features/reader/ui/folio`): white page panel — toolbar (page, zoom, "Abrir PDF"), passage line
+  (marker-yellow "PASAJE" badge + server citation + pages), page chips for multi-page passages, then the
+  canvas on the paper tone. The marker is `--color-marker` with `mix-blend-mode: multiply` so the text
+  stays readable; a replaced text is dashed red ("Texto anterior · no vigente"), never yellow.
+- Reading column: breadcrumb + seal on one row, serif heading ("Artículo 2" + muted title), provision nodes
+  with mono locator + page; the focused node gets an ink left rule and a pale ink wash. Actions ("Ver en el
+  PDF", "Copiar cita", "Cita breve") are quiet until hover/focus and always visible on touch.
+- Replaced text lives in a `<details>` ("Texto anterior, no vigente") with a dashed red border and a solid
+  red "NO VIGENTE" tag; review warnings are amber `role="note"` boxes; editorial notes are a collapsed list.
+- `ReferenceSearch` (header combobox): mono "/" hint, results in a bordered popover; ink outline on the
+  active option; each result shows the server citation, page, a two-line serif snippet and
+  "edición no verificada".
+- Planned: dictamen-style answer card (Conclusión / Fundamento / Análisis / Excepciones / Fuentes).
+
+## Responsive
+- ≥ 1024 px: three columns — index (17rem, sticky) · reading (≤ 46rem) · Folio (22–34rem, sticky).
+- Below: one pane at a time — "Índice" disclosure + segmented Texto | PDF; "Ver en el PDF" switches to PDF.
+- Mobile trims chrome (compact corpus notice, one-row Folio toolbar) so the text starts above the fold.
 
 ## States
 - Loading: pulse skeleton cards with `aria-busy`. Error: `role="alert"` + "Reintentar". Empty: dashed

@@ -11,7 +11,8 @@
 | Contrato | `openapi.json` al día; tipos del frontend generados del contrato | pytest + CI | `backend/tests/e2e/test_openapi_contract.py` |
 | Arquitectura | Reglas de dependencia y estructura de los contextos | import-linter + pytest | `backend/tests/architecture/` |
 | Frontend unitarias | Componentes, stores, utilidades | Vitest | `frontend/src/**/*.spec.ts` |
-| Frontend e2e + a11y | Flujos de usuario y axe (WCAG 2.2 AA) | Playwright | `frontend/e2e/` |
+| Frontend e2e + a11y | Flujos de usuario y axe (WCAG 2.2 AA), con API simulada (respuestas capturadas de la real) o `E2E_REAL_API=1` | Playwright | `frontend/e2e/` |
+| Verificación contra el corpus real | Alineación del resaltado (tinta del canvas bajo cada caja) y bytes realmente descargados del PDF (CDP) | Playwright con la API real | `frontend/e2e/reader.spec.ts` (bloque «Contra el backend real») |
 | Evaluación jurídica | Recall@K, MRR, precisión y cobertura de citas, abstención, fidelidad | arnés propio (spec 004) | `evaluation/` |
 
 ## Reglas

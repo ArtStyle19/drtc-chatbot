@@ -59,6 +59,10 @@ instruments:
     short_name: Ley 27181 (LGTTT)
     issuing_authority: Congreso de la República
     publication_date: 1999-10-08
+    aliases: # names staff use to refer to the norm (reference search); matched without accents or case
+      - lgttt
+      - ley general de transporte
+      - ley general de transporte y transito terrestre
     versions:
       - id: ley-27181@2020-05
         parser: ley-lgttt  # parsing profile used by `drtc-ingest` (ingestion context)
@@ -86,6 +90,12 @@ instruments:
     short_name: RENAT (DS 017-2009-MTC)
     issuing_authority: Ministerio de Transportes y Comunicaciones
     publication_date: 2009-04-22
+    aliases:
+      - renat
+      - reglamento nacional de administracion de transporte
+      - reglamento de transporte
+      - decreto supremo 017-2009-mtc
+      - ds 017-2009-mtc
     versions:
       - id: ds-017-2009-mtc@2017-01-04
         parser: renat  # parsing profile used by `drtc-ingest` (ingestion context)
@@ -110,6 +120,13 @@ instruments:
     short_name: TUO de la Ley 27444 (LPAG)
     issuing_authority: Poder Ejecutivo (aprobado por DS 004-2019-JUS; edición MINJUSDH)
     publication_date: 2019-01-25
+    aliases:
+      - lpag
+      - tuo
+      - tuo lpag
+      - tuo de la lpag
+      - ley del procedimiento administrativo general
+      - ley de procedimiento administrativo general
     versions:
       - id: tuo-ley-27444@ds-004-2019-jus-ed2021
         parser: tuo-lpag  # parsing profile used by `drtc-ingest` (ingestion context)

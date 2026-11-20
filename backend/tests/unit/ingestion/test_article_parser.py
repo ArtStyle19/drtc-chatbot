@@ -9,6 +9,7 @@ from drtc_chatbot.contexts.ingestion.domain.parsing.model import (
     ParseResult,
     RevisionStatus,
     SourceLine,
+    TextBox,
 )
 from drtc_chatbot.contexts.ingestion.domain.parsing.profiles import build_parser
 
@@ -322,6 +323,48 @@ def test_page_footnotes_are_notes_and_do_not_leak_into_the_text() -> None:
     assert "Decreto Legislativo Nº 1272" in note.text
 
 
+def test_footnote_call_numbers_are_not_part_of_a_heading_title() -> None:
+    source = [
+        SourceLine(9, "TÍTULO PRELIMINAR"),
+        SourceLine(9, "Artículo I.- Ámbito"),
+        SourceLine(9, "Texto del ámbito."),
+        SourceLine(9, "TÍTULO IV"),
+        SourceLine(
+            9,
+            "Del procedimiento sancionador (Denominación modificada por el artículo 3 del "
+            "Decreto Legislativo N° 1272)115",
+        ),
+        SourceLine(9, "CAPÍTULO II"),
+        SourceLine(9, "Procedimiento (Capítulo incorporado por el Decreto Legislativo N° 1272)117"),
+        SourceLine(9, "Artículo 229.- Ámbito"),
+        SourceLine(9, "Texto del ámbito."),
+    ]
+    result = build_parser("tuo-lpag").parse(source)
+
+    assert current(result, "titulo:IV").title == (
+        "Del procedimiento sancionador (Denominación modificada por el artículo 3 del "
+        "Decreto Legislativo N° 1272)"
+    )
+    assert current(result, "titulo:IV/capitulo:II").title == (
+        "Procedimiento (Capítulo incorporado por el Decreto Legislativo N° 1272)"
+    )
+
+
+def test_a_title_that_ends_in_a_number_without_a_parenthesis_is_left_alone() -> None:
+    source = [
+        SourceLine(1, "TÍTULO PRELIMINAR"),
+        SourceLine(1, "Artículo I.- Ámbito"),
+        SourceLine(1, "Texto del ámbito."),
+        SourceLine(1, "TÍTULO I"),
+        SourceLine(1, "Régimen del Decreto Legislativo N° 1272"),
+        SourceLine(1, "Artículo 1.- Objeto"),
+        SourceLine(1, "Texto."),
+    ]
+    result = build_parser("tuo-lpag").parse(source)
+
+    assert current(result, "titulo:I").title == "Régimen del Decreto Legislativo N° 1272"
+
+
 def test_list_items_are_numerals_and_roman_preliminary_articles_are_recognized() -> None:
     text = """
 TÍTULO PRELIMINAR
@@ -340,3 +383,78 @@ La presente Ley contiene normas comunes.
     ]
     assert current(result, "articulo:I/numeral:2").text.startswith("Los procedimientos especiales")
     assert current(result, "titulo:PRELIMINAR").title == "Del régimen jurídico"
+
+
+ANNEX_WITH_NOTES = """
+Artículo 138.- Vigencia
+El presente Reglamento entra en vigencia al día siguiente de su publicación.
+ANEXO 1
+TABLA DE INCUMPLIMIENTO
+(*) C.4c El incumplimiento de las condiciones de acceso
+Leve Suspensión de la autorización
+“C.4b Texto de una fila modificada”
+a) Primera condición
+ANEXO 2
+TABLA DE INFRACCIONES Y SANCIONES
+F.1 Prestar el servicio sin autorización
+Muy grave Multa de 1 UIT
+"""
+
+
+@pytest.mark.spec("002-FR-001")
+def test_an_annex_keeps_all_of_its_table_text_instead_of_turning_it_into_notes() -> None:
+    result = parse(ANNEX_WITH_NOTES, "ley-lgttt")
+
+    annex_1, annex_2 = current(result, "anexo:1"), current(result, "anexo:2")
+    assert annex_1.title == "TABLA DE INCUMPLIMIENTO"
+    assert "TABLA DE INCUMPLIMIENTO" not in annex_1.text
+    assert "C.4c El incumplimiento" in annex_1.text
+    assert "Texto de una fila modificada" in annex_1.text
+    assert "Primera condición" in annex_1.text
+    assert "Muy grave Multa de 1 UIT" in annex_2.text
+    assert "Muy grave" not in annex_1.text
+    assert not [
+        p for p in result.provisions if p.path.startswith("anexo:1/")
+    ]  # no literals in tables
+    assert result.notes == ()
+
+
+def test_annexes_are_flagged_because_a_table_loses_its_structure_and_keep_no_boxes() -> None:
+    boxed = [
+        SourceLine(p, t, TextBox(p, 10, 10, 100, 20))
+        for p, t in [
+            (1, "Artículo 1.- Objeto"),
+            (1, "Texto del artículo."),
+            (2, "ANEXO 1"),
+            (2, "TABLA"),
+            (3, "Fila de la tabla"),
+        ]
+    ]
+    result = build_parser("ley-lgttt").parse(boxed)
+
+    assert [a.code for a in result.anomalies] == ["annex_table_unstructured"]
+    annex = current(result, "anexo:1")
+    assert (annex.page_start, annex.page_end) == (2, 3)
+    assert len(annex.boxes) == 1  # only the heading: a highlighted table would be the whole page
+
+
+def test_disposiciones_generales_is_a_section_title_not_a_group_of_dispositions() -> None:
+    text = """
+SECCIÓN PRIMERA
+DISPOSICIONES GENERALES
+TÍTULO PRELIMINAR
+Artículo 1 Objeto
+El presente Reglamento regula el servicio.
+SECCIÓN SEXTA
+DISPOSICIONES COMPLEMENTARIAS FINALES
+Primera.- De la vigencia
+Entra en vigencia mañana.
+"""
+    result = parse(text, "ley-lgttt")
+
+    assert current(result, "seccion:primera").title == "DISPOSICIONES GENERALES"
+    assert not [p for p in result.provisions if "generales" in p.path]
+    assert (
+        current(result, "seccion:sexta/disposiciones:complementarias-finales/primera").title
+        == "De la vigencia"
+    )
