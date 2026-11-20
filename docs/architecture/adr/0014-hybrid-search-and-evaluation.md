@@ -1,6 +1,6 @@
 # 0014. Búsqueda por contenido híbrida, con la evaluación primero
 
-- Estado: **propuesta** (pasa a aceptada cuando se registren las cifras del significado, ver «Resultados»)
+- Estado: aceptada (el **modelo** de significado es un ajuste de configuración, no parte de esta decisión: ver «Resultados»)
 - Fecha: 2026-11-19
 - Decisores: líder del proyecto (spec 004)
 
@@ -39,7 +39,7 @@ detrás de un puerto; índice aproximado (HNSW) frente a recorrido exacto.
    (PostgreSQL FTS `spanish`, consulta con OR y ampliada con las tildes del corpus, `ts_rank_cd` con
    normalización por longitud y pesos 0,1/0,2/0,4/0,4, resaltado como segmentos y nunca HTML) y significado
    (embeddings en pgvector, **coseno exacto, sin índice aproximado**: 2.896 ventanas se recorren en milisegundos)
-   → fusionados con **RRF (k = 60, 50 candidatos por brazo)** y agrupados por unidad de lectura.
+   → fusionados con **RRF ponderado (k = 5, el significado pesa 6 veces lo que las palabras, 50 candidatos por brazo)** y agrupados por unidad de lectura con el mejor pasaje de cada una.
 3. **Degradar, no fallar.** Sin proveedor, con error, con cuota agotada, con demora (3 s) o con vectores sin
    calcular, la búsqueda responde `200` con palabras y `degraded` dice por qué.
 4. **El índice es derivado y reconstruible** (`retrieval_passages` con `tsvector` generado,
@@ -60,6 +60,7 @@ detrás de un puerto; índice aproximado (HNSW) frente a recorrido exacto.
 
 - `unaccent` + `spanish_stem` rompía «-ción»: configuración `spanish` + ampliación de la consulta.
 - La normalización por longitud casi **duplicó el MRR** de palabras (0,226 → 0,445).
+- **Con pesos iguales la combinada empeoraba al método bueno**: el significado solo llega a 100 % de acierto@10 y las palabras a 67 %, y la combinada con RRF clásico (k = 60, pesos iguales) quedó en 98 % (SC-004 fallaba). Los dos son complementarios pero asimétricos: se ponderó el brazo fuerte. Con el peso elegido el orden por unidad es idéntico al del significado solo: las palabras aportan robustez, resaltado y funcionar sin proveedor, **no** una ganancia medible en este golden set.
 - El analizador del corpus leía referencias cruzadas como numerales (RENAT 108.1.8 fantasma, art. 20.1 con
   todo el texto sustituido); se corrigió con pruebas contra el PDF.
 - La comprobación de privacidad con el stack real encontró **tres fugas** del texto de la búsqueda (422,
@@ -82,15 +83,22 @@ detrás de un puerto; índice aproximado (HNSW) frente a recorrido exacto.
 
 ## Resultados de la medición
 
-> **Pendiente**: vectorizar el corpus completo con el modelo elegido y correr
-> `drtc-retrieval eval --modes lexical,vector,hybrid`. Hasta entonces solo hay cifras de palabras.
+Golden set `golden-v1` (61 preguntas, 52 con respuesta, todas `draft`), `gemini-embedding-2` (3.072 dimensiones), corpus completo
+(2.896 ventanas). Nivel unidad de lectura. Informes en `evaluation/reports/` (`2026-11-19-lexical+vector+hybrid` y
+`2026-11-19-fusion-tuning`).
 
-| Método (nivel unidad, 52 preguntas con respuesta) | acierto@10 | MRR | p95 |
-|---|---|---|---|
-| Exacto | 12 % | 0,118 | 29 ms |
-| Palabras | 67 % | 0,445 | 47 ms |
-| Significado | pendiente | pendiente | pendiente |
-| Combinada | pendiente | pendiente | pendiente |
+| Método | acierto@1 | @3 | @5 | @10 | MRR | p95 |
+|---|---|---|---|---|---|---|
+| Exacto | — | — | — | 12 % | 0,118 | 29 ms |
+| Palabras | 31 % | 51 % | 59 % | 67 % | 0,445 | 39 ms |
+| Significado | 84 % | 96 % | 98 % | 100 % | 0,907 | 933 ms (llamada a Google incluida) |
+| Combinada, pesos iguales (descartada) | 71 % | 84 % | 88 % | 98 % | 0,792 | — |
+| **Combinada elegida (k = 5, ×6)** | **84 %** | **96 %** | **98 %** | **100 %** | **0,907** | — |
 
-Modelo elegido, costo real (SC-010 < US$ 0,50), ablaciones (k de RRF, candidatos por brazo) y la decisión
-sobre el reordenador: **pendientes**.
+- **Costo**: US$ 0 en el plan gratuito de Google (cota superior de pago ≈ US$ 0,11 por vectorizar el corpus y evaluar; Google no informa los tokens).
+- **Reordenador**: no se justifica. Las 8 preguntas que no quedan 1.as tienen la unidad esperada entre las 6 primeras.
+- **Abstención** (spec 005): las 9 preguntas sin respuesta devuelven resultados igualmente; el coseno del mejor resultado va de 0,62 a 0,74
+  en ellas. La búsqueda no decide si «hay respuesta»; eso se calibra en la spec 005 con el coseno, no con el puntaje fusionado.
+- **Qué falta y no cambia esta decisión**: comparar con OpenAI (`text-embedding-3-small`/`large`) cuando haya una clave válida, y con
+  `gemini-embedding-001`; el golden set debe aprobarlo el revisor jurídico y ampliarse con preguntas reales del personal (puede estar sesgado hacia el significado);
+  y repetir el barrido de fusión con esas preguntas.

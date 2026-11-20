@@ -16,3 +16,11 @@ Brazo de palabras ajustado con el golden set (T024): normalización de ts_rank_c
 
 - **exact**: unidad acierto@10 12 %, MRR 0.118
 - **lexical**: unidad acierto@10 67 %, MRR 0.445
+
+## 2026-11-19
+
+Medición del brazo de significado y de la combinada con `gemini-embedding-2` (corpus completo vectorizado). **`baseline.json` no cambia**: la compuerta determinista sigue siendo exacta + palabras, porque significado y combinada necesitan una clave y cuestan dinero. Lo que sí cambia es el ajuste de fusión por defecto (`DRTC_SEARCH_RRF_K` 60 → 5 y nuevo `DRTC_SEARCH_VECTOR_WEIGHT` = 6): con pesos iguales la combinada (acierto@10 98 %, MRR 0,792) quedaba por debajo del significado solo (100 %, 0,907) y SC-004 fallaba; con el ajuste la combinada iguala al significado (100 %, 0,907). Detalle en `evaluation/reports/2026-11-19-fusion-tuning.md` y en `…-lexical+vector+hybrid.md`; el informe con pesos iguales se conserva como `…-equal-weights`.
+
+- **lexical**: unidad acierto@10 67 %, MRR 0.445 (sin cambios)
+- **vector** (`gemini-embedding-2`): unidad acierto@10 100 %, MRR 0.907
+- **hybrid** (k = 5, significado × 6): unidad acierto@10 100 %, MRR 0.907

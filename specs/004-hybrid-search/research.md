@@ -64,9 +64,9 @@ Con la clave de OpenAI rechazada (HTTP 401) y sin API de embeddings en DeepSeek 
 
 ## R7. Fusión
 
-- **Decisión**: RRF con `k = 60` sobre los 50 primeros de cada brazo (a nivel de pasaje) → agrupar por unidad de lectura con el puntaje del mejor pasaje → devolver hasta `limit` unidades.
+- **Decisión inicial**: RRF con `k = 60` sobre los 50 primeros de cada brazo (a nivel de pasaje) → agrupar por unidad de lectura con el puntaje del mejor pasaje → devolver hasta `limit` unidades.
   El brazo exacto no entra en la fusión: va primero (I.6) y se quita de la lista del resto para que no se repita.
-- **Se mide**: `k` ∈ {20, 60}, pesos por brazo, máximo vs suma al agrupar, N por brazo.
+- **Medido (2026-11-19, [informe](../../evaluation/reports/2026-11-19-fusion-tuning.md))**: con pesos iguales y k = 60 la combinada quedó **por debajo** del significado solo (98 % < 100 %) porque el brazo de palabras es mucho más débil (67 %). Decisión: **k = 5 y el brazo de significado pesa 6** (`DRTC_SEARCH_RRF_K`, `DRTC_SEARCH_VECTOR_WEIGHT`); agrupar por **el mejor pasaje (`max`)** y no por la suma (la suma es mucho peor: MRR 0,59); candidatos por brazo N = 50 (20-200 es ruido).
 - **Alternativa**: combinar puntajes crudos (escalas incomparables entre `ts_rank_cd` y distancia coseno); aprendizaje de ordenamiento (sin datos suficientes).
 
 ## R8. Criterio de acierto en la evaluación

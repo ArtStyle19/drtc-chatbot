@@ -16,7 +16,7 @@ Regional de Transportes y Comunicaciones de Puno. Sirve para tres cosas:
 > («plazo para apelar»): `make index` y la página «Buscar en el texto» (`/buscar`) listan las disposiciones
 > que coinciden, con su fuente. **Son coincidencias, no una respuesta**: el bot que responde con citas llega
 > en las specs 005-006 ([roadmap](docs/product/roadmap.md)). La búsqueda por significado necesita una clave
-> de OpenAI (`DRTC_OPENAI_API_KEY`); sin ella la búsqueda funciona con palabras y lo avisa.
+> de OpenAI o de Google Gemini (`DRTC_OPENAI_API_KEY` / `DRTC_GEMINI_API_KEY`); sin ella la búsqueda funciona con palabras y lo avisa.
 >
 > **Aviso:** las tres ediciones cargadas son **de prueba y no están verificadas**; al menos una
 > (TUO de la Ley 27444, DS 004-2019-JUS) habría sido sustituida por el DS 006-2026-JUS. Ver
@@ -65,8 +65,8 @@ make dev-backend      # API en http://localhost:8000 (docs: /api/docs)
 make dev-frontend     # interfaz en http://localhost:4200
 ```
 
-La búsqueda por **significado** es opcional: pon `DRTC_OPENAI_API_KEY` en `.env` (nunca en el código) y
-ejecuta `make embed`, que **muestra el costo estimado y pide confirmación** antes de enviar nada. Sin clave,
+La búsqueda por **significado** es opcional: pon `DRTC_OPENAI_API_KEY` (o `DRTC_GEMINI_API_KEY` con
+`DRTC_EMBEDDING_PROVIDER=gemini`) en `.env` (nunca en el código) y ejecuta `make embed`, que **muestra el costo estimado y pide confirmación** antes de enviar nada. Sin clave,
 `/buscar` responde con palabras y lo avisa. Cómo medir la calidad: [evaluation/README.md](evaluation/README.md).
 
 O todo en contenedores: `make up` → http://localhost:8080. Detalles y solución de problemas en

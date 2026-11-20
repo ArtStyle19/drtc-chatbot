@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-18
 
-**Status**: Implementada salvo la medición con la clave real (T036-T038) y la prueba con personas (SC-011)
+**Status**: Implementada y medida con Gemini (SC-003 y SC-004 cumplidos); falta comparar con OpenAI cuando haya clave válida (SC-010) y la prueba con personas (SC-011)
 
 **Input**: "Que el personal encuentre disposiciones escribiendo lo que busca en lenguaje natural ('¿se puede
 cobrar por el servicio de mototaxi?') y no solo por referencia. Combina la búsqueda exacta por
@@ -271,15 +271,17 @@ depurar la búsqueda y explicar sus resultados al revisor.
 |---|---|---|
 | SC-001 | ✅ | `golden-v1.jsonl`: 61 preguntas (52 con respuesta, 9 sin respuesta), todas `draft` hasta que las apruebe el revisor; `tests/integration/corpus/test_golden_set.py` y `tests/e2e/test_golden_set_corpus.py` verifican ruta, páginas y texto de respaldo contra el PDF y el corpus ingerido |
 | SC-002 | ✅ | Brazo exacto: 6 de 6 preguntas con referencia explícita en el 1.er lugar y ninguna sin respuesta devuelve resultados (`evaluation/baseline.json`) |
-| SC-003 | ⏳ | Solo palabras: acierto@10 por unidad 67 %, MRR 0,445 (no alcanza solo). La combinada se mide con la clave real (T036); los umbrales siguen siendo provisionales |
-| SC-004 | ⏳ | Necesita las tres corridas (palabras, significado, combinada) con la clave real |
-| SC-005 | ◐ | Palabras: p50 19 ms · p95 47 ms (< 0,5 s ✅). Con significado (llamada a OpenAI) se mide con la clave real |
+| SC-003 | ✅ | `gemini-embedding-2` (2026-11-19): combinada acierto@10 por unidad **100 %**, MRR **0,907** (umbrales provisionales ≥ 85 % y ≥ 0,60: superados con holgura; **no se suben** porque el golden set es un borrador del asistente y puede favorecer al significado). Palabras solas: 67 % / 0,445 · significado solo: 100 % / 0,907. Informe `evaluation/reports/2026-11-19-lexical+vector+hybrid.md` |
+| SC-004 | ✅ | Con pesos iguales **fallaba** (combinada 98 % < significado 100 %, MRR 0,792 < 0,907; informe `…-equal-weights`). Tras el ajuste de la fusión (k = 5, el significado pesa 6 veces, [informe de ajuste](../../evaluation/reports/2026-11-19-fusion-tuning.md)) la combinada **iguala** al significado en las cifras por unidad (100 % = 100 %, MRR 0,907 = 0,907), orden idéntico en las 61 preguntas |
+| SC-005 | ✅ | Palabras: p50 16 ms · p95 39 ms (< 0,5 s). Con significado la llamada a Google domina: p50 531 ms · p95 933 ms (< 2 s) y el tiempo límite de la consulta interactiva es 3 s; si Google no responde, se degrada a palabras |
 | SC-006 | ✅ | `test_without_a_meaning_provider_the_api_still_answers_with_words_and_says_why`, pruebas de degradación (sin clave, error, demora, vectores sin calcular) |
 | SC-007 | ✅ | Comprobado una vez: degradar a propósito el brazo de palabras hace fallar `test_retrieval_baseline.py`; ejecución normal pasa |
 | SC-008 | ✅ | Playwright + axe (WCAG 2.2 AA): resultados, degradado, vacío, error, sin texto, panel del encabezado y diagnóstico, escritorio y móvil; operable con teclado |
 | SC-009 | ✅ | `test_nothing_is_ever_presented_as_current_while_the_editions_are_unverified` (API) y `result-card.spec.ts` (el sello solo puede volverse más cauteloso) |
-| SC-010 | ◐ | Estimación previa (cota superior): 2.896 ventanas, 1,55 M caracteres ≈ 516.654 tokens → small ≤ US$ 0,0103, large ≤ US$ 0,0672; las cuatro corridas previstas (small, large, large@1024, large@1536) ≤ US$ 0,21. El costo real se registra tras la corrida (T036) |
+| SC-010 | ◐ | Corpus completo (2.896 ventanas) y las 61 preguntas vectorizados con `gemini-embedding-2`: **US$ 0 en el plan gratuito** (cota superior de pago ≈ US$ 0,11; Google no informa los tokens, la cifra de tokens es estimada). **Falta** comparar con OpenAI (`text-embedding-3-small`/`large`): su clave fue rechazada (401); ver ADR-0014 |
 | SC-011 | ⏳ | Pendiente de prueba con personas |
+
+**Hallazgos del Sprint 3 al medir el significado** (2026-11-19): (1) el significado solo supera con claridad a las palabras en este golden set (acierto@10 100 % frente a 67 %); (2) los dos métodos son complementarios pero con **pesos iguales la combinada empeora** al método bueno, por eso el significado pesa 6 veces y k = 5; (3) con esa configuración las palabras no cambian el orden por unidad: su valor es la robustez, el resaltado y funcionar sin proveedor; (4) las 9 preguntas **sin respuesta** devuelven resultados igualmente (la búsqueda siempre devuelve algo): la **abstención** se calibra en la spec 005 con el coseno del significado (0,62-0,74 en esas preguntas), no con el puntaje fusionado; (5) Gemini, plan gratuito: 100 solicitudes/minuto y 1.000/día, una por texto: el corpus completo no cabe en un día.
 
 **Hallazgos que cambiaron el diseño** (detalle en [research](research.md) y en los informes de `evaluation/reports/`):
 `unaccent` + `spanish_stem` rompía el singular/plural de «-ción» (366 de 6.403 palabras) → configuración `spanish` +
