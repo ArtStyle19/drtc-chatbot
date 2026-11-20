@@ -15,6 +15,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/reader/feature/reader-page').then((m) => m.ReaderPage),
   },
   {
+    // No static `title`: the page sets it from what is searched.
+    path: 'buscar',
+    loadComponent: () => import('./features/search/feature/search-page').then((m) => m.SearchPage),
+  },
+  {
     path: 'consultas',
     title: 'Consultas · DRTC Puno',
     loadComponent: () => import('./features/chat/feature/chat-page').then((m) => m.ChatPage),

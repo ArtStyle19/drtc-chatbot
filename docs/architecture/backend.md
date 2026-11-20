@@ -77,6 +77,31 @@ En la spec 002 el adaptador se reemplaza por un repositorio PostgreSQL en `boots
   el detalle en el registro; nunca revela rutas.
 - El servicio de PDF no recibe rutas del cliente: solo el id de una edición aprobada.
 
+## Búsqueda por contenido (spec 004)
+
+| Ruta / comando | Caso de uso | Puertos → adaptadores |
+|---|---|---|
+| `GET /search?q=&limit=&instrument=&mode=&debug=` | `SearchPassages` | `Retriever` (exacto = `LookupReference`, palabras, significado) · `PassageIndex` → `SqlPassageIndex` · `EmbeddingProvider` → `OpenAIEmbeddingProvider` / `GeminiEmbeddingProvider` (mismo adaptador apuntado a Google, con prefijos por propósito y un limitador de tokens por minuto) / `FakeEmbeddingProvider` · `EditionCatalog` → `LegalCorpusEditions` |
+| `drtc-retrieval index` | `BuildIndex` (idempotente: compara `content_hash`; borra lo que ya no existe) | `PassageSource` → `LegalCorpusPassages` (solo `legal_corpus.api`) · `PassageIndex` |
+| `drtc-retrieval embed` | `EmbedPassages` (estimación + confirmación; guarda por lotes, se puede reanudar) | `EmbeddingProvider` · `PassageIndex` |
+| `drtc-retrieval eval` | `RunEvaluation` (+ compuerta de línea base) | `GoldenSet` → `JsonlGoldenSet` · `EvaluationStore` → `EvaluationFiles` |
+
+- **Orden de la respuesta:** la referencia exacta va **primero** y marcada (constitución I.6); luego
+  palabras y significado **fusionados con RRF** y agrupados por unidad de lectura. El filtro por norma se
+  aplica **antes** del límite; las facetas cuentan todas las normas.
+- **Degradación:** sin clave, con error o demora (3 s) del proveedor, o con vectores sin calcular, la
+  búsqueda responde `200` con palabras y `degraded`. Una búsqueda nunca falla por culpa del proveedor.
+- **El dominio no sabe de SQL ni de OpenAI:** `domain/` tiene el fragmentado (`chunking`), la fusión
+  (`fusion`), las métricas, el análisis de la consulta (`query`), el costo (`pricing`) y los errores. El
+  adaptador de OpenAI traduce **todo** fallo a un error de dominio de mensaje fijo: ni la clave ni el
+  texto de la búsqueda pueden aparecer en un error.
+- **Privacidad:** el texto de una búsqueda no se guarda ni se registra (solo su tamaño); las respuestas
+  422 no lo devuelven; la aplicación registra cada petición **sin la cadena de consulta**, `uvicorn` corre
+  con `--no-access-log` y `nginx` usa un formato de registro sin parámetros ni `Referer`.
+- El índice es **derivado y reconstruible** (ADR-0005): `retrieval_passages` (con `tsvector` generado),
+  `retrieval_embeddings` (varios modelos conviven; vector sin dimensión fija; sin índice ANN) y
+  `retrieval_accents` (vocabulario de tildes del corpus).
+
 ## Patrones
 
 | Patrón | Dónde | Nota |

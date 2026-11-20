@@ -154,3 +154,31 @@ input::placeholder {
   font-size: 0.72rem;
   color: var(--color-text-tertiary);
 }
+
+/* The way out to the content search: set apart from the results by a rule, like a footer of the list. */
+.text-option {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--color-rule-soft);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  color: var(--color-ink-600);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.text-option-icon {
+  flex: none;
+}
+
+.text-option-label {
+  display: flex;
+  min-width: 0;
+}
+
+.text-option-query {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

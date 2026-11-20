@@ -1,8 +1,13 @@
 # Rendered at container start by the nginx image (envsubst): ${BACKEND_UPSTREAM} and
 # ${NGINX_RESOLVER} come from the environment (defaults in the Dockerfile).
 # Serves the Angular build and proxies the API, so the browser only talks to one origin.
+# Privacy (constitution VI): what a person searches for travels in the URL (?q=) and in the Referer of the
+# API calls the page makes. The access log therefore records the PATH only: no query string, no referer.
+log_format drtc '$remote_addr [$time_local] "$request_method $uri" $status $body_bytes_sent $request_time $request_id';
+
 server {
     listen 8080;
+    access_log /dev/stdout drtc;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;

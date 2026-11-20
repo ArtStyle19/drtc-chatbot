@@ -4,9 +4,10 @@ Dependencies are wired by hand on purpose (ADR-0002): it keeps the wiring explic
 to read. Revisit a DI library (e.g. dishka) only when this file becomes hard to maintain.
 """
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
@@ -26,6 +27,8 @@ from drtc_chatbot.contexts.legal_corpus.api import (
     GetProvision,
     GetReadingUnit,
     GetSourceDocument,
+    ListApprovedEditions,
+    ListIndexablePassages,
     ListLegalInstruments,
     ListProvisionIndex,
     ListProvisions,
@@ -43,9 +46,33 @@ from drtc_chatbot.contexts.legal_corpus.infrastructure.manifest_reader import Ya
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_reading import SqlReadingStore
 from drtc_chatbot.contexts.legal_corpus.infrastructure.sql_store import SqlLegalCorpusStore
 from drtc_chatbot.contexts.retrieval.api import LookupReference
+from drtc_chatbot.contexts.retrieval.application.build_index import BuildIndex
+from drtc_chatbot.contexts.retrieval.application.embed_passages import EmbedPassages
+from drtc_chatbot.contexts.retrieval.application.exact_retriever import ExactRetriever
+from drtc_chatbot.contexts.retrieval.application.hybrid_retriever import HybridRetriever
+from drtc_chatbot.contexts.retrieval.application.lexical_retriever import LexicalRetriever
+from drtc_chatbot.contexts.retrieval.application.ports import (
+    EmbeddingProvider,
+    EvaluationStore,
+    GoldenSet,
+    PassageIndex,
+    Retriever,
+)
+from drtc_chatbot.contexts.retrieval.application.run_evaluation import RunEvaluation
+from drtc_chatbot.contexts.retrieval.application.search_passages import SearchPassages
+from drtc_chatbot.contexts.retrieval.application.vector_retriever import VectorRetriever
+from drtc_chatbot.contexts.retrieval.infrastructure.evaluation_files import FileEvaluationStore
+from drtc_chatbot.contexts.retrieval.infrastructure.fake_embeddings import FakeEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.gemini_embeddings import GeminiEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.jsonl_golden_set import JsonlGoldenSet
 from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_directory import (
     LegalCorpusDirectory,
 )
+from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_editions import LegalCorpusEditions
+from drtc_chatbot.contexts.retrieval.infrastructure.legal_corpus_passages import LegalCorpusPassages
+from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import OpenAIEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.query_cache import QueryCachingEmbeddingProvider
+from drtc_chatbot.contexts.retrieval.infrastructure.sql_passage_index import SqlPassageIndex
 from drtc_chatbot.shared_kernel.application import Clock, IdentityProvider
 from drtc_chatbot.shared_kernel.infrastructure.database import create_database_engine
 from drtc_chatbot.shared_kernel.infrastructure.system_clock import SystemClock
@@ -62,6 +89,7 @@ class LegalCorpusModule:
     get_reading_unit: GetReadingUnit
     get_source_document: GetSourceDocument
     list_provision_index: ListProvisionIndex
+    list_indexable_passages: ListIndexablePassages
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,6 +97,26 @@ class RetrievalModule:
     """Use cases of the retrieval context, as seen by its HTTP router."""
 
     lookup_reference: LookupReference
+    search_passages: SearchPassages
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalCliModule:
+    """What the ``drtc-retrieval`` command line needs from the retrieval context."""
+
+    run_evaluation: RunEvaluation
+    build_index: BuildIndex
+    embed_passages: EmbedPassages | None  # None when no meaning provider is configured
+    embedding: EmbeddingProvider | None
+    search_passages: SearchPassages
+    passage_index: PassageIndex
+    retrievers: Mapping[str, Retriever]
+    default_dataset: Path
+    store: EvaluationStore
+    clock: Clock
+
+    def golden_set(self, path: Path) -> GoldenSet:
+        return JsonlGoldenSet(path)
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,12 +138,35 @@ class Container:
     legal_corpus: LegalCorpusModule
     ingestion: IngestionModule
     retrieval: RetrievalModule
+    retrieval_cli: RetrievalCliModule
 
     async def aclose(self) -> None:
         await self.engine.dispose()
 
 
-def build_container(settings: Settings) -> Container:
+def build_embedding_provider(settings: Settings) -> EmbeddingProvider | None:
+    """The meaning provider the settings ask for (None = the search answers with words only)."""
+    if settings.embedding_provider == "openai" and settings.openai_api_key is not None:
+        return OpenAIEmbeddingProvider(
+            settings.openai_api_key,
+            settings.openai_embedding_model,
+            dimensions=settings.openai_embedding_dimensions,
+        )
+    if settings.embedding_provider == "gemini" and settings.gemini_api_key is not None:
+        return GeminiEmbeddingProvider(
+            settings.gemini_api_key,
+            settings.gemini_embedding_model,
+            max_tokens_per_minute=settings.gemini_max_tokens_per_minute,
+            max_requests_per_minute=settings.gemini_max_requests_per_minute,
+        )
+    if settings.embedding_provider == "fake":
+        return FakeEmbeddingProvider()
+    return None
+
+
+def build_container(settings: Settings, *, remember_queries: bool = False) -> Container:
+    """``remember_queries`` is for the command line only (an evaluation embeds the same question
+    many times): the web application leaves it off so what people search for is never kept."""
     engine = create_database_engine(settings.database_url, echo=settings.database_echo)
     clock = SystemClock()
     sessions = async_sessionmaker(engine, expire_on_commit=False)
@@ -121,6 +192,23 @@ def build_container(settings: Settings) -> Container:
     jobs = SqlIngestionJobRepository(sessions)
     list_instruments = ListLegalInstruments(catalog)
     list_index = ListProvisionIndex(reading)
+    directory = LegalCorpusDirectory(list_instruments, list_index)
+    lookup = LookupReference(directory)
+    passage_index = SqlPassageIndex(sessions)
+    passage_source = LegalCorpusPassages(list_instruments, ListIndexablePassages(reading))
+    embedding = build_embedding_provider(settings)
+    if embedding is not None and remember_queries:
+        embedding = QueryCachingEmbeddingProvider(embedding)
+    search = SearchPassages(
+        lookup,
+        passage_index,
+        LegalCorpusEditions(ListApprovedEditions(catalog, reading)),
+        embedding,
+        rrf_k=settings.search_rrf_k,
+        vector_weight=settings.search_vector_weight,
+        arm_top_n=settings.search_arm_top_n,
+        vector_timeout_seconds=settings.search_vector_timeout_seconds,
+    )
     return Container(
         settings=settings,
         engine=engine,
@@ -134,6 +222,7 @@ def build_container(settings: Settings) -> Container:
             get_reading_unit=GetReadingUnit(reading),
             get_source_document=GetSourceDocument(reading, documents),
             list_provision_index=list_index,
+            list_indexable_passages=ListIndexablePassages(reading),
         ),
         ingestion=IngestionModule(
             run_ingestion=RunIngestion(gateway, extractor, jobs, clock),
@@ -141,8 +230,23 @@ def build_container(settings: Settings) -> Container:
             gateway=gateway,
             jobs=jobs,
         ),
-        retrieval=RetrievalModule(
-            lookup_reference=LookupReference(LegalCorpusDirectory(list_instruments, list_index))
+        retrieval=RetrievalModule(lookup_reference=lookup, search_passages=search),
+        retrieval_cli=RetrievalCliModule(
+            run_evaluation=RunEvaluation(directory),
+            build_index=BuildIndex(passage_source, passage_index),
+            embed_passages=EmbedPassages(passage_index, embedding) if embedding else None,
+            embedding=embedding,
+            search_passages=search,
+            passage_index=passage_index,
+            retrievers={
+                "exact": ExactRetriever(lookup),
+                "lexical": LexicalRetriever(passage_index),
+                "vector": VectorRetriever(passage_index, embedding),
+                "hybrid": HybridRetriever(search),
+            },
+            default_dataset=settings.evaluation_dir / "datasets" / "golden-v1.jsonl",
+            store=FileEvaluationStore(settings.evaluation_dir),
+            clock=clock,
         ),
     )
 
@@ -153,5 +257,15 @@ async def ingestion_module(settings: Settings | None = None) -> AsyncIterator[In
     container = build_container(settings or Settings())
     try:
         yield container.ingestion
+    finally:
+        await container.aclose()
+
+
+@asynccontextmanager
+async def retrieval_module(settings: Settings | None = None) -> AsyncIterator[RetrievalCliModule]:
+    """Use-case bundle for ``drtc-retrieval``; closes the database pool when done."""
+    container = build_container(settings or Settings(), remember_queries=True)
+    try:
+        yield container.retrieval_cli
     finally:
         await container.aclose()

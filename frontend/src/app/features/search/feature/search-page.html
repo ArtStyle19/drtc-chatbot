@@ -1,0 +1,140 @@
+<section class="mx-auto max-w-4xl px-6 py-6 sm:py-10" aria-labelledby="buscar-titulo">
+  <header>
+    <p class="font-mono text-xs uppercase tracking-widest text-text-tertiary">
+      Búsqueda por contenido
+    </p>
+    <h1 id="buscar-titulo" class="mt-2 font-serif text-2xl text-ink-900 sm:text-3xl">
+      Buscar en el texto
+    </h1>
+    <p class="mt-2 text-text-secondary sm:mt-3">
+      Son coincidencias con el texto de las normas, con su fuente:
+      <strong class="font-semibold">no son una respuesta ni una opinión legal.</strong>
+    </p>
+  </header>
+
+  <form role="search" class="search-form" (submit)="submit($event)">
+    <label for="buscar-texto" class="block text-sm font-semibold text-ink-900">
+      ¿Qué quiere encontrar?
+    </label>
+    <div class="row">
+      <div class="field">
+        <svg lucideSearch [size]="16" class="icon" aria-hidden="true"></svg>
+        <input
+          #field
+          id="buscar-texto"
+          name="q"
+          type="search"
+          autocomplete="off"
+          spellcheck="false"
+          enterkeyhint="search"
+          aria-describedby="buscar-privacidad"
+          [attr.maxlength]="maxLength"
+          [value]="query()"
+        />
+      </div>
+      <button type="submit" class="submit">Buscar</button>
+    </div>
+    <p id="buscar-privacidad" class="privacy">
+      Para buscar por significado, el texto que escribe puede enviarse a un servicio externo. No
+      escriba nombres, DNI, placas ni datos de casos reales.
+    </p>
+  </form>
+
+  @if (diagnosticsAvailable) {
+    <p class="mt-3">
+      <button
+        type="button"
+        class="link-button"
+        [attr.aria-pressed]="diagnostics()"
+        (click)="toggleDiagnostics()"
+      >
+        {{ diagnostics() ? 'Ocultar diagnóstico' : 'Mostrar diagnóstico' }}
+      </button>
+    </p>
+  }
+
+  <div class="mt-6 sm:mt-8">
+    @if (!query()) {
+      <div class="rounded-[10px] border border-dashed border-rule-strong p-6">
+        <p class="font-semibold text-ink-900">Pruebe con una pregunta o unas palabras</p>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          @for (example of examples; track example) {
+            <li>
+              <a routerLink="/buscar" [queryParams]="exampleParams(example)" class="example">{{
+                example
+              }}</a>
+            </li>
+          }
+        </ul>
+        <p class="mt-4 text-sm text-text-secondary">
+          Para ir directo a una disposición, escriba su referencia en el buscador del encabezado:
+          «art. 5 Ley 27181», «218.2 TUO», «anexo 2 RENAT».
+        </p>
+      </div>
+    } @else {
+      @if (facets().length > 1 || norm()) {
+        <div role="group" aria-label="Filtrar por norma" class="chips">
+          <button type="button" class="chip" [attr.aria-pressed]="!norm()" (click)="filterBy(null)">
+            Todas las normas
+          </button>
+          @for (facet of facets(); track facet.instrument_id) {
+            <button
+              type="button"
+              class="chip"
+              [attr.aria-pressed]="norm() === facet.instrument_id"
+              (click)="filterBy(facet.instrument_id)"
+            >
+              {{ facet.short_name }}
+            </button>
+          }
+        </div>
+      }
+
+      <p class="count" role="status">{{ store.isLoading() ? 'Buscando…' : count() }}</p>
+
+      @for (message of degradedMessages(); track message) {
+        <p role="note" class="notice">{{ message }}</p>
+      }
+      @if (referenceNote(); as note) {
+        <p class="reference-note">{{ note }}</p>
+      }
+
+      <div [attr.aria-busy]="store.isLoading()">
+        @if (store.isFirstLoad()) {
+          <ul class="mt-4 grid gap-4" aria-label="Buscando">
+            @for (placeholder of [1, 2, 3]; track placeholder) {
+              <li class="h-40 animate-pulse rounded-[10px] border border-rule bg-folio"></li>
+            }
+          </ul>
+        } @else if (store.status() === 'error') {
+          <div role="alert" class="mt-4 rounded-[10px] border border-rule bg-folio p-6">
+            <p class="font-semibold text-seal-repealed">No pudimos buscar.</p>
+            <p class="mt-1 text-text-secondary">{{ store.error() }}</p>
+            <button type="button" class="submit mt-4" (click)="retry()">Reintentar</button>
+          </div>
+        } @else if (store.isEmpty()) {
+          <div class="mt-4 rounded-[10px] border border-dashed border-rule-strong p-6">
+            <p class="font-semibold text-ink-900">{{ emptyMessage() }}</p>
+            <ul class="mt-3 list-disc pl-5 text-text-secondary">
+              <li>Pruebe con otras palabras o con una frase más corta.</li>
+              @if (norm()) {
+                <li>
+                  <button type="button" class="link-button" (click)="filterBy(null)">
+                    Buscar en todas las normas
+                  </button>
+                </li>
+              }
+              <li>Si conoce la disposición, escriba su referencia: «art. 5 Ley 27181».</li>
+            </ul>
+          </div>
+        } @else {
+          <ol class="results" [class.is-stale]="store.isLoading()">
+            @for (result of store.results(); track result.version_id + result.unit_path) {
+              <li><drtc-result-card [result]="result" [diagnostics]="diagnostics()" /></li>
+            }
+          </ol>
+        }
+      </div>
+    }
+  </div>
+</section>

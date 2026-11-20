@@ -125,7 +125,7 @@ def _normalize(text: str) -> str:
 def test_every_golden_question_is_findable_in_the_parsed_provisions(
     parsed: dict[str, ParseResult],
 ) -> None:
-    dataset = REPO_ROOT / "evaluation" / "datasets" / "golden-v0.jsonl"
+    dataset = REPO_ROOT / "evaluation" / "datasets" / "golden-v1.jsonl"
     questions = [
         json.loads(line)
         for line in dataset.read_text(encoding="utf-8").splitlines()
@@ -146,6 +146,42 @@ def test_every_golden_question_is_findable_in_the_parsed_provisions(
                 missing.append((question["id"], citation["provision"]))
 
     assert missing == []
+
+
+@pytest.mark.spec("002-FR-003")
+def test_cross_references_at_the_start_of_a_wrapped_line_never_replace_or_split_a_provision(
+    parsed: dict[str, ParseResult],
+) -> None:
+    renat = {p.path: p for p in parsed[RENAT].current()}
+
+    # RENAT art. 20.1 (technical conditions of buses) was "replaced" by the wrapped line
+    # "20.1.1, 20.1.2, 20.1.3, 20.1.8 y 20.1.11, aplicándose…" and lost all its current texts.
+    assert renat["articulo:20/numeral:20.1"].text.startswith("Son condiciones específicas mínimas")
+    replaced = sorted(
+        p.path
+        for p in parsed[RENAT].provisions
+        if p.status is RevisionStatus.SUPERSEDED and p.path.startswith("articulo:20/numeral:20.1/")
+    )
+    assert (
+        replaced
+        == [  # exactly the four numerals the PDF itself marks as modified (DS 010-2012-MTC)
+            "articulo:20/numeral:20.1/numeral:20.1.10",
+            "articulo:20/numeral:20.1/numeral:20.1.5",
+            "articulo:20/numeral:20.1/numeral:20.1.6",
+            "articulo:20/numeral:20.1/numeral:20.1.8",
+        ]
+    )
+    # RENAT art. 108.2.1 lost "108.1.10, el transportista sustituye los neumáticos…" (read as a duplicate 108.1).
+    assert "108.1.10, el transportista sustituye los neumáticos" in (
+        renat["articulo:108/numeral:108.2/numeral:108.2.1"].text
+    )
+    for version, result in parsed.items():
+        phantoms = [
+            p.path
+            for p in result.current()
+            if p.kind is ParsedKind.NUMERAL and re.match(r"(?:y/o|y|o|e|u)\s+\d", p.text)
+        ]
+        assert phantoms == [], version
 
 
 @pytest.mark.spec("002-FR-001")

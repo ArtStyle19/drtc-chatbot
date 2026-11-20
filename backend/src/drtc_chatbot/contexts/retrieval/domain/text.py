@@ -6,7 +6,8 @@ import unicodedata
 _NORM_SIGN = re.compile(r"\bn\s*[°º]|\bn\.\s*[°º]|\bnro\b\.?")
 _ORDINAL_SIGNS = str.maketrans({"°": " ", "º": " ", "ª": " "})
 _PUNCTUATION = re.compile(r"[()\[\]{}“”\"'«»¿?¡!;:,/\\]")
-_STRAY_DOT = re.compile(r"(?<!\d)\.|\.(?!\d)")  # dots between digits (218.2) are kept
+# Dots between digits (218.2) are kept, and so is the dot after a suffixed article label (4-A.1).
+_STRAY_DOT = re.compile(r"(?<!\d)(?<!\d-[a-z])\.|\.(?!\d)")
 _SPACES = re.compile(r"\s+")
 
 

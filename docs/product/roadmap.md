@@ -7,7 +7,7 @@ lo que está más allá del próximo release es intencionalmente breve.
 |---|---|---|---|
 | **R0 · Walking skeleton** | [001-instrument-catalog](../../specs/001-instrument-catalog/spec.md) | Repo, CI, corte delgado de punta a punta: catálogo de normas con sello de vigencia | ✅ Sprint 0 |
 | **R1 · Biblioteca** | [002-corpus-ingestion](../../specs/002-corpus-ingestion/spec.md) · 003-legal-reader | Disposiciones estructuradas con página exacta; árbol de la norma, búsqueda exacta ("art. 5 Ley 27181") y visor *Folio*; despliegue de demo | ✅ 002 (Sprint 1) y 003 (Sprint 2) implementadas; falta la prueba SC-001 con personas y el despliegue de demo |
-| **R2 · Consultas citadas** | 004-hybrid-search (+ golden set, evaluación primero) · 005-cited-answers · 006-conversations-feedback | Respuestas citadas y validadas, abstención; piloto interno | ⏳ |
+| **R2 · Consultas citadas** | 004-hybrid-search (+ golden set, evaluación primero) · 005-cited-answers · 006-conversations-feedback | Respuestas citadas y validadas, abstención; piloto interno | 🚧 004 implementada y medida con Gemini (acierto@10 100 %, MRR 0,907); falta comparar con OpenAI, 005 y 006 |
 | **R3 · Producción interna** | 007-identity (login DRTC) · 008-document-admin (carga y revisión, ingesta en segundo plano) · 009-observability-hardening | Uso diario por el personal | ⏳ |
 | **R4 · Ciudadanía** | 010-public-mode | Acceso público con lenguaje claro y límites de uso | ⏳ |
 
@@ -23,9 +23,10 @@ lo que está más allá del próximo release es intencionalmente breve.
 - ~~**003-legal-reader**~~ ✅ (Sprint 2): navegar Título → Capítulo → Artículo; abrir un artículo con su
   texto, sello de vigencia y la página del PDF resaltada (pdf.js); búsqueda exacta por referencia;
   "Copiar cita". Pendiente de la spec: selector de edición cuando haya más de una.
-- **004-hybrid-search:** golden set inicial (≥ 50 preguntas) y arnés de métricas (Recall@K, MRR);
-  búsqueda textual en español + vectorial + RRF; expansión de contexto; reranker solo si la
-  evaluación lo justifica.
+- ~~**004-hybrid-search**~~ 🚧 (Sprint 3): golden set de 61 preguntas y arnés de métricas con compuerta de línea base;
+  búsqueda por palabras en español + por significado + RRF, con degradación a palabras; `GET /api/v1/search`;
+  página «Buscar en el texto». Medida con Gemini; pendiente comparar con OpenAI; la expansión
+  de contexto pasó a la spec 005 (la define el paquete de evidencias); reranker solo si la evaluación lo justifica.
 - **005-cited-answers:** puertos `QueryAnalyzer`, `AnswerGenerator`, `EmbeddingProvider` con OpenAI;
   respuesta estructurada (conclusión, fundamento, análisis, excepciones, fuentes); `CitationValidator`;
   abstención; SSE de progreso; registro de costo y latencia; minimización de datos personales.

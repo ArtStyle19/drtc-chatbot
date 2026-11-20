@@ -19,6 +19,7 @@ from drtc_chatbot.contexts.legal_corpus.application.dto import (
 )
 from drtc_chatbot.contexts.legal_corpus.domain.approval import Approval
 from drtc_chatbot.contexts.legal_corpus.domain.legal_instrument import LegalInstrument
+from drtc_chatbot.contexts.legal_corpus.domain.passages import ProvisionText
 from drtc_chatbot.contexts.legal_corpus.domain.provisions import ProvisionKind
 
 
@@ -95,6 +96,10 @@ class ReadingStore(Protocol):
         ...
 
     async def get_index_rows(self, version_id: str) -> Sequence[IndexRow]: ...
+
+    async def get_provision_texts(self, version_id: str) -> Sequence[ProvisionText]:
+        """Current text of EVERY provision (containers included), in document order."""
+        ...
 
 
 class DocumentStorage(Protocol):

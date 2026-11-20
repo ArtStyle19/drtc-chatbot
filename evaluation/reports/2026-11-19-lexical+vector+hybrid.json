@@ -1,0 +1,1439 @@
+{
+  "dataset": "golden-v1",
+  "recorded_on": "2026-11-19",
+  "ks": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "methods": {
+    "lexical": {
+      "method": "lexical",
+      "questions": 61,
+      "answerable": 52,
+      "degraded_questions": 0,
+      "overall": {
+        "provision": {
+          "n": 51,
+          "hit@1": 0.1961,
+          "hit@3": 0.3725,
+          "hit@5": 0.3725,
+          "hit@10": 0.4706,
+          "recall@1": 0.1863,
+          "recall@3": 0.3431,
+          "recall@5": 0.3529,
+          "recall@10": 0.451,
+          "mrr": 0.301
+        },
+        "unit": {
+          "n": 51,
+          "hit@1": 0.3137,
+          "hit@3": 0.5098,
+          "hit@5": 0.5882,
+          "hit@10": 0.6667,
+          "recall@1": 0.2941,
+          "recall@3": 0.4902,
+          "recall@5": 0.5686,
+          "recall@10": 0.6471,
+          "mrr": 0.4453
+        }
+      },
+      "by_tag": {
+        "colloquial": {
+          "provision": {
+            "n": 29,
+            "hit@1": 0.1379,
+            "hit@3": 0.2759,
+            "hit@5": 0.2759,
+            "hit@10": 0.3793,
+            "recall@1": 0.1379,
+            "recall@3": 0.2241,
+            "recall@5": 0.2414,
+            "recall@10": 0.3448,
+            "mrr": 0.2199
+          },
+          "unit": {
+            "n": 29,
+            "hit@1": 0.2414,
+            "hit@3": 0.4828,
+            "hit@5": 0.5172,
+            "hit@10": 0.6207,
+            "recall@1": 0.2241,
+            "recall@3": 0.4483,
+            "recall@5": 0.4828,
+            "recall@10": 0.5862,
+            "mrr": 0.3906
+          }
+        },
+        "cross_norm": {
+          "provision": {
+            "n": 4,
+            "hit@1": 0.0,
+            "hit@3": 0.25,
+            "hit@5": 0.25,
+            "hit@10": 0.25,
+            "recall@1": 0.0,
+            "recall@3": 0.125,
+            "recall@5": 0.125,
+            "recall@10": 0.125,
+            "mrr": 0.0942
+          },
+          "unit": {
+            "n": 4,
+            "hit@1": 0.25,
+            "hit@3": 0.5,
+            "hit@5": 0.5,
+            "hit@10": 0.5,
+            "recall@1": 0.125,
+            "recall@3": 0.25,
+            "recall@5": 0.25,
+            "recall@10": 0.25,
+            "mrr": 0.4109
+          }
+        },
+        "explicit_reference": {
+          "provision": {
+            "n": 6,
+            "hit@1": 0.3333,
+            "hit@3": 0.5,
+            "hit@5": 0.5,
+            "hit@10": 0.5,
+            "recall@1": 0.3333,
+            "recall@3": 0.5,
+            "recall@5": 0.5,
+            "recall@10": 0.5,
+            "mrr": 0.4338
+          },
+          "unit": {
+            "n": 6,
+            "hit@1": 0.5,
+            "hit@3": 0.6667,
+            "hit@5": 0.6667,
+            "hit@10": 0.6667,
+            "recall@1": 0.5,
+            "recall@3": 0.6667,
+            "recall@5": 0.6667,
+            "recall@10": 0.6667,
+            "mrr": 0.5746
+          }
+        }
+      },
+      "by_intent": {
+        "comparison": {
+          "provision": {
+            "n": 5,
+            "hit@1": 0.2,
+            "hit@3": 0.2,
+            "hit@5": 0.2,
+            "hit@10": 0.2,
+            "recall@1": 0.1,
+            "recall@3": 0.2,
+            "recall@5": 0.2,
+            "recall@10": 0.2,
+            "mrr": 0.2171
+          },
+          "unit": {
+            "n": 5,
+            "hit@1": 0.4,
+            "hit@3": 0.4,
+            "hit@5": 0.4,
+            "hit@10": 0.6,
+            "recall@1": 0.2,
+            "recall@3": 0.3,
+            "recall@5": 0.3,
+            "recall@10": 0.5,
+            "mrr": 0.4573
+          }
+        },
+        "concept": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.2857,
+            "hit@3": 0.5714,
+            "hit@5": 0.5714,
+            "hit@10": 0.5714,
+            "recall@1": 0.2857,
+            "recall@3": 0.5714,
+            "recall@5": 0.5714,
+            "recall@10": 0.5714,
+            "mrr": 0.4375
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.2857,
+            "hit@3": 0.5714,
+            "hit@5": 0.7143,
+            "hit@10": 0.7143,
+            "recall@1": 0.2857,
+            "recall@3": 0.5714,
+            "recall@5": 0.7143,
+            "recall@10": 0.7143,
+            "mrr": 0.4643
+          }
+        },
+        "exact_provision": {
+          "provision": {
+            "n": 9,
+            "hit@1": 0.4444,
+            "hit@3": 0.5556,
+            "hit@5": 0.5556,
+            "hit@10": 0.6667,
+            "recall@1": 0.4444,
+            "recall@3": 0.5556,
+            "recall@5": 0.5556,
+            "recall@10": 0.6667,
+            "mrr": 0.5299
+          },
+          "unit": {
+            "n": 9,
+            "hit@1": 0.5556,
+            "hit@3": 0.6667,
+            "hit@5": 0.7778,
+            "hit@10": 0.7778,
+            "recall@1": 0.5556,
+            "recall@3": 0.6667,
+            "recall@5": 0.7778,
+            "recall@10": 0.7778,
+            "mrr": 0.6275
+          }
+        },
+        "exceptions": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.2857,
+            "hit@3": 0.2857,
+            "hit@5": 0.2857,
+            "hit@10": 0.4286,
+            "recall@1": 0.2857,
+            "recall@3": 0.2857,
+            "recall@5": 0.2857,
+            "recall@10": 0.4286,
+            "mrr": 0.3016
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.2857,
+            "hit@3": 0.4286,
+            "hit@5": 0.4286,
+            "hit@10": 0.5714,
+            "recall@1": 0.2857,
+            "recall@3": 0.4286,
+            "recall@5": 0.4286,
+            "recall@10": 0.5714,
+            "mrr": 0.3952
+          }
+        },
+        "out_of_scope": {
+          "provision": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          },
+          "unit": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          }
+        },
+        "practical_case": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.0,
+            "hit@3": 0.4286,
+            "hit@5": 0.4286,
+            "hit@10": 0.7143,
+            "recall@1": 0.0,
+            "recall@3": 0.2143,
+            "recall@5": 0.2857,
+            "recall@10": 0.5714,
+            "mrr": 0.2302
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.1429,
+            "hit@3": 0.7143,
+            "hit@5": 0.7143,
+            "hit@10": 0.7143,
+            "recall@1": 0.1429,
+            "recall@3": 0.6429,
+            "recall@5": 0.6429,
+            "recall@10": 0.6429,
+            "mrr": 0.4158
+          }
+        },
+        "requirements": {
+          "provision": {
+            "n": 16,
+            "hit@1": 0.0625,
+            "hit@3": 0.25,
+            "hit@5": 0.25,
+            "hit@10": 0.3125,
+            "recall@1": 0.0625,
+            "recall@3": 0.25,
+            "recall@5": 0.25,
+            "recall@10": 0.3125,
+            "mrr": 0.1695
+          },
+          "unit": {
+            "n": 16,
+            "hit@1": 0.25,
+            "hit@3": 0.375,
+            "hit@5": 0.5,
+            "hit@10": 0.625,
+            "recall@1": 0.25,
+            "recall@3": 0.375,
+            "recall@5": 0.5,
+            "recall@10": 0.625,
+            "mrr": 0.3657
+          }
+        }
+      },
+      "by_review_status": {
+        "draft": {
+          "provision": {
+            "n": 51,
+            "hit@1": 0.1961,
+            "hit@3": 0.3725,
+            "hit@5": 0.3725,
+            "hit@10": 0.4706,
+            "recall@1": 0.1863,
+            "recall@3": 0.3431,
+            "recall@5": 0.3529,
+            "recall@10": 0.451,
+            "mrr": 0.301
+          },
+          "unit": {
+            "n": 51,
+            "hit@1": 0.3137,
+            "hit@3": 0.5098,
+            "hit@5": 0.5882,
+            "hit@10": 0.6667,
+            "recall@1": 0.2941,
+            "recall@3": 0.4902,
+            "recall@5": 0.5686,
+            "recall@10": 0.6471,
+            "mrr": 0.4453
+          }
+        }
+      },
+      "latency_ms": {
+        "p50": 16.2,
+        "p95": 39.2
+      },
+      "unanswerable": {
+        "n": 9,
+        "with_results": 9,
+        "top_score": {
+          "min": 0.0203,
+          "median": 0.0525,
+          "max": 0.0644
+        }
+      },
+      "worst": [
+        {
+          "id": "q-005",
+          "question": "¿El RENAT se aplica al servicio de mototaxis?",
+          "expected": [
+            "articulo:2"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:100/numeral:100.4/numeral:100.4.1/numeral:100.4.1.5",
+            "articulo:1",
+            "articulo:56"
+          ]
+        },
+        {
+          "id": "q-018",
+          "question": "¿Quiénes no pueden obtener autorización para prestar servicio de transporte?",
+          "expected": [
+            "articulo:4-A/numeral:4-A.1"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:55",
+            "articulo:54",
+            "articulo:62/numeral:62.4"
+          ]
+        },
+        {
+          "id": "q-022",
+          "question": "¿Qué busca lograr el Estado con su intervención en el transporte y el tránsito?",
+          "expected": [
+            "articulo:3"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "seccion:sexta/disposiciones:complementarias-finales/segunda",
+            "articulo:36",
+            "disposiciones:transitorias/segunda"
+          ]
+        },
+        {
+          "id": "q-023",
+          "question": "¿El Estado debe favorecer que haya competencia entre las empresas de transporte?",
+          "expected": [
+            "articulo:4/numeral:4.1"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:10",
+            "articulo:15",
+            "articulo:16"
+          ]
+        },
+        {
+          "id": "q-036",
+          "question": "¿Qué pasa si una empresa presta servicio de transporte sin tener autorización? ¿Cuál es la infracción?",
+          "expected": [
+            "anexo:2"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:62/numeral:62.4",
+            "articulo:54",
+            "articulo:55"
+          ]
+        },
+        {
+          "id": "q-038",
+          "question": "¿Puede un pasajero subir al bus en estado de ebriedad?",
+          "expected": [
+            "articulo:77/numeral:77.1/numeral:77.1.3"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:VII/numeral:1",
+            "articulo:120/numeral:120.2",
+            "articulo:158/numeral:158.2"
+          ]
+        },
+        {
+          "id": "q-045",
+          "question": "¿Cómo se cuentan los plazos en días en un trámite administrativo?",
+          "expected": [
+            "articulo:144/numeral:144.1"
+          ],
+          "unit_ranks": [
+            null
+          ],
+          "top": [
+            "articulo:153",
+            "articulo:66",
+            "articulo:147/numeral:147.4"
+          ]
+        },
+        {
+          "id": "q-039",
+          "question": "Según el numeral 24.1 del artículo 24 del TUO de la LPAG, ¿en cuántos días debe notificarse un acto administrativo?",
+          "expected": [
+            "articulo:24/numeral:24.1"
+          ],
+          "unit_ranks": [
+            18
+          ],
+          "top": [
+            "articulo:15",
+            "articulo:8",
+            "articulo:1"
+          ]
+        },
+        {
+          "id": "q-047",
+          "question": "Según el numeral 213.3 del TUO, ¿cuánto tiempo tiene la entidad para anular de oficio un acto administrativo?",
+          "expected": [
+            "articulo:213/numeral:213.3"
+          ],
+          "unit_ranks": [
+            17
+          ],
+          "top": [
+            "articulo:15",
+            "articulo:8",
+            "articulo:1"
+          ]
+        },
+        {
+          "id": "q-053",
+          "question": "¿Qué plazo de prescripción se aplica para sancionar una infracción de transporte: el del reglamento de transporte o el de la ley del procedimiento administrativo?",
+          "expected": [
+            "articulo:130/numeral:130.1",
+            "articulo:252/numeral:252.1"
+          ],
+          "unit_ranks": [
+            15,
+            26
+          ],
+          "top": [
+            "articulo:24",
+            "articulo:I",
+            "articulo:199/numeral:199.6"
+          ]
+        }
+      ]
+    },
+    "vector": {
+      "method": "vector",
+      "questions": 61,
+      "answerable": 52,
+      "degraded_questions": 0,
+      "overall": {
+        "provision": {
+          "n": 51,
+          "hit@1": 0.7647,
+          "hit@3": 0.9412,
+          "hit@5": 0.9608,
+          "hit@10": 0.9804,
+          "recall@1": 0.7059,
+          "recall@3": 0.902,
+          "recall@5": 0.9314,
+          "recall@10": 0.9608,
+          "mrr": 0.8521
+        },
+        "unit": {
+          "n": 51,
+          "hit@1": 0.8431,
+          "hit@3": 0.9608,
+          "hit@5": 0.9804,
+          "hit@10": 1.0,
+          "recall@1": 0.7941,
+          "recall@3": 0.9412,
+          "recall@5": 0.9608,
+          "recall@10": 0.9902,
+          "mrr": 0.9069
+        }
+      },
+      "by_tag": {
+        "colloquial": {
+          "provision": {
+            "n": 29,
+            "hit@1": 0.6207,
+            "hit@3": 0.8966,
+            "hit@5": 0.931,
+            "hit@10": 0.9655,
+            "recall@1": 0.569,
+            "recall@3": 0.8276,
+            "recall@5": 0.8793,
+            "recall@10": 0.931,
+            "mrr": 0.7629
+          },
+          "unit": {
+            "n": 29,
+            "hit@1": 0.7586,
+            "hit@3": 0.931,
+            "hit@5": 0.9655,
+            "hit@10": 1.0,
+            "recall@1": 0.7069,
+            "recall@3": 0.8966,
+            "recall@5": 0.931,
+            "recall@10": 0.9828,
+            "mrr": 0.8592
+          }
+        },
+        "cross_norm": {
+          "provision": {
+            "n": 4,
+            "hit@1": 0.75,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.375,
+            "recall@3": 0.75,
+            "recall@5": 0.75,
+            "recall@10": 0.75,
+            "mrr": 0.875
+          },
+          "unit": {
+            "n": 4,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.5,
+            "recall@3": 0.75,
+            "recall@5": 0.75,
+            "recall@10": 0.875,
+            "mrr": 1.0
+          }
+        },
+        "explicit_reference": {
+          "provision": {
+            "n": 6,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 6,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        }
+      },
+      "by_intent": {
+        "comparison": {
+          "provision": {
+            "n": 5,
+            "hit@1": 0.8,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.4,
+            "recall@3": 0.8,
+            "recall@5": 0.8,
+            "recall@10": 0.8,
+            "mrr": 0.9
+          },
+          "unit": {
+            "n": 5,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.6,
+            "recall@3": 0.8,
+            "recall@5": 0.8,
+            "recall@10": 0.9,
+            "mrr": 1.0
+          }
+        },
+        "concept": {
+          "provision": {
+            "n": 7,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        },
+        "exact_provision": {
+          "provision": {
+            "n": 9,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 9,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        },
+        "exceptions": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.4286,
+            "hit@3": 0.8571,
+            "hit@5": 0.8571,
+            "hit@10": 0.8571,
+            "recall@1": 0.4286,
+            "recall@3": 0.8571,
+            "recall@5": 0.8571,
+            "recall@10": 0.8571,
+            "mrr": 0.6082
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.7143,
+            "hit@3": 0.8571,
+            "hit@5": 0.8571,
+            "hit@10": 1.0,
+            "recall@1": 0.7143,
+            "recall@3": 0.8571,
+            "recall@5": 0.8571,
+            "recall@10": 1.0,
+            "mrr": 0.7857
+          }
+        },
+        "out_of_scope": {
+          "provision": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          },
+          "unit": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          }
+        },
+        "practical_case": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.5714,
+            "hit@3": 0.8571,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.4286,
+            "recall@3": 0.7857,
+            "recall@5": 0.9286,
+            "recall@10": 1.0,
+            "mrr": 0.7429
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.5714,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.5,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 0.7857
+          }
+        },
+        "requirements": {
+          "provision": {
+            "n": 16,
+            "hit@1": 0.75,
+            "hit@3": 0.9375,
+            "hit@5": 0.9375,
+            "hit@10": 1.0,
+            "recall@1": 0.75,
+            "recall@3": 0.9062,
+            "recall@5": 0.9375,
+            "recall@10": 1.0,
+            "mrr": 0.8438
+          },
+          "unit": {
+            "n": 16,
+            "hit@1": 0.8125,
+            "hit@3": 0.9375,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.8125,
+            "recall@3": 0.9375,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 0.8906
+          }
+        }
+      },
+      "by_review_status": {
+        "draft": {
+          "provision": {
+            "n": 51,
+            "hit@1": 0.7647,
+            "hit@3": 0.9412,
+            "hit@5": 0.9608,
+            "hit@10": 0.9804,
+            "recall@1": 0.7059,
+            "recall@3": 0.902,
+            "recall@5": 0.9314,
+            "recall@10": 0.9608,
+            "mrr": 0.8521
+          },
+          "unit": {
+            "n": 51,
+            "hit@1": 0.8431,
+            "hit@3": 0.9608,
+            "hit@5": 0.9804,
+            "hit@10": 1.0,
+            "recall@1": 0.7941,
+            "recall@3": 0.9412,
+            "recall@5": 0.9608,
+            "recall@10": 0.9902,
+            "mrr": 0.9069
+          }
+        }
+      },
+      "latency_ms": {
+        "p50": 531.3,
+        "p95": 933.2
+      },
+      "unanswerable": {
+        "n": 9,
+        "with_results": 9,
+        "top_score": {
+          "min": 0.6169,
+          "median": 0.672,
+          "max": 0.7393
+        }
+      },
+      "worst": [
+        {
+          "id": "q-046",
+          "question": "¿En qué casos el silencio de la entidad significa que me negaron lo que pedí?",
+          "expected": [
+            "articulo:38/numeral:38.1"
+          ],
+          "unit_ranks": [
+            6
+          ],
+          "top": [
+            "articulo:199/numeral:199.3",
+            "articulo:36/numeral:36.1",
+            "articulo:199/numeral:199.1"
+          ]
+        },
+        {
+          "id": "q-018",
+          "question": "¿Quiénes no pueden obtener autorización para prestar servicio de transporte?",
+          "expected": [
+            "articulo:4-A/numeral:4-A.1"
+          ],
+          "unit_ranks": [
+            4
+          ],
+          "top": [
+            "articulo:55/numeral:55.1/numeral:55.1.10",
+            "articulo:37/numeral:37.9",
+            "articulo:57/numeral:57.3/numeral:57.3.4"
+          ]
+        },
+        {
+          "id": "q-005",
+          "question": "¿El RENAT se aplica al servicio de mototaxis?",
+          "expected": [
+            "articulo:2"
+          ],
+          "unit_ranks": [
+            3
+          ],
+          "top": [
+            "articulo:3/numeral:3.63/numeral:3.63.6",
+            "articulo:7/numeral:7.1/numeral:7.1.2/numeral:7.1.2.6",
+            "articulo:2"
+          ]
+        },
+        {
+          "id": "q-013",
+          "question": "¿Es obligatorio sacar el SOAT para que un carro pueda circular?",
+          "expected": [
+            "articulo:30/numeral:30.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:28",
+            "articulo:30/numeral:30.1",
+            "articulo:30/numeral:30.2"
+          ]
+        },
+        {
+          "id": "q-032",
+          "question": "Me pusieron una multa grande, ¿puedo pagarla en cuotas?",
+          "expected": [
+            "articulo:132/numeral:132.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:134/numeral:134.1/numeral:134.1.1",
+            "articulo:134/numeral:134.1/numeral:134.1.2",
+            "articulo:134/numeral:134.1/numeral:134.1.4"
+          ]
+        },
+        {
+          "id": "q-036",
+          "question": "¿Qué pasa si una empresa presta servicio de transporte sin tener autorización? ¿Cuál es la infracción?",
+          "expected": [
+            "anexo:2"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:103/numeral:103.2/numeral:103.2.1",
+            "anexo:2",
+            "articulo:97/numeral:97.1/numeral:97.1.1"
+          ]
+        },
+        {
+          "id": "q-044",
+          "question": "El trámite de mi expediente está paralizado y el funcionario no responde, ¿qué puedo hacer?",
+          "expected": [
+            "articulo:169/numeral:169.1",
+            "articulo:169/numeral:169.2"
+          ],
+          "unit_ranks": [
+            2,
+            2
+          ],
+          "top": [
+            "articulo:265/literal:a",
+            "articulo:169/numeral:169.2",
+            "articulo:265/literal:b"
+          ]
+        },
+        {
+          "id": "q-045",
+          "question": "¿Cómo se cuentan los plazos en días en un trámite administrativo?",
+          "expected": [
+            "articulo:144/numeral:144.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:145/numeral:145.1",
+            "articulo:144/numeral:144.1",
+            "articulo:145/numeral:145.3"
+          ]
+        }
+      ],
+      "extra": {
+        "provider": {
+          "model": "gemini-embedding-2",
+          "tokens": 2558,
+          "estimated_cost_usd": 0.0005116
+        }
+      }
+    },
+    "hybrid": {
+      "method": "hybrid",
+      "questions": 61,
+      "answerable": 52,
+      "degraded_questions": 0,
+      "overall": {
+        "provision": {
+          "n": 51,
+          "hit@1": 0.7647,
+          "hit@3": 0.8824,
+          "hit@5": 0.9216,
+          "hit@10": 0.9412,
+          "recall@1": 0.7059,
+          "recall@3": 0.8333,
+          "recall@5": 0.8922,
+          "recall@10": 0.9216,
+          "mrr": 0.83
+        },
+        "unit": {
+          "n": 51,
+          "hit@1": 0.8431,
+          "hit@3": 0.9608,
+          "hit@5": 0.9804,
+          "hit@10": 1.0,
+          "recall@1": 0.7941,
+          "recall@3": 0.9412,
+          "recall@5": 0.9608,
+          "recall@10": 0.9902,
+          "mrr": 0.9069
+        }
+      },
+      "by_tag": {
+        "colloquial": {
+          "provision": {
+            "n": 29,
+            "hit@1": 0.6207,
+            "hit@3": 0.8276,
+            "hit@5": 0.8966,
+            "hit@10": 0.931,
+            "recall@1": 0.569,
+            "recall@3": 0.7586,
+            "recall@5": 0.8448,
+            "recall@10": 0.8966,
+            "mrr": 0.7323
+          },
+          "unit": {
+            "n": 29,
+            "hit@1": 0.7586,
+            "hit@3": 0.931,
+            "hit@5": 0.9655,
+            "hit@10": 1.0,
+            "recall@1": 0.7069,
+            "recall@3": 0.8966,
+            "recall@5": 0.931,
+            "recall@10": 0.9828,
+            "mrr": 0.8592
+          }
+        },
+        "cross_norm": {
+          "provision": {
+            "n": 4,
+            "hit@1": 0.75,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.375,
+            "recall@3": 0.5,
+            "recall@5": 0.625,
+            "recall@10": 0.75,
+            "mrr": 0.875
+          },
+          "unit": {
+            "n": 4,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.5,
+            "recall@3": 0.75,
+            "recall@5": 0.75,
+            "recall@10": 0.875,
+            "mrr": 1.0
+          }
+        },
+        "explicit_reference": {
+          "provision": {
+            "n": 6,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 6,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        }
+      },
+      "by_intent": {
+        "comparison": {
+          "provision": {
+            "n": 5,
+            "hit@1": 0.8,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.4,
+            "recall@3": 0.7,
+            "recall@5": 0.8,
+            "recall@10": 0.8,
+            "mrr": 0.9
+          },
+          "unit": {
+            "n": 5,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.6,
+            "recall@3": 0.8,
+            "recall@5": 0.8,
+            "recall@10": 0.9,
+            "mrr": 1.0
+          }
+        },
+        "concept": {
+          "provision": {
+            "n": 7,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        },
+        "exact_provision": {
+          "provision": {
+            "n": 9,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          },
+          "unit": {
+            "n": 9,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 1.0,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 1.0
+          }
+        },
+        "exceptions": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.4286,
+            "hit@3": 0.7143,
+            "hit@5": 0.7143,
+            "hit@10": 0.7143,
+            "recall@1": 0.4286,
+            "recall@3": 0.7143,
+            "recall@5": 0.7143,
+            "recall@10": 0.7143,
+            "mrr": 0.569
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.7143,
+            "hit@3": 0.8571,
+            "hit@5": 0.8571,
+            "hit@10": 1.0,
+            "recall@1": 0.7143,
+            "recall@3": 0.8571,
+            "recall@5": 0.8571,
+            "recall@10": 1.0,
+            "mrr": 0.7857
+          }
+        },
+        "out_of_scope": {
+          "provision": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          },
+          "unit": {
+            "n": 0,
+            "hit@1": 0.0,
+            "hit@3": 0.0,
+            "hit@5": 0.0,
+            "hit@10": 0.0,
+            "recall@1": 0.0,
+            "recall@3": 0.0,
+            "recall@5": 0.0,
+            "recall@10": 0.0,
+            "mrr": 0.0
+          }
+        },
+        "practical_case": {
+          "provision": {
+            "n": 7,
+            "hit@1": 0.5714,
+            "hit@3": 0.7143,
+            "hit@5": 0.8571,
+            "hit@10": 1.0,
+            "recall@1": 0.4286,
+            "recall@3": 0.6429,
+            "recall@5": 0.7857,
+            "recall@10": 1.0,
+            "mrr": 0.6786
+          },
+          "unit": {
+            "n": 7,
+            "hit@1": 0.5714,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.5,
+            "recall@3": 1.0,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 0.7857
+          }
+        },
+        "requirements": {
+          "provision": {
+            "n": 16,
+            "hit@1": 0.75,
+            "hit@3": 0.875,
+            "hit@5": 0.9375,
+            "hit@10": 0.9375,
+            "recall@1": 0.75,
+            "recall@3": 0.8438,
+            "recall@5": 0.9375,
+            "recall@10": 0.9375,
+            "mrr": 0.8185
+          },
+          "unit": {
+            "n": 16,
+            "hit@1": 0.8125,
+            "hit@3": 0.9375,
+            "hit@5": 1.0,
+            "hit@10": 1.0,
+            "recall@1": 0.8125,
+            "recall@3": 0.9375,
+            "recall@5": 1.0,
+            "recall@10": 1.0,
+            "mrr": 0.8906
+          }
+        }
+      },
+      "by_review_status": {
+        "draft": {
+          "provision": {
+            "n": 51,
+            "hit@1": 0.7647,
+            "hit@3": 0.8824,
+            "hit@5": 0.9216,
+            "hit@10": 0.9412,
+            "recall@1": 0.7059,
+            "recall@3": 0.8333,
+            "recall@5": 0.8922,
+            "recall@10": 0.9216,
+            "mrr": 0.83
+          },
+          "unit": {
+            "n": 51,
+            "hit@1": 0.8431,
+            "hit@3": 0.9608,
+            "hit@5": 0.9804,
+            "hit@10": 1.0,
+            "recall@1": 0.7941,
+            "recall@3": 0.9412,
+            "recall@5": 0.9608,
+            "recall@10": 0.9902,
+            "mrr": 0.9069
+          }
+        }
+      },
+      "latency_ms": {
+        "p50": 41.4,
+        "p95": 525.7
+      },
+      "unanswerable": {
+        "n": 9,
+        "with_results": 9,
+        "top_score": {
+          "min": 1.0,
+          "median": 1.0,
+          "max": 1.125
+        }
+      },
+      "worst": [
+        {
+          "id": "q-046",
+          "question": "¿En qué casos el silencio de la entidad significa que me negaron lo que pedí?",
+          "expected": [
+            "articulo:38/numeral:38.1"
+          ],
+          "unit_ranks": [
+            6
+          ],
+          "top": [
+            "articulo:199/numeral:199.3",
+            "articulo:199/numeral:199.1",
+            "articulo:199/numeral:199.4"
+          ]
+        },
+        {
+          "id": "q-018",
+          "question": "¿Quiénes no pueden obtener autorización para prestar servicio de transporte?",
+          "expected": [
+            "articulo:4-A/numeral:4-A.1"
+          ],
+          "unit_ranks": [
+            4
+          ],
+          "top": [
+            "articulo:55/numeral:55.1/numeral:55.1.10",
+            "articulo:55/numeral:55.1/numeral:55.1.11",
+            "articulo:55"
+          ]
+        },
+        {
+          "id": "q-005",
+          "question": "¿El RENAT se aplica al servicio de mototaxis?",
+          "expected": [
+            "articulo:2"
+          ],
+          "unit_ranks": [
+            3
+          ],
+          "top": [
+            "articulo:3/numeral:3.63/numeral:3.63.6",
+            "articulo:3/numeral:3.63",
+            "articulo:3/numeral:3.63/numeral:3.63.4"
+          ]
+        },
+        {
+          "id": "q-013",
+          "question": "¿Es obligatorio sacar el SOAT para que un carro pueda circular?",
+          "expected": [
+            "articulo:30/numeral:30.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:28",
+            "articulo:30/numeral:30.1",
+            "articulo:30/numeral:30.2"
+          ]
+        },
+        {
+          "id": "q-032",
+          "question": "Me pusieron una multa grande, ¿puedo pagarla en cuotas?",
+          "expected": [
+            "articulo:132/numeral:132.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:134/numeral:134.1/numeral:134.1.1",
+            "articulo:134/numeral:134.1/numeral:134.1.2",
+            "articulo:134/numeral:134.1/numeral:134.1.4"
+          ]
+        },
+        {
+          "id": "q-036",
+          "question": "¿Qué pasa si una empresa presta servicio de transporte sin tener autorización? ¿Cuál es la infracción?",
+          "expected": [
+            "anexo:2"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:103/numeral:103.2/numeral:103.2.1",
+            "articulo:103/numeral:103.2/numeral:103.2.8",
+            "anexo:2"
+          ]
+        },
+        {
+          "id": "q-044",
+          "question": "El trámite de mi expediente está paralizado y el funcionario no responde, ¿qué puedo hacer?",
+          "expected": [
+            "articulo:169/numeral:169.1",
+            "articulo:169/numeral:169.2"
+          ],
+          "unit_ranks": [
+            2,
+            2
+          ],
+          "top": [
+            "articulo:265/literal:a",
+            "articulo:265/literal:b",
+            "articulo:265"
+          ]
+        },
+        {
+          "id": "q-045",
+          "question": "¿Cómo se cuentan los plazos en días en un trámite administrativo?",
+          "expected": [
+            "articulo:144/numeral:144.1"
+          ],
+          "unit_ranks": [
+            2
+          ],
+          "top": [
+            "articulo:145/numeral:145.1",
+            "articulo:145/numeral:145.3",
+            "articulo:145/numeral:145.2"
+          ]
+        }
+      ],
+      "extra": {
+        "provider": {
+          "model": "gemini-embedding-2",
+          "tokens": 2558,
+          "estimated_cost_usd": 0.0005116
+        }
+      }
+    }
+  }
+}

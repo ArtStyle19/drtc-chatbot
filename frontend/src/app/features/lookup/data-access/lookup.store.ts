@@ -8,7 +8,7 @@ import { toUserMessage } from '../../../core/http/problem-details';
 import { LookupApi } from './lookup-api';
 
 export const LOOKUP_DEBOUNCE_MS = 250;
-export const MAX_QUERY_LENGTH = 200;
+export const MAX_QUERY_LENGTH = 300;
 
 interface LookupState {
   readonly query: string;
@@ -85,8 +85,9 @@ export const LookupStore = signalStore(
       submit(): void {
         run({ query: store.query(), immediate: true });
       },
-      moveActive(delta: 1 | -1): void {
-        const count = store.result()?.hits.length ?? 0;
+      /** `extraOptions`: options after the results that are not results (e.g. "search in the text"). */
+      moveActive(delta: 1 | -1, extraOptions = 0): void {
+        const count = (store.result()?.hits.length ?? 0) + extraOptions;
         if (count === 0) return;
         const next = store.activeIndex() + delta;
         patchState(store, { activeIndex: (next + count) % count });

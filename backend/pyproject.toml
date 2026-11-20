@@ -7,6 +7,7 @@ requires-python = ">=3.14,<3.15"
 dependencies = [
     "alembic>=1.20",
     "fastapi>=0.163",
+    "openai>=3.55.1",
     "pgvector>=0.5",
     "psycopg[binary]>=3.3",
     "pydantic>=2.14",
@@ -21,6 +22,7 @@ dependencies = [
 
 [project.scripts]
 drtc-ingest = "drtc_chatbot.entrypoints.cli.ingest:main"
+drtc-retrieval = "drtc_chatbot.entrypoints.cli.retrieval:main"
 
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
@@ -30,12 +32,14 @@ build-backend = "uv_build"
 dev = [
     "httpx>=0.28",
     "import-linter>=2.16",
+    "jsonschema>=4.26.0",
     "mypy>=2.4",
     "pytest>=9",
     "pytest-asyncio>=1.3",
     "pytest-cov>=7",
     "ruff>=0.17",
     "testcontainers[postgres]>=4.15",
+    "types-jsonschema>=4.26.0.20261006",
     "types-pyyaml>=6.0.12.20261113",
 ]
 
@@ -58,7 +62,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
+"tests/**" = ["ARG005", "RUF001", "S311", "S101", "S106", "PLR2004", "ARG001", "ARG002", "FBT001", "E501", "PLR0917"]
 "migrations/**" = ["INP001"]
 # The article parser is a single-pass state machine: branching is its nature, and legal texts use
 # typographic dashes/quotes that the regexes must match literally.
@@ -67,15 +71,19 @@ ignore = [
 ]
 "tests/unit/ingestion/*.py" = ["E501", "RUF001"]
 # Citations and review-flag messages are user-facing Spanish sentences; the location formatter is a flat dispatch on the path key.
-"src/drtc_chatbot/contexts/legal_corpus/domain/*.py" = ["E501", "PLR0911", "PLR0912"]
+"src/drtc_chatbot/contexts/legal_corpus/domain/*.py" = ["E501", "PLR0911", "PLR0912", "RUF001", "RUF002"]
 # The reference parser holds user-facing Spanish text, regexes and a flat dispatch on step kinds.
-"src/drtc_chatbot/contexts/retrieval/**/*.py" = ["E501", "PLR0911", "PLR0912", "PLR0913", "PLR0917", "RUF001"]
+"src/drtc_chatbot/contexts/retrieval/**/*.py" = ["E501", "PLR0911", "PLR0912", "PLR0913", "PLR0917", "RUF001", "RUF002"]
 # FastAPI routers declare each query parameter as an argument; the CLI/ingestion samples use random sampling.
 "src/drtc_chatbot/contexts/*/presentation/http/router.py" = ["PLR0917", "E501"]
 "src/drtc_chatbot/contexts/*/presentation/http/schemas.py" = ["E501"]
 "src/drtc_chatbot/contexts/ingestion/application/commands/preview_ingestion.py" = ["S311"]
 # Typer builds the CLI from nested command functions and boolean flag options.
 "src/drtc_chatbot/contexts/ingestion/presentation/cli/app.py" = ["PLR0915", "FBT002"]
+"src/drtc_chatbot/contexts/retrieval/presentation/cli/app.py" = ["PLR0915", "PLR0913", "PLR0917", "FBT002", "E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/cli/render.py" = ["E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/http/search_router.py" = ["FBT002", "E501"]
+"src/drtc_chatbot/contexts/retrieval/presentation/http/search_schemas.py" = ["E501"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"

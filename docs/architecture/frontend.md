@@ -30,6 +30,7 @@ frontend/src/
     │   │   └── ui/            OutlineTree · ContainerView · EditionHeader · ProvisionNode (recursivo)
     │   │                      · CiteButton · Folio
     │   ├── lookup/       Búsqueda por referencia (spec 003)
+    │   ├── search/       «Buscar en el texto»: búsqueda por contenido (spec 004)
     │   │   ├── data-access/   LookupApi + LookupStore (debounce, cancela la petición anterior)
     │   │   └── feature/       ReferenceSearch (combobox, vive en el encabezado de la aplicación)
     │   └── chat/         Consultas (spec 005; hoy marcador de posición)
@@ -96,6 +97,37 @@ abre si el resultado es único); Escape cierra y, una segunda vez, borra; `/` en
 cualquier parte. La región `role="status"` siempre está en el DOM para que el anuncio llegue a los
 lectores de pantalla. Una referencia ambigua **lista** las candidatas y no abre ninguna.
 
+**Camino hacia la búsqueda por contenido (spec 004).** La última opción del panel es siempre
+«Buscar "…" en el texto» (se alcanza con ↓, o con clic): lleva a `/buscar?q=`. Enter sobre un texto que
+no es una referencia (`unrecognized`) también va allí. **Escribir solo consulta `/lookup`** (local y
+gratuito): `/search`, que puede llegar a un servicio externo de embeddings, se llama únicamente cuando la
+persona decide; una prueba lo verifica.
+
+## Buscar en el texto (spec 004)
+
+`features/search/{data-access, feature, ui}`:
+
+- **La URL es la única fuente de verdad** (`/buscar?q=&norma=&debug=`): enviar el formulario cambia la URL
+  y la URL dispara la búsqueda, así se puede compartir, recargar y volver atrás. Un texto nuevo borra el
+  filtro de norma.
+- `SearchStore` (SignalStore) usa `switchMap`: la petición en curso se cancela al llegar otra, así una
+  respuesta lenta **nunca** pisa a una nueva. Si solo cambia el filtro de norma, la lista anterior se
+  queda en pantalla atenuada en vez de parpadear con un esqueleto.
+- `ResultCard` muestra lo **hallado**, no una conclusión: cita redactada por el servidor, norma, título,
+  páginas, las palabras coincidentes marcadas, el `ValiditySeal`, cómo se encontró (en palabras, no solo
+  color), los otros pasajes de la unidad en un `<details>` y «Leer en la norma» (al pasaje exacto y a la
+  edición de la que vino). El sello **solo puede volverse más cauteloso** que lo que dijo el servidor
+  (`sealStatus`): «verificado» sin `may_be_presented_as_current` se muestra como no verificado.
+- `Snippet` pinta los segmentos `{text, match}` con interpolación (`<mark>` para las coincidencias): **nunca
+  `innerHTML`**, así el texto de una norma no puede convertirse en elementos.
+- Estados: esqueleto en la primera carga, vacío (con sugerencias y salida del filtro), error con
+  «Reintentar» (mensaje para personas, nunca el detalle técnico), aviso **degradado** (`role="note"`) si no hay
+  búsqueda por significado, y la nota «se entendió "art. 5" como una referencia exacta».
+- Los botones de filtro por norma muestran solo el nombre: las facetas cuentan unidades entre los mejores
+  candidatos, y un número que no coincide con la lista filtrada confundiría.
+- El panel de diagnóstico (qué método halló cada resultado y su posición) solo existe en compilaciones de
+  desarrollo (`isDevMode()`) y el servidor lo ignora fuera de local/test.
+
 ### Reglas de plantilla aprendidas
 
 - Entre elementos `<span>` contiguos usar `&ngsp;` (Angular elimina los nodos de solo espacio junto a
@@ -120,6 +152,7 @@ búfer). Verificado con la compilación de producción tras el nginx real (`206`
 
 | Tipo | Herramienta | Ejemplo |
 |---|---|---|
-| Unitarias de componentes y stores | Vitest + TestBed | `validity-seal.spec.ts`, `reader.store.spec.ts`, `folio.spec.ts` (con `FakePdfLoader`), `reference-search.spec.ts` |
+| Unitarias de componentes y stores | Vitest + TestBed | `validity-seal.spec.ts`, `reader.store.spec.ts`, `folio.spec.ts` (con `FakePdfLoader`), `reference-search.spec.ts`, `search.store.spec.ts`, `result-card.spec.ts`, `snippet.spec.ts`, `search-page.spec.ts` (con el router real) y `privacy.spec.ts` (escribir nunca llama a `/search`) |
+| E2E de la búsqueda | Playwright + axe | `e2e/search.spec.ts`: respuestas capturadas de la API real (`e2e/fixtures/search.ts`), WCAG 2.2 AA en resultados, vacío, error, degradado y sin texto, en escritorio y móvil; bloque «Contra el backend real» |
 | End-to-end + accesibilidad | Playwright + axe | `e2e/library.spec.ts`, `e2e/reader.spec.ts` (API simulada con respuestas capturadas de la real, en `e2e/fixtures/reader.ts`; `E2E_REAL_API=1` para la real) |
 | Contra el backend real | Playwright (`E2E_REAL_API=1`) | SC-002: alineación del resaltado midiendo la tinta del canvas bajo cada caja; SC-004: bytes realmente recibidos del TUO por CDP (`Network.dataReceived`); numeral del TUO y anexo del RENAT |

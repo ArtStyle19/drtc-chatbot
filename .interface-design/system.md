@@ -46,6 +46,18 @@ Direction: "Mesa de estudio" — calm reading room + official-gazette precision.
 - `ReferenceSearch` (header combobox): mono "/" hint, results in a bordered popover; ink outline on the
   active option; each result shows the server citation, page, a two-line serif snippet and
   "edición no verificada".
+- `ReferenceSearch` also ends its list with a quiet, ruled option «🔍 Buscar "…" en el texto» (ink text,
+  always last; reached with ↓ or a click): the way out to the content search.
+- `ResultCard` (`features/search/ui`): mono norm name → serif server citation → muted title → serif snippet
+  with the matched words on a pale ink wash and bold (**not** the yellow marker, which stays reserved for
+  cited passages in the reader) → foot (seal + edition + mono page + «Por palabras / Por significado /
+  Referencia exacta» tags written out, never colour alone) → ink «Leer en la norma» button. Other matching
+  passages live in a `<details>`. A reference the person typed gets an ink left rule: it is first on
+  purpose. Diagnostics (dev builds only) are a dashed `<details>` of mono key/values.
+- «Buscar en el texto» page: one column (≤ 56rem) — eyebrow, h1, one sentence («no son una respuesta ni una
+  opinión legal»), a labelled field + «Buscar», the privacy line, norm chips (pill, ink when pressed),
+  a `role="status"` count, an amber `role="note"` when the meaning search is unavailable, then the cards.
+  The first card must start close to the fold on a phone, so the intro stays one sentence.
 - Planned: dictamen-style answer card (Conclusión / Fundamento / Análisis / Excepciones / Fuentes).
 
 ## Responsive

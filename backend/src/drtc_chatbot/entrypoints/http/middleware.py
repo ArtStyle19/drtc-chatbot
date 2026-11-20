@@ -1,6 +1,7 @@
 """Pure ASGI middleware (safe for streaming responses such as SSE)."""
 
 import re
+import time
 import uuid
 
 import structlog
@@ -32,3 +33,38 @@ class RequestIdMiddleware:
 
         with structlog.contextvars.bound_contextvars(request_id=request_id):
             await self.app(scope, receive, send_with_request_id)
+
+
+class RequestLogMiddleware:
+    """One structured log line per HTTP request: method, path, status and duration.
+
+    The query string is NEVER logged: searches travel in it, and what a person searches for may
+    contain personal data (constitution VI). That is also why the server's own access log is off.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = time.perf_counter()
+        status = 500
+
+        async def send_and_note(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_and_note)
+        finally:
+            structlog.get_logger(__name__).info(
+                "http.request",
+                method=scope["method"],
+                path=scope["path"],
+                status=int(status),
+                duration_ms=round((time.perf_counter() - started) * 1000, 1),
+            )

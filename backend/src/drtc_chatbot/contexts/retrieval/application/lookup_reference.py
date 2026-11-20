@@ -14,7 +14,7 @@ from drtc_chatbot.contexts.retrieval.domain.text import normalize
 from drtc_chatbot.shared_kernel.application import Actor
 from drtc_chatbot.shared_kernel.domain import InvariantViolationError
 
-MAX_QUERY_LENGTH = 200
+MAX_QUERY_LENGTH = 300  # same limit as the content search (spec 004): one box, one rule
 MAX_HITS = 20
 EXAMPLES = "«art. 5 Ley 27181», «218.2 TUO», «anexo 2 RENAT» o «primera disposición final LGTTT»"
 # Words that may surround a reference without being part of it ("el art. 5 de la ley ...").
@@ -91,8 +91,8 @@ class LookupReference:
                 return self._whole_norms(text, [by_id[i] for i in mentions.instrument_ids])
             return self._result(
                 LookupStatus.UNRECOGNIZED, text, norms=named,
-                message=f"Por ahora solo busco por referencia: pruebe {EXAMPLES}. "
-                "La búsqueda por significado llegará en una próxima versión.",
+                message="No reconozco una referencia en ese texto, pero puede buscarlo por su contenido. "
+                f"Para ir a una disposición concreta pruebe {EXAMPLES}.",
             )  # fmt: skip
         return await self._search(actor, text, norms, mentions.instrument_ids, parsed.steps, words)
 

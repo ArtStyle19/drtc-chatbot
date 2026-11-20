@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from drtc_chatbot.bootstrap.settings import Settings
 from drtc_chatbot.contexts.ingestion.infrastructure import models as _ingestion_models  # noqa: F401
 from drtc_chatbot.contexts.legal_corpus.infrastructure import models as _corpus_models  # noqa: F401
+from drtc_chatbot.contexts.retrieval.infrastructure import models as _retrieval_models  # noqa: F401
 from drtc_chatbot.shared_kernel.infrastructure.persistence import Base
 
 config = context.config

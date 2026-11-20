@@ -78,6 +78,22 @@
               </span>
             </li>
           }
+          <!-- Always last: the way out for text that is not (only) a reference. -->
+          <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+          <li
+            role="option"
+            class="option text-option"
+            [id]="uid + '-op-' + textOptionIndex()"
+            [attr.aria-selected]="textOptionActive()"
+            (click)="searchText()"
+            (mousemove)="store.setActive(textOptionIndex())"
+          >
+            <svg lucideSearch [size]="14" class="text-option-icon" aria-hidden="true"></svg>
+            <span class="text-option-label">
+              Buscar «<span class="text-option-query">{{ store.query().trim() }}</span
+              >» en el texto
+            </span>
+          </li>
         </ul>
       }
     </div>
