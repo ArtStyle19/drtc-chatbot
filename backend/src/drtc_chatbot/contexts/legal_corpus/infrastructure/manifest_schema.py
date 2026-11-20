@@ -35,6 +35,7 @@ class VersionEntry(_Strict):
     consolidated_as_of: date | None = None
     consolidation_note: str | None = None
     verification_status: VerificationStatus
+    parser: str | None = None
     page_ranges: dict[PageRole, list[tuple[PositiveInt, PositiveInt]]] = Field(default_factory=dict)
     alerts: list[str] = Field(default_factory=list)
 

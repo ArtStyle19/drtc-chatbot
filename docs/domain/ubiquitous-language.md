@@ -20,6 +20,9 @@ identificador en inglés. Si un término nuevo aparece en una spec, se agrega aq
 | Estado de verificación (vigencia) | `VerificationStatus` | `verified_current`, `unverified`, `pending_review`, `superseded`, `repealed`, `unknown`. |
 | Vigente verificado | `VERIFIED_CURRENT` | Único estado que se puede presentar como vigente. |
 | Fecha de consolidación ("actualizado al") | `consolidated_as_of` | Fecha hasta la que el texto incorpora modificaciones. |
+| Revisión de una disposición | `ProvisionRevision` | Un texto de la disposición en una edición; la sustitución crea una revisión nueva y deja la anterior `superseded`. |
+| Aprobación | `Approval` / `ApprovalMode` | La edición puede usarse para consultas (`human` o `auto_dev` solo en desarrollo). **No es verificación.** |
+| Anomalía | `Anomaly` | Caso que el analizador no pudo interpretar con certeza; se reporta al revisor. |
 | Rol de una página | `PageRole` | `normative`, `explanatory`, `front_matter`, `index`, `back_matter`. |
 | Material explicativo | `PageRole.EXPLANATORY` | Manuales y comentarios: no son norma (p. ej. Manual del TUO). |
 | Página física / página impresa | `pdf_page` / `printed_page_label` | Número de página del PDF vs. número impreso en el documento. |

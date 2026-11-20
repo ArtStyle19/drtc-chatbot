@@ -21,6 +21,18 @@ make dev-backend        # http://localhost:8000/api/docs
 make dev-frontend       # http://localhost:4200
 ```
 
+## Ingesta y pruebas con base de datos
+
+```bash
+make test-db          # PostgreSQL+pgvector temporal en :55432 (red de host; no necesita publicar puertos)
+export DRTC_TEST_DATABASE_URL=postgresql+psycopg://drtc:drtc@127.0.0.1:55432/drtc_chatbot_test
+make test-backend     # corre también las pruebas que necesitan PostgreSQL
+make ingest           # (contra la base de desarrollo) carga el manifiesto e ingiere los tres PDF
+```
+
+Sin `DRTC_TEST_DATABASE_URL`, las pruebas usan testcontainers (necesitan que Docker publique puertos); si no
+hay ninguna base disponible, esas pruebas se omiten en local y **fallan en CI**.
+
 ## Puertos
 
 | Servicio | Puerto local | Variable |
@@ -32,7 +44,7 @@ make dev-frontend       # http://localhost:4200
 
 ## Problemas conocidos
 
-**Docker no publica puertos o los contenedores no tienen red** (errores como
+**Docker no publica puertos o los contenedores no tienen red** (ocurrió el 17-11-2026 y se resolvió reiniciando Docker) (errores como
 `Unable to enable DNAT rule … iptables: No chain/target/match by that name` o `error resolving DNS`
 durante `docker build`). Suele pasar en Fedora cuando firewalld se recarga después de que arrancó
 Docker y se pierden sus cadenas de iptables. Solución:

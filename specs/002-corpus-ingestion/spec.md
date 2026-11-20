@@ -4,10 +4,23 @@
 
 **Created**: 2026-11-17
 
-**Status**: Draft (pendiente de `/speckit-clarify` en la planificación del Sprint 1)
+**Status**: Implemented (Sprint 1, 2026-11-18); pendiente la revisión manual SC-001 — ver tasks.md
 
 **Input**: "Convertir los PDF del corpus en disposiciones estructuradas (artículo, numeral, literal),
 con su página exacta y su estado de vigencia, revisables por una persona antes de usarse."
+
+## Clarifications
+
+Sesión 2026-11-18 (responsable de producto / revisor jurídico):
+
+- **Alcance del sprint:** esta spec completa para las tres normas; la interfaz del lector es la spec 003.
+- **Aprobación (FR-005):** en desarrollo se aprueba automáticamente (política `auto_dev`), con
+  aprobación manual disponible desde el primer día (`approve`). La política `auto_dev` se rechaza en
+  `staging` y `production`; cada aprobación registra su modo (`human` / `auto_dev`). Aprobar no es
+  verificar: la vigencia sigue `unverified`. Ver ADR-0011.
+- **Manual del TUO (FR-006):** se excluye por completo; solo se ingieren las páginas normativas 71-284.
+- **Notas "(*)" y concordancias (FR-007):** se conservan como notas editoriales; aún no se muestran.
+- **Granularidad (FR-008):** hasta literal (a, b, c) y numeral; el artículo es el padre.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -88,16 +101,19 @@ la anterior como sustituida, para mantener la trazabilidad.
 - **FR-003**: Los textos sustituidos DEBEN quedar `superseded` con su `LegalEvent`; nunca dos textos
   de una misma disposición como vigentes.
 - **FR-004**: La ingesta DEBE ser idempotente por SHA-256 y no modificar nunca el PDF original.
-- **FR-005**: Una versión DEBE pasar por revisión y aprobación humana antes de quedar disponible para
-  consultas [NEEDS CLARIFICATION: ¿la aprobación se registra por CLI con nombre del revisor, o
-  esperamos a la interfaz de administración de la spec 008?].
-- **FR-006**: El material explicativo DEBE marcarse como no normativo [NEEDS CLARIFICATION: ¿se
-  puede usar para explicar conceptos en las respuestas (con etiqueta "material explicativo") o se
-  excluye por completo?].
-- **FR-007**: Las notas "(*)" que no modifican el texto DEBEN conservarse como notas editoriales
-  [NEEDS CLARIFICATION: ¿se muestran al usuario?].
-- **FR-008**: La granularidad mínima de una disposición DEBE ser [NEEDS CLARIFICATION: ¿literal e
-  inciso como unidades propias, o solo hasta numeral?].
+- **FR-005**: Una versión DEBE estar aprobada antes de quedar disponible para consultas. La política
+  de aprobación es configurable (`manual` | `auto_dev`); `auto_dev` solo se permite en `local` y
+  `test`. Cada aprobación registra modo, responsable y fecha, y la aprobación no cambia el estado de
+  verificación.
+- **FR-006**: El material explicativo (Manual del TUO, páginas 23-68) NO se ingiere: solo los rangos
+  de páginas con rol `normative` del manifiesto generan disposiciones.
+- **FR-007**: Las notas "(*)", las notas al pie del TUO y los bloques CONCORDANCIAS DEBEN conservarse
+  como notas editoriales vinculadas a su disposición (todavía no se muestran al usuario).
+- **FR-008**: La granularidad mínima de una disposición es el literal (a, b, c); el numeral (2.1) y el
+  artículo son sus ancestros.
+- **FR-010**: La API DEBE exponer solo disposiciones de versiones aprobadas, con su estado de
+  verificación y el modo de aprobación (`GET /api/v1/instruments/{id}/provisions`,
+  `GET /api/v1/provisions/{id}`).
 - **FR-009**: La ingesta DEBE producir un reporte de revisión legible (por norma: conteos, rangos de
   páginas, textos sustituidos detectados, anomalías).
 
@@ -116,9 +132,13 @@ la anterior como sustituida, para mantener la trazabilidad.
 - **SC-002**: 0 disposiciones con dos textos vigentes simultáneos.
 - **SC-003**: Reejecutar la ingesta produce exactamente el mismo resultado.
 - **SC-004**: La ingesta completa de las tres normas tarda menos de 2 minutos en un equipo de desarrollo.
+- **SC-005**: Las 10 preguntas del golden set se localizan: su texto de respaldo está dentro de la
+  disposición analizada y en la página citada.
 
 ## Assumptions
 
 - Los tres PDF tienen capa de texto: PyMuPDF basta; OCR fuera de alcance.
 - La ingesta se ejecuta por CLI (Typer); la interfaz de administración llega en la spec 008.
-- Los resultados se guardan en PostgreSQL; `corpus/manifest.yaml` sigue registrando los documentos fuente.
+- Los resultados se guardan en PostgreSQL; `corpus/manifest.yaml` es la semilla (`drtc-ingest sync`) y
+  sigue registrando los documentos fuente.
+- Extracción con pypdfium2 (licencia permisiva; ver ADR-0012).

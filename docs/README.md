@@ -12,6 +12,7 @@
 | Arquitectura | [overview.md](architecture/overview.md) | Vista C4 del sistema |
 | | [backend.md](architecture/backend.md) | Clean Architecture + DDD en FastAPI |
 | | [frontend.md](architecture/frontend.md) | Estructura estándar de Angular |
+| | [ingestion.md](architecture/ingestion.md) | Cómo se convierte un PDF en disposiciones (spec 002) |
 | | [rag-pipeline.md](architecture/rag-pipeline.md) | Recuperación y respuestas citadas (specs 004-005) |
 | | [testing-strategy.md](architecture/testing-strategy.md) | Pirámide de pruebas y evaluación |
 | | [security-privacy.md](architecture/security-privacy.md) | Seguridad, datos personales y proveedores de IA |

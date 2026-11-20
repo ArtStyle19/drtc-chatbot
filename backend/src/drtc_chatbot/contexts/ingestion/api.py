@@ -4,4 +4,10 @@ This is the ONLY module other bounded contexts may import (enforced by import-li
 Expose use cases and DTOs here, never domain entities or infrastructure.
 """
 
-__all__: list[str] = []
+from drtc_chatbot.contexts.ingestion.application.commands.preview_ingestion import PreviewIngestion
+from drtc_chatbot.contexts.ingestion.application.commands.run_ingestion import (
+    IngestionOutcome,
+    RunIngestion,
+)
+
+__all__ = ["IngestionOutcome", "PreviewIngestion", "RunIngestion"]

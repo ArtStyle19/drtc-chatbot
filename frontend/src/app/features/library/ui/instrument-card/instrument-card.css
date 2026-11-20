@@ -83,3 +83,14 @@
 .alerts li + li {
   margin-top: 0.35rem;
 }
+
+.ingestion {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.ingestion[data-state='empty'],
+.ingestion[data-state='pending'] {
+  color: var(--color-seal-unverified);
+}

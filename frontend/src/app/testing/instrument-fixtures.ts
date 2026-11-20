@@ -19,6 +19,9 @@ export function anInstrument(overrides: Partial<LegalInstrument> = {}): LegalIns
       may_be_presented_as_current: false,
       page_count: 36,
       alerts: ['Modificada después de 2020.'],
+      approval_status: 'approved',
+      approval_mode: 'auto_dev',
+      provision_count: 259,
     },
     ...overrides,
   };

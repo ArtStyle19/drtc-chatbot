@@ -8,8 +8,9 @@ Regional de Transportes y Comunicaciones de Puno. Sirve para tres cosas:
 2. **Leer y ubicar** partes concretas de las normas (p. ej. "artículo 218 del TUO de la LPAG").
 3. **Explicar** conceptos, distinguiendo siempre texto normativo, interpretación y recomendación.
 
-> **Estado:** Sprint 0 (walking skeleton). La Biblioteca lista las normas con su sello de vigencia.
-> La ingesta de disposiciones, la búsqueda y las respuestas citadas llegan en las specs 002-006
+> **Estado:** Sprint 1. Los tres PDF se convierten en disposiciones estructuradas con página exacta
+> (`make ingest`, API `/api/v1/instruments/{id}/provisions`). El lector, la búsqueda y las respuestas
+> citadas llegan en las specs 003-006
 > ([roadmap](docs/product/roadmap.md)).
 >
 > **Aviso:** las tres ediciones cargadas son **de prueba y no están verificadas**; al menos una
@@ -52,7 +53,8 @@ Requisitos: [uv](https://docs.astral.sh/uv/), [nvm](https://github.com/nvm-sh/nv
 cp .env.example .env
 make bootstrap        # dependencias del backend y del frontend + hooks de git
 make dev-db           # PostgreSQL + pgvector en localhost:5433
-make migrate          # extensiones vector, unaccent, pg_trgm
+make migrate          # extensiones y tablas del corpus
+make ingest           # ingiere los tres PDF (aprobación automática solo en desarrollo)
 make dev-backend      # API en http://localhost:8000 (docs: /api/docs)
 make dev-frontend     # interfaz en http://localhost:4200
 ```

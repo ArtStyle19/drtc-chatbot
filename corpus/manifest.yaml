@@ -61,6 +61,7 @@ instruments:
     publication_date: 1999-10-08
     versions:
       - id: ley-27181@2020-05
+        parser: ley-lgttt  # parsing profile used by `drtc-ingest` (ingestion context)
         source: src-ley-27181-2020-06
         edition_label: Compilación no oficial con modificaciones hasta mayo de 2020
         consolidated_as_of: null
@@ -87,6 +88,7 @@ instruments:
     publication_date: 2009-04-22
     versions:
       - id: ds-017-2009-mtc@2017-01-04
+        parser: renat  # parsing profile used by `drtc-ingest` (ingestion context)
         source: src-ds-017-2009-mtc-2017-01-04
         edition_label: Edición actualizada del MTC (DGTT)
         consolidated_as_of: 2017-01-04
@@ -110,6 +112,7 @@ instruments:
     publication_date: 2019-01-25
     versions:
       - id: tuo-ley-27444@ds-004-2019-jus-ed2021
+        parser: tuo-lpag  # parsing profile used by `drtc-ingest` (ingestion context)
         source: src-tuo-ley-27444-minjus-2021
         edition_label: Segunda Edición Oficial MINJUSDH (julio de 2021)
         consolidated_as_of: null

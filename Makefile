@@ -24,9 +24,26 @@ bootstrap: ## Install every dependency and the git hooks
 dev-db: ## Start only PostgreSQL + pgvector (host port 5433)
 	docker compose up -d db
 
+TEST_DB_PORT ?= 55432
+.PHONY: test-db
+test-db: ## Throwaway PostgreSQL+pgvector on :55432 for DB tests (host network; works when port publishing is broken)
+	-docker rm -f drtc-test-db >/dev/null 2>&1
+	docker run -d --rm --name drtc-test-db --network host -e POSTGRES_USER=drtc -e POSTGRES_PASSWORD=drtc \
+	  -e POSTGRES_DB=drtc_chatbot_test pgvector/pgvector:0.8.7-pg18-trixie postgres -c port=$(TEST_DB_PORT) -c listen_addresses=127.0.0.1
+	@until docker exec drtc-test-db pg_isready -h 127.0.0.1 -p $(TEST_DB_PORT) -U drtc >/dev/null 2>&1; do sleep 1; done
+	@echo "Ready. Run the DB tests with:  export DRTC_TEST_DATABASE_URL=postgresql+psycopg://drtc:drtc@127.0.0.1:$(TEST_DB_PORT)/drtc_chatbot_test"
+
+.PHONY: test-db-stop
+test-db-stop: ## Stop the throwaway test database
+	-docker rm -f drtc-test-db
+
 .PHONY: migrate
 migrate: ## Apply database migrations to the dev database
 	$(BACKEND) uv run alembic upgrade head
+
+.PHONY: ingest
+ingest: ## Load the manifest and ingest every corpus PDF into the dev database (spec 002)
+	$(BACKEND) uv run drtc-ingest run --all
 
 .PHONY: dev-backend
 dev-backend: ## Run the API with auto-reload on http://localhost:8000

@@ -15,6 +15,8 @@ crea uno nuevo que lo sustituye y se actualiza el estado del anterior.
 | [0008](0008-angular-frontend-architecture.md) | Frontend Angular 22 con features autocontenidas | Aceptada |
 | [0009](0009-corpus-validity-and-versioning.md) | Modelo de vigencia y versiones del corpus | Aceptada |
 | [0010](0010-deviations-from-reference-architecture.md) | Diferencias con la arquitectura de referencia | Aceptada |
+| [0011](0011-ingestion-approval-policy.md) | Política de aprobación de la ingesta (auto en desarrollo) | Aceptada |
+| [0012](0012-pypdfium2-for-pdf-extraction.md) | pypdfium2 para la extracción de texto de los PDF | Aceptada |
 
 ## Plantilla
 

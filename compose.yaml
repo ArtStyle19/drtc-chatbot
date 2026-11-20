@@ -7,6 +7,8 @@ x-backend-env: &backend-env
   DRTC_DATABASE_URL: postgresql+psycopg://${DRTC_DB_USER:-drtc}:${DRTC_DB_PASSWORD:-drtc}@db:5432/${DRTC_DB_NAME:-drtc_chatbot}
   DRTC_CORPUS_MANIFEST_PATH: /srv/corpus/manifest.yaml
   DRTC_LOG_LEVEL: ${DRTC_LOG_LEVEL:-INFO}
+  # Development only (ADR-0011): approves ingested versions automatically. Production uses `manual`.
+  DRTC_INGESTION_APPROVAL_POLICY: ${DRTC_INGESTION_APPROVAL_POLICY:-auto_dev}
 
 services:
   db:
@@ -34,6 +36,17 @@ services:
         condition: service_healthy
     profiles: ["app"]
 
+  ingest:
+    build: ./backend
+    command: ["drtc-ingest", "run", "--all"]
+    environment: *backend-env
+    volumes:
+      - ./corpus:/srv/corpus:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    profiles: ["app"]
+
   backend:
     build: ./backend
     environment: *backend-env
@@ -42,7 +55,7 @@ services:
     ports:
       - "127.0.0.1:${DRTC_API_HOST_PORT:-8000}:8000"
     depends_on:
-      migrate:
+      ingest:
         condition: service_completed_successfully
     profiles: ["app"]
 

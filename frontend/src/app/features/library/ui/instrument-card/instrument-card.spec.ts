@@ -22,4 +22,16 @@ describe('InstrumentCard', () => {
     expect(element.querySelector('drtc-validity-seal')?.textContent).toContain('No verificado');
     expect(element.querySelector('summary')?.textContent).toContain('Advertencias (1)');
   });
+
+  it('says how many provisions were ingested and never calls an approval a verification', () => {
+    TestBed.configureTestingModule({ providers: [{ provide: LOCALE_ID, useValue: 'es-PE' }] });
+    const fixture = TestBed.createComponent(InstrumentCard);
+    fixture.componentRef.setInput('instrument', anInstrument());
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).querySelector('.ingestion')?.textContent;
+
+    expect(text).toContain('259 disposiciones');
+    expect(text).toContain('aprobación automática solo de desarrollo');
+    expect(text).not.toMatch(/verificad|vigente/i);
+  });
 });
