@@ -37,12 +37,19 @@ from drtc_chatbot.contexts.retrieval.application.ports import (
     Segment,
 )
 from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingUnavailableError
-from drtc_chatbot.contexts.retrieval.domain.fusion import DEFAULT_K, reciprocal_rank_fusion
+from drtc_chatbot.contexts.retrieval.domain.fusion import reciprocal_rank_fusion
 from drtc_chatbot.contexts.retrieval.domain.query import validate_query
 from drtc_chatbot.shared_kernel.application import Actor
 from drtc_chatbot.shared_kernel.domain import InvariantViolationError
 
 ARM_TOP_N = 50
+# Fusion defaults, chosen with the golden set (evaluation/reports/2026-11-19-fusion-tuning.md): the meaning
+# arm found the expected unit in the top 10 for 100 % of the questions and the words arm for 67 %, so with
+# equal weights the weaker arm dragged the stronger one down (hybrid 98 % < meaning alone 100 %). Counting
+# the meaning arm six times as much, with a small k, keeps the words as the tie-breaker that rescues
+# questions with an exact term (SOAT, multa, plazo) and makes the hybrid as good as the meaning alone.
+DEFAULT_RRF_K = 5
+DEFAULT_VECTOR_WEIGHT = 6.0
 MAX_MATCHED = 5
 DEFAULT_LIMIT = 10
 VECTOR_TIMEOUT_SECONDS = 3.0
@@ -80,7 +87,8 @@ class SearchPassages:
         editions: EditionCatalog,
         provider: EmbeddingProvider | None,
         *,
-        rrf_k: int = DEFAULT_K,
+        rrf_k: int = DEFAULT_RRF_K,
+        vector_weight: float = DEFAULT_VECTOR_WEIGHT,
         arm_top_n: int = ARM_TOP_N,
         vector_timeout_seconds: float = VECTOR_TIMEOUT_SECONDS,
         timer: Callable[[], float] = time.perf_counter,
@@ -90,6 +98,7 @@ class SearchPassages:
         self._editions = editions
         self._provider = provider
         self._k = rrf_k
+        self._vector_weight = vector_weight
         self._top_n = arm_top_n
         self._timeout = vector_timeout_seconds
         self._timer = timer
@@ -213,6 +222,7 @@ class SearchPassages:
                 "vector": [(h.passage.version_id, h.passage.path) for h in arms.vector],
             },
             k=self._k,
+            weights={"vector": self._vector_weight},
         )
         units: dict[UnitKey, _Unit] = {}
         for item in fused:

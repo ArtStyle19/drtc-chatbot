@@ -9,7 +9,7 @@ from drtc_chatbot.contexts.retrieval.infrastructure.gemini_embeddings import Gem
 from drtc_chatbot.contexts.retrieval.infrastructure.openai_embeddings import OpenAIEmbeddingProvider
 
 SECRET = "sk-test-NOT-A-REAL-KEY-0123456789"  # noqa: S105 - a fake key, to prove it never leaks
-GEMINI = "AIza-test-NOT-A-REAL-KEY-0123456789"  # a fake key, to prove it never leaks
+GEMINI = "gemini-test-NOT-A-REAL-KEY-0123456789"  # a fake key, to prove it never leaks
 
 
 def settings(**overrides: object) -> Settings:
@@ -59,12 +59,15 @@ def test_sensible_defaults_and_limits() -> None:
 
     assert configured.openai_embedding_model == "text-embedding-3-small"
     assert configured.openai_embedding_dimensions is None
-    assert (configured.search_rrf_k, configured.search_arm_top_n) == (60, 50)
+    assert (configured.search_rrf_k, configured.search_arm_top_n) == (5, 50)
+    assert configured.search_vector_weight == 6.0
     assert configured.search_vector_timeout_seconds == 3.0
     with pytest.raises(ValueError, match="greater than or equal to 1"):
         settings(search_rrf_k=0)
     with pytest.raises(ValueError, match="greater than 0"):
         settings(search_vector_timeout_seconds=0)
+    with pytest.raises(ValueError, match="greater than 0"):
+        settings(search_vector_weight=0)
 
 
 # ---------------------------------------------------------------------------------- gemini

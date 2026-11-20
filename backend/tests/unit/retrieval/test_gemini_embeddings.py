@@ -24,7 +24,7 @@ from drtc_chatbot.contexts.retrieval.infrastructure.gemini_embeddings import (
     PerMinuteLimit,
 )
 
-KEY = SecretStr("AIza-test-NOT-A-REAL-KEY-abcdef0123456789")  # fake: to prove it never leaks
+KEY = SecretStr("gemini-test-NOT-A-REAL-KEY-abcdef0123456789")  # fake: to prove it never leaks
 QUESTION = "mi hermano Juan Pérez DNI 12345678 chocó la camioneta placa ABC-123"
 
 

@@ -14,7 +14,12 @@ from drtc_chatbot.contexts.retrieval.application.ports import (
     PassageHit,
     Segment,
 )
-from drtc_chatbot.contexts.retrieval.application.search_passages import MAX_MATCHED, SearchPassages
+from drtc_chatbot.contexts.retrieval.application.search_passages import (
+    DEFAULT_RRF_K,
+    DEFAULT_VECTOR_WEIGHT,
+    MAX_MATCHED,
+    SearchPassages,
+)
 from drtc_chatbot.contexts.retrieval.domain.chunking import PassageText
 from drtc_chatbot.contexts.retrieval.domain.errors import EmbeddingUnavailableError
 from drtc_chatbot.contexts.retrieval.infrastructure.fake_embeddings import FakeEmbeddingProvider
@@ -189,7 +194,7 @@ async def test_a_text_that_is_not_a_reference_is_searched_whole() -> None:
 async def test_what_both_arms_found_ranks_above_what_only_one_found_and_says_so() -> None:
     both = hit(TUO, "articulo:218/numeral:218.2", unit="articulo:218")
     index = ScriptedIndex(
-        lexical=[hit(LEY, "articulo:1"), both],
+        lexical=[both, hit(LEY, "articulo:1")],
         vector=[hit(RENAT, "articulo:9"), both],
     )
 
@@ -200,6 +205,64 @@ async def test_what_both_arms_found_ranks_above_what_only_one_found_and_says_so(
     assert sorted(units(response)) == sorted(
         {(LEY, "articulo:1"), (RENAT, "articulo:9"), (TUO, "articulo:218")}
     )
+
+
+@pytest.mark.spec("004-SC-004")
+async def test_the_meaning_leads_a_unit_only_the_words_found_first_does_not_overtake_it() -> None:
+    """Measured with the golden set: the words arm is the weaker one, so on equal footing it dragged
+    the hybrid below the meaning alone. The meaning arm counts several times as much."""
+    index = ScriptedIndex(
+        lexical=[hit(LEY, "articulo:1"), hit(LEY, "articulo:2")],
+        vector=[hit(RENAT, "articulo:9"), hit(RENAT, "articulo:8")],
+    )
+
+    response = await run(search_with(index), "algo")
+
+    assert units(response)[:2] == [(RENAT, "articulo:9"), (RENAT, "articulo:8")]  # meaning first
+    assert (LEY, "articulo:1") in units(response)  # the words are still there, just below
+
+
+@pytest.mark.spec("004-SC-004")
+async def test_the_words_still_rescue_an_exact_term_the_meaning_ranked_second() -> None:
+    """When the words put a passage first and the meaning put the same passage second, it rises above
+    the meaning's own first: the words are the tie-breaker (the mechanism; see the fusion tuning report
+    for how much it matters on the golden set)."""
+    index = ScriptedIndex(
+        lexical=[hit(LEY, "articulo:30")],
+        vector=[hit(RENAT, "articulo:9"), hit(LEY, "articulo:30")],
+    )
+
+    response = await run(search_with(index), "SOAT")
+
+    assert units(response)[0] == (LEY, "articulo:30")
+
+
+async def test_the_words_alone_cannot_lift_a_unit_the_meaning_ranked_third_over_its_first() -> None:
+    index = ScriptedIndex(
+        lexical=[hit(LEY, "articulo:30")],
+        vector=[hit(RENAT, "articulo:9"), hit(RENAT, "articulo:8"), hit(LEY, "articulo:30")],
+    )
+
+    response = await run(search_with(index), "SOAT")
+
+    assert units(response)[0] == (RENAT, "articulo:9")
+
+
+async def test_the_weight_of_the_meaning_arm_is_a_setting_and_changes_who_leads() -> None:
+    index = ScriptedIndex(
+        lexical=[hit(LEY, "articulo:1"), hit(LEY, "articulo:2")],
+        vector=[hit(RENAT, "articulo:7"), hit(RENAT, "articulo:9")],
+    )
+
+    meaning_heavy = await run(search_with(index, vector_weight=6.0), "algo")
+    words_heavy = await run(search_with(index, vector_weight=0.2), "algo")
+
+    assert units(meaning_heavy)[0] == (RENAT, "articulo:7")
+    assert units(words_heavy)[0] == (LEY, "articulo:1")
+
+
+async def test_with_no_setting_given_the_defaults_are_the_ones_chosen_with_the_golden_set() -> None:
+    assert (DEFAULT_RRF_K, DEFAULT_VECTOR_WEIGHT) == (5, 6.0)
 
 
 @pytest.mark.spec("004-FR-010")

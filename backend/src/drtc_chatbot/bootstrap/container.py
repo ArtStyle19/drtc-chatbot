@@ -205,6 +205,7 @@ def build_container(settings: Settings, *, remember_queries: bool = False) -> Co
         LegalCorpusEditions(ListApprovedEditions(catalog, reading)),
         embedding,
         rrf_k=settings.search_rrf_k,
+        vector_weight=settings.search_vector_weight,
         arm_top_n=settings.search_arm_top_n,
         vector_timeout_seconds=settings.search_vector_timeout_seconds,
     )
